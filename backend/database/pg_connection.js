@@ -3,7 +3,7 @@ const { Pool } = require('pg');
 
 const pgPool = new Pool({
     connectionString: process.env.CONNECTION_STRING,
-    ssl: true
+    ssl: {rejectUnauthorized: false}
 });
 
 pgPool.connect((err) => {
