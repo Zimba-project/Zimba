@@ -4,6 +4,7 @@ import TabSwitcher from '../components/MainPage/TabSwitcher';
 import PollCard from '../components/MainPage/PollCard';
 import DiscussionCard from '../components/MainPage/DiscussionCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import TopBar from '../components/TopBar';
 
 const pollData = [
     {
@@ -27,7 +28,7 @@ const discussionData = [
         title: 'Maceenas mattis hendrerit enim ac vest...',
         preview: 'Phasellus interdum neque nunc, non tempor dui auctor eu...',
         comments: 657,
-        topic: 'My Love',
+        topic: 'zimba',
     },
 ];
 
@@ -37,6 +38,13 @@ const MainScreen = () => {
 
     return (
         <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+            <TopBar
+                title="ZIMBA"
+                leftIcon="menu"
+                onLeftPress={() => alert('Open drawer')}
+                rightText="Login"
+                onRightPress={() => alert('Open login')}
+            />
             <FlatList
                 data={data}
                 keyExtractor={(item) => item.id}

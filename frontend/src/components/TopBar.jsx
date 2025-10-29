@@ -1,0 +1,119 @@
+import React from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Image,
+} from 'react-native';
+import { Feather as Icon } from '@expo/vector-icons';
+
+/**
+ * General TopBar
+ * Props:
+ *   title        → center text
+ *   leftIcon     → name (e.g. 'arrow-left', 'menu')
+ *   onLeftPress  → callback
+ *   rightIcon    → name (e.g. 'search', 'bell')
+ *   rightText    → text button (e.g. "Save", "Done")
+ *   onRightPress → callback
+ *   logo         → optional image source
+ */
+const TopBar = ({
+    title = '',
+    leftIcon,
+    onLeftPress,
+    rightIcon,
+    rightText,
+    onRightPress,
+    logo,
+}) => (
+    <View style={styles.container}>
+        {/* LEFT */}
+        <View style={styles.left}>
+            {leftIcon ? (
+                <TouchableOpacity onPress={onLeftPress} style={styles.iconButton}>
+                    <Icon name={leftIcon} size={24} color="#111827" />
+                </TouchableOpacity>
+            ) : logo ? (
+                <Image source={logo} style={styles.logo} resizeMode="contain" />
+            ) : (
+                <View style={{ width: 40 }} />
+            )}
+        </View>
+
+        {/* CENTER TITLE */}
+        <Text style={styles.title} numberOfLines={1}>
+            {title}
+        </Text>
+
+        {/* RIGHT */}
+        <View style={styles.right}>
+            {rightText ? (
+                <TouchableOpacity
+                    onPress={onRightPress}
+                    style={styles.textButton}
+                    activeOpacity={0.7}
+                >
+                    <Text style={styles.rightText}>{rightText}</Text>
+                </TouchableOpacity>
+            ) : (
+                rightIcon && (
+                    <TouchableOpacity onPress={onRightPress} style={styles.iconButton}>
+                        <Icon name={rightIcon} size={24} color="#111827" />
+                    </TouchableOpacity>
+                )
+            )}
+        </View>
+    </View>
+);
+
+const styles = StyleSheet.create({
+    container: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#e5e7eb',
+        height: 56,
+    },
+    left: { width: 40, justifyContent: 'center' },
+    right: { width: 80, alignItems: 'flex-end', justifyContent: 'center' },
+    iconButton: { padding: 4 },
+    title: {
+        flex: 1,
+        textAlign: 'center',
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#111827',
+        marginHorizontal: 40,
+    },
+    logo: { width: 32, height: 32 },
+
+    // NEW: Text as button
+    textButton: {
+        backgroundColor: '#e0e7ff',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        minWidth: 60,
+        alignItems: 'center',
+        justifyContent: 'center',
+        elevation: 1,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+    },
+    rightText: {
+        color: '#4338ca',
+        fontWeight: '600',
+        fontSize: 14,
+        letterSpacing: 0.3,
+    },
+});
+
+export default TopBar;
