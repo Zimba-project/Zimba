@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import { Feather as Icon, FontAwesome } from '@expo/vector-icons';
 import { login as loginApi } from '../api/auth';
 
 const Login = ({ navigation, route }) => {
@@ -68,7 +69,31 @@ const Login = ({ navigation, route }) => {
                 {loading ? (
                     <ActivityIndicator />
                 ) : (
-                    <Button title="Login" onPress={handleLogin} />
+                    <>
+                        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+                            <Icon name="log-in" size={16} color="#fff" style={{ marginRight: 8 }} />
+                            <Text style={styles.loginText}>Login</Text>
+                        </TouchableOpacity>
+                        <View style={{ height: 12 }} />
+
+                        <TouchableOpacity
+                            style={styles.googleButton}
+                            onPress={() => Alert.alert('Not implemented', 'Google sign-in is decorative only')}
+                        >
+                            <FontAwesome name="google" size={18} color="#DB4437" style={{ marginRight: 10 }} />
+                            <Text style={[styles.socialText, { color: '#111827' }]}>Sign in with Google</Text>
+                        </TouchableOpacity>
+
+                        <View style={{ height: 8 }} />
+
+                        <TouchableOpacity
+                            style={styles.facebookButton}
+                            onPress={() => Alert.alert('Not implemented', 'Facebook sign-in is decorative only')}
+                        >
+                            <FontAwesome name="facebook" size={18} color="#1877F2" style={{ marginRight: 10 }} />
+                            <Text style={[styles.socialText, { color: '#111827' }]}>Sign in with Facebook</Text>
+                        </TouchableOpacity>
+                    </>
                 )}
 
                 <View style={styles.row}>
@@ -90,7 +115,12 @@ const styles = StyleSheet.create({
     row: { flexDirection: 'row', marginTop: 12, alignItems: 'center' },
     rowText: { color: '#374151' },
     link: { color: '#2563eb' },
-    error: { color: 'red', marginBottom: 8 }
+    error: { color: 'red', marginBottom: 8 },
+    googleButton: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', paddingVertical: 10, borderRadius: 8, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
+    facebookButton: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', paddingVertical: 10, borderRadius: 8, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
+    socialText: { color: '#111827', fontWeight: '600' },
+    loginButton: { backgroundColor: '#2563eb', paddingVertical: 12, borderRadius: 8, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
+    loginText: { color: '#fff', fontWeight: '700' }
 });
 
 export default Login;
