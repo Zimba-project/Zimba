@@ -18,10 +18,22 @@ function displayDate(d){
     try{ return d.toLocaleDateString(); }catch(e){ return formatDate(d); }
 }
 
+const COUNTRIES = [
+    { name: 'United States', dial_code: '+1', code: 'US', flag: '🇺🇸' },
+    { name: 'United Kingdom', dial_code: '+44', code: 'GB', flag: '🇬🇧' },
+    { name: 'India', dial_code: '+91', code: 'IN', flag: '🇮🇳' },
+    { name: 'Pakistan', dial_code: '+92', code: 'PK', flag: '🇵🇰' },
+    { name: 'Canada', dial_code: '+1', code: 'CA', flag: '🇨🇦' },
+    { name: 'Australia', dial_code: '+61', code: 'AU', flag: '🇦🇺' },
+];
+
 const Register = ({ navigation }) => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [phone, setPhone] = useState('');
+    // country picker
+    const [country, setCountry] = useState({ name: 'United States', dial_code: '+1', code: 'US', flag: '🇺🇸' });
+    const [showCountryPicker, setShowCountryPicker] = useState(false);
     // store birthdate as Date (or null)
     const [birthdate, setBirthdate] = useState(null);
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -44,7 +56,9 @@ const Register = ({ navigation }) => {
 
         setLoading(true);
         try {
-            const payload = { firstName, lastName, phone, birthdate: birthdate ? formatDate(birthdate) : null, password, confirmPassword, about };
+            // build full phone with country code
+            const fullPhone = `${country.dial_code}${phone}`;
+            const payload = { firstName, lastName, phone: fullPhone, birthdate: birthdate ? formatDate(birthdate) : null, password, confirmPassword, about };
             const res = await registerApi(payload);
             if (res && res.ok) {
                 // success: backend returns token and user
@@ -55,7 +69,7 @@ const Register = ({ navigation }) => {
                 Alert.alert('Account created', welcome, [
                     { text: 'OK', onPress: () => {
                         // navigate to Login and prefill phone so user can easily sign in
-                        navigation.replace('Login', { phone });
+                        navigation.replace('Login', { phone: fullPhone });
                     } }
                 ]);
             } else if (res) {
@@ -81,7 +95,38 @@ const Register = ({ navigation }) => {
 
                 <TextInput placeholder="First name" placeholderTextColor="#666" value={firstName} onChangeText={setFirstName} style={styles.input} />
                 <TextInput placeholder="Last name" placeholderTextColor="#666" value={lastName} onChangeText={setLastName} style={styles.input} />
-                <TextInput placeholder="Phone" placeholderTextColor="#666" value={phone} onChangeText={setPhone} keyboardType="phone-pad" style={styles.input} />
+                {/* Phone with country selector (single bordered control) */}
+                <View style={styles.phoneContainer}>
+                    <TouchableOpacity style={styles.countryButton} onPress={() => setShowCountryPicker(true)}>
+                        <Text style={styles.countryText}>{country.flag} {country.dial_code}</Text>
+                    </TouchableOpacity>
+                    <TextInput
+                        placeholder="Phone number"
+                        placeholderTextColor="#666"
+                        value={phone}
+                        onChangeText={setPhone}
+                        keyboardType="phone-pad"
+                        style={styles.phoneInput}
+                    />
+                </View>
+                {showCountryPicker && (
+                    <Modal visible={showCountryPicker} transparent animationType="slide" onRequestClose={() => setShowCountryPicker(false)}>
+                        <View style={styles.modalOverlay}>
+                            <View style={styles.countryModal}>
+                                <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8 }}>Select country</Text>
+                                <ScrollView style={{ maxHeight: 300 }}>
+                                    {COUNTRIES.map((c) => (
+                                        <TouchableOpacity key={c.code} style={styles.countryRow} onPress={() => { setCountry(c); setShowCountryPicker(false); }}>
+                                            <Text style={{ fontSize: 18 }}>{c.flag}  {c.name}</Text>
+                                            <Text style={{ color: '#374151' }}>{c.dial_code}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+                                <Button title="Close" onPress={() => setShowCountryPicker(false)} />
+                            </View>
+                        </View>
+                    </Modal>
+                )}
                 {/* Birthdate picker (open native picker when tapped) */}
                 <TouchableOpacity onPress={() => setShowDatePicker(true)} activeOpacity={0.8} style={[styles.input, styles.dateRow]}>
                     <Text style={birthdate ? styles.dateText : styles.placeholderText}>
@@ -151,7 +196,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f3f4f6' },
     card: { padding: 20, alignItems: 'center', width: '100%', maxWidth: 460, backgroundColor: '#fff', borderRadius: 12, margin: 16, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 },
     title: { fontSize: 22, fontWeight: '600', marginBottom: 12, color: '#111827' },
-    input: { backgroundColor: '#fff', width: '100%', borderWidth: 1, borderColor: '#e5e7eb', padding: 10, marginBottom: 12, borderRadius: 8, color: '#000' },
+    input: { backgroundColor: '#fff', width: '100%', borderWidth: 1, borderColor: '#e5e7eb', paddingHorizontal: 12, paddingVertical: 10, marginBottom: 12, borderRadius: 8, color: '#000', height: 44 },
     dateRow: { justifyContent: 'space-between', flexDirection: 'row', alignItems: 'center', paddingRight: 10 },
     dateInput: { justifyContent: 'center' },
     dateText: { color: '#111827' },
@@ -160,6 +205,13 @@ const styles = StyleSheet.create({
     pickerActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
     modalContent: { backgroundColor: '#fff', padding: 12, borderTopLeftRadius: 12, borderTopRightRadius: 12 },
+    phoneRow: { flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 12 },
+    phoneContainer: { flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 12, borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 8, backgroundColor: '#fff', overflow: 'hidden' },
+    countryButton: { paddingHorizontal: 12, backgroundColor: 'transparent', height: 44, justifyContent: 'center', minWidth: 92, alignItems: 'center', borderRightWidth: 1, borderRightColor: '#e5e7eb' },
+    countryText: { color: '#111827' },
+    phoneInput: { flex: 1, height: 44, paddingHorizontal: 12, paddingVertical: 0, color: '#000' },
+    countryModal: { backgroundColor: '#fff', margin: 16, borderRadius: 12, padding: 12 },
+    countryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
     error: { color: 'red', marginBottom: 8 }
 });
 
