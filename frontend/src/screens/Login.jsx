@@ -3,8 +3,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { login as loginApi } from '../api/auth';
 
-const Login = ({ navigation }) => {
-    const [phone, setPhone] = useState('');
+const Login = ({ navigation, route }) => {
+    const initialPhone = route && route.params && route.params.phone ? route.params.phone : '';
+    const [phone, setPhone] = useState(initialPhone);
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
