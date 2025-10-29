@@ -1,10 +1,13 @@
+import 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import Sidebar from './navigation/Sidebar';
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text>Zimba</Text>
+      <Sidebar />
       <StatusBar style="auto" />
     </View>
   );
@@ -12,9 +15,6 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flex: 1,          // riittää — poista alignItems ja justifyContent!
   },
 });
