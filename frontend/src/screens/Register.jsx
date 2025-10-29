@@ -36,7 +36,7 @@ const Register = ({ navigation }) => {
                 // show sweet message then navigate on OK
                 Alert.alert('Account created', welcome, [
                     { text: 'OK', onPress: () => {
-                        if (res.body && res.body.token) navigation.replace('Main');
+                        if (res.body && res.body.token) navigation.replace('Main', { user: res.body.user });
                         else navigation.replace('Login');
                     } }
                 ]);

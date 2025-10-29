@@ -21,7 +21,8 @@ const Login = ({ navigation }) => {
             if (res && res.ok) {
                 if (res.body && res.body.token) {
                     // TODO: persist token (AsyncStorage / SecureStore) later
-                    navigation.replace('Main');
+                    // pass user to Main so top bar can show initials
+                    navigation.replace('Main', { user: res.body.user });
                 } else {
                     setError('Login succeeded but no token returned');
                 }

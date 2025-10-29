@@ -25,6 +25,7 @@ const TopBar = ({
     onLeftPress,
     rightIcon,
     rightText,
+    rightAvatar,
     onRightPress,
     logo,
 }) => (
@@ -49,7 +50,13 @@ const TopBar = ({
 
         {/* RIGHT */}
         <View style={styles.right}>
-            {rightText ? (
+            {rightAvatar ? (
+                <TouchableOpacity onPress={onRightPress} style={styles.avatarButton}>
+                    <View style={styles.avatarCircle}>
+                        <Text style={styles.avatarText}>{rightAvatar}</Text>
+                    </View>
+                </TouchableOpacity>
+            ) : rightText ? (
                 <TouchableOpacity
                     onPress={onRightPress}
                     style={styles.textButton}
@@ -114,6 +121,9 @@ const styles = StyleSheet.create({
         fontSize: 14,
         letterSpacing: 0.3,
     },
+    avatarButton: { padding: 4 },
+    avatarCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#2563eb', alignItems: 'center', justifyContent: 'center' },
+    avatarText: { color: '#fff', fontWeight: '700' },
 });
 
 export default TopBar;
