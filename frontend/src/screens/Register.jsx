@@ -93,9 +93,18 @@ const Register = ({ navigation }) => {
 
                 {error ? <Text style={styles.error}>{error}</Text> : null}
 
-                <TextInput placeholder="First name" placeholderTextColor="#666" value={firstName} onChangeText={setFirstName} style={styles.input} />
-                <TextInput placeholder="Last name" placeholderTextColor="#666" value={lastName} onChangeText={setLastName} style={styles.input} />
-                {/* Phone with country selector (single bordered control) */}
+                <Text style={styles.subtitle}>Personal info</Text>
+                <View style={styles.rowNames}>
+                    <View style={{ flex: 1, marginRight: 8 }}>
+                        <Text style={styles.label}>First name</Text>
+                        <TextInput placeholder="First name" placeholderTextColor="#666" value={firstName} onChangeText={setFirstName} style={[styles.input, styles.inputSmall]} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.label}>Last name</Text>
+                        <TextInput placeholder="Last name" placeholderTextColor="#666" value={lastName} onChangeText={setLastName} style={[styles.input, styles.inputSmall]} />
+                    </View>
+                </View>
+                <Text style={styles.label}>Phone</Text>
                 <View style={styles.phoneContainer}>
                     <TouchableOpacity style={styles.countryButton} onPress={() => setShowCountryPicker(true)}>
                         <Text style={styles.countryText}>{country.flag} {country.dial_code}</Text>
@@ -128,6 +137,7 @@ const Register = ({ navigation }) => {
                     </Modal>
                 )}
                 {/* Birthdate picker (open native picker when tapped) */}
+                <Text style={styles.label}>Birthdate</Text>
                 <TouchableOpacity onPress={() => setShowDatePicker(true)} activeOpacity={0.8} style={[styles.input, styles.dateRow]}>
                     <Text style={birthdate ? styles.dateText : styles.placeholderText}>
                         {birthdate ? displayDate(birthdate) : 'Birthdate (YYYY-MM-DD)'}
@@ -177,15 +187,28 @@ const Register = ({ navigation }) => {
                         }}
                     />
                 )}
+                <Text style={styles.label}>About (optional)</Text>
                 <TextInput placeholder="About (optional)" placeholderTextColor="#666" value={about} onChangeText={setAbout} style={[styles.input, { height: 80 }]} multiline />
+
+                <Text style={styles.label}>Password</Text>
                 <TextInput placeholder="Password" placeholderTextColor="#666" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
+
+                <Text style={styles.label}>Confirm password</Text>
                 <TextInput placeholder="Confirm password" placeholderTextColor="#666" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry style={styles.input} />
 
-                {loading ? <ActivityIndicator /> : <Button title="Register" onPress={handleRegister} />}
+                {loading ? (
+                    <ActivityIndicator />
+                ) : (
+                    <TouchableOpacity style={styles.registerButton} onPress={handleRegister} activeOpacity={0.85}>
+                        <Text style={styles.registerText}>Create account</Text>
+                    </TouchableOpacity>
+                )}
 
-                <View style={{ marginTop: 12 }}>
-                    <Text>Already have an account?</Text>
-                    <Button title="Back to Login" onPress={() => navigation.navigate('Login')} />
+                <View style={styles.loginRow}>
+                    <Text style={{ color: '#6b7280' }}>Already have an account?</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                        <Text style={styles.link}> Sign in</Text>
+                    </TouchableOpacity>
                 </View>
             </ScrollView>
         </SafeAreaView>
@@ -213,6 +236,14 @@ const styles = StyleSheet.create({
     countryModal: { backgroundColor: '#fff', margin: 16, borderRadius: 12, padding: 12 },
     countryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
     error: { color: 'red', marginBottom: 8 }
+    ,
+    subtitle: { width: '100%', fontSize: 14, color: '#374151', marginTop: 8, marginBottom: 6 },
+    label: { width: '100%', color: '#6b7280', marginBottom: 6, fontSize: 13 },
+    rowNames: { flexDirection: 'row', width: '100%', marginBottom: 12 },
+    inputSmall: { height: 44 },
+    registerButton: { width: '100%', backgroundColor: '#2563eb', paddingVertical: 12, borderRadius: 10, alignItems: 'center', marginTop: 6 },
+    registerText: { color: '#fff', fontWeight: '700' },
+    loginRow: { flexDirection: 'row', marginTop: 12, alignItems: 'center' }
 });
 
 export default Register;
