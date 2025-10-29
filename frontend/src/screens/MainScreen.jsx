@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, FlatList, StyleSheet } from 'react-native';
 import TabSwitcher from '../components/MainPage/TabSwitcher';
-import PollCard from '../components/MainPage/PollCard';
-import DiscussionCard from '../components/MainPage/DiscussionCard';
+import PollCard from '../components/Cards/PollCard';
+import DiscussionCard from '../components/Cards/DiscussionCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TopBar from '../components/TopBar';
 
