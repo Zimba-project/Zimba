@@ -17,6 +17,12 @@ const pollData = [
         comments: 657,
         endTime: '17/12/2024, 5:00PM',
         topic: 'Poll',
+        share: {
+            title: 'Poll: Maceenas mattis',
+            message: 'Check out this poll: Maceenas mattis hendrerit enim ac vest...',
+            url: 'https://picsum.photos/seed/poll1/600/400',
+        },
+        onSave: () => alert('Poll saved!'),
     },
 ];
 
@@ -29,6 +35,13 @@ const discussionData = [
         preview: 'Phasellus interdum neque nunc, non tempor dui auctor eu...',
         comments: 657,
         topic: 'zimba',
+        views: 8900,
+        share: {
+            title: 'Discussion: Maceenas mattis',
+            message: 'Join the discussion: Maceenas mattis hendrerit enim ac vest...',
+            url: 'https://picsum.photos/seed/disc1/600/400',
+        },
+        onSave: () => alert('Discussion saved!'),
     },
 ];
 
@@ -53,9 +66,15 @@ const MainScreen = () => {
                         <PollCard
                             {...item}
                             onTakePoll={() => alert('Poll opened!')}
+                            share={item.share}
+                            onSave={item.onSave}
                         />
                     ) : (
-                        <DiscussionCard {...item} />
+                        <DiscussionCard
+                            {...item}
+                            share={item.share}
+                            onSave={item.onSave}
+                        />
                     )
                 }
                 showsVerticalScrollIndicator={false}
