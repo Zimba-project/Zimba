@@ -45,7 +45,7 @@ const discussionData = [
     },
 ];
 
-const MainScreen = () => {
+const MainScreen = ({ navigation }) => {
     const [activeTab, setActiveTab] = useState('polls');
     const data = activeTab === 'polls' ? pollData : discussionData;
 
@@ -56,7 +56,7 @@ const MainScreen = () => {
                 leftIcon="menu"
                 onLeftPress={() => alert('Open drawer')}
                 rightText="Login"
-                onRightPress={() => alert('Open login')}
+                onRightPress={() => navigation.navigate('Login')}
             />
             <FlatList
                 data={data}
