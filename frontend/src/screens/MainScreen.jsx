@@ -27,7 +27,7 @@ const discussionData = [
         title: 'Maceenas mattis hendrerit enim ac vest...',
         preview: 'Phasellus interdum neque nunc, non tempor dui auctor eu...',
         comments: 657,
-        topic: 'My Love',
+        topic: 'zimba',
     },
 ];
 
