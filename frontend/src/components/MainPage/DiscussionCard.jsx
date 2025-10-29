@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { Feather as Icon } from '@expo/vector-icons';
 import Avatar from '../Profile/Avatar';
 import StatsBar from './StatsBar';
 
@@ -11,6 +10,9 @@ const DiscussionCard = ({
     preview,
     comments,
     topic = 'Discussion',
+    views,
+    onSave,
+    share,
 }) => (
     <View style={styles.card}>
         {/* HEADER */}
@@ -34,9 +36,10 @@ const DiscussionCard = ({
         <View style={styles.body}>
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.preview}>{preview}</Text>
-            <StatsBar comments={comments} />
+            <StatsBar comments={comments} views={views} share={share} onSave={onSave} />
+
         </View>
-    </View>
+    </View >
 );
 
 const styles = StyleSheet.create({
@@ -61,6 +64,8 @@ const styles = StyleSheet.create({
     body: { padding: 16 },
     title: { fontSize: 18, fontWeight: '700', marginBottom: 8, color: '#111' },
     preview: { fontSize: 14, color: '#555', marginBottom: 12 },
+
+    /* share/save moved into StatsBar as compact icons */
 });
 
 export default DiscussionCard;

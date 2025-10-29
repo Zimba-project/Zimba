@@ -20,6 +20,8 @@ const PollCard = ({
     endTime,
     onTakePoll,
     topic = 'Poll',
+    share,
+    onSave,
 }) => (
     <View style={styles.card}>
         {/* HEADER */}
@@ -60,8 +62,7 @@ const PollCard = ({
                 <Icon name="clock" size={14} color="#6b7280" />
                 <Text style={styles.endTimeText}>Ends: {endTime}</Text>
             </View>
-
-            <StatsBar votes={votes} comments={comments} />
+            <StatsBar votes={votes} comments={comments} share={share} onSave={onSave} />
         </View>
     </View>
 );
@@ -102,6 +103,8 @@ const styles = StyleSheet.create({
 
     endTime: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
     endTimeText: { marginLeft: 6, fontSize: 12, color: '#6b7280' },
+
+    /* share/save moved into StatsBar as compact icons */
 });
 
 export default PollCard;
