@@ -50,7 +50,7 @@ const PollCard = ({
         {/* BODY */}
         <View style={styles.body}>
             {!image && <Text style={styles.title}>{title}</Text>}
-            <Text style={styles.description}>{description}</Text>
+            <Text style={styles.description} numberOfLines={3} ellipsizeMode="tail">{description}</Text>
 
             {/* TAKE A POLL */}
             <TouchableOpacity style={styles.pollButton} onPress={onTakePoll}>

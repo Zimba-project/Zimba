@@ -35,7 +35,7 @@ const DiscussionCard = ({
         {/* BODY */}
         <View style={styles.body}>
             <Text style={styles.title}>{title}</Text>
-            <Text style={styles.preview}>{preview}</Text>
+            <Text style={styles.preview} numberOfLines={3} ellipsizeMode="tail">{preview}</Text>
             <StatsBar comments={comments} views={views} share={share} onSave={onSave} />
 
         </View>
