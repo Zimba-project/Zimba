@@ -16,7 +16,7 @@ const pollData = [
         votes: 4821,
         comments: 124,
         endTime: 'Nov 15, 2025, 5:00 PM',
-        topic: 'Work',
+        topic: 'Työelämä',
         share: {
             title: 'Poll: 4-day work week',
             message: 'Vote in this poll: Should we adopt a 4-day work week company-wide?',
@@ -33,7 +33,7 @@ const pollData = [
         votes: 1390,
         comments: 58,
         endTime: 'Nov 10, 2025, 8:00 PM',
-        topic: 'Product',
+        topic: 'Yritykset',
         share: {
             title: 'Poll: Product priorities',
             message: "Help choose our next feature: Offline mode, Advanced analytics, Dark theme or Social sharing.",
@@ -50,7 +50,7 @@ const pollData = [
         votes: 870,
         comments: 46,
         endTime: 'Nov 1, 2025, 8:00 PM',
-        topic: 'Food',
+        topic: 'Kulttuuri ja vapaa-aika',
         share: {
             title: 'Poll: Weeknight meals',
             message: 'What is your go-to quick weeknight meal? Vote now!',
@@ -68,7 +68,7 @@ const discussionData = [
         title: 'How do you stay motivated working remotely?',
         preview: 'Remote work has many benefits but staying motivated can be hard. Share tips, tools, or routines that help you stay focused.',
         comments: 42,
-        topic: 'Remote Work',
+        topic: 'Työelämä',
         views: 2300,
         share: {
             title: 'Discussion: Remote work motivation',
@@ -84,7 +84,7 @@ const discussionData = [
         title: 'Favorite productivity tools in 2025?',
         preview: 'From calendar hacks to automation — what tools have changed how you work?',
         comments: 87,
-        topic: 'Tools',
+        topic: 'Yritykset',
         views: 5400,
         share: {
             title: 'Discussion: Productivity tools',
@@ -100,7 +100,7 @@ const discussionData = [
         title: 'Local weekend events: share recommendations',
         preview: 'Looking for things to do this weekend — concerts, markets, hikes. Post recommendations and links.',
         comments: 19,
-        topic: 'Local',
+        topic: 'Kaupunki ja päätöksenteko',
         views: 760,
         share: {
             title: 'Discussion: Weekend events',
