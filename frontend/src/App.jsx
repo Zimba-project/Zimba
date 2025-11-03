@@ -1,23 +1,26 @@
-import * as React from 'react';
-import {createStaticNavigation} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {MainScreen} from './screens/MainScreen'
-import Profile from './screens/Profile'
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import MainScreen from './screens/MainScreen';
+import Login from './screens/Login';
+import Register from './screens/Register';
 
-const RootStack = createNativeStackNavigator({
-  screens: {
-    Home: {
-      screen: MainScreen,
-      options: {title: 'Welcome'},
-    },
-    Profile: {
-      screen: Profile,
-    },
-  },
-});
-
-const Navigation = createStaticNavigation(RootStack);
+const Stack = createNativeStackNavigator();
 
 export default function App() {
-  return <Navigation />;
+  return (
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Main" component={MainScreen} />
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Register" component={Register} />
+        </Stack.Navigator>
+      </NavigationContainer>
+      <StatusBar style="auto" />
+    </SafeAreaProvider>
+  );
 }
+
