@@ -8,17 +8,6 @@ import {
 } from 'react-native';
 import { Feather as Icon } from '@expo/vector-icons';
 
-/**
- * General TopBar
- * Props:
- *   title        → center text
- *   leftIcon     → name (e.g. 'arrow-left', 'menu')
- *   onLeftPress  → callback
- *   rightIcon    → name (e.g. 'search', 'bell')
- *   rightText    → text button (e.g. "Save", "Done")
- *   onRightPress → callback
- *   logo         → optional image source
- */
 const TopBar = ({
     title = '',
     leftIcon,
@@ -26,54 +15,72 @@ const TopBar = ({
     rightIcon,
     rightText,
     rightAvatar,
+    user,
     onRightPress,
     logo,
-}) => (
-    <View style={styles.container}>
-        {/* LEFT */}
-        <View style={styles.left}>
-            {leftIcon ? (
-                <TouchableOpacity onPress={onLeftPress} style={styles.iconButton}>
-                    <Icon name={leftIcon} size={24} color="#111827" />
-                </TouchableOpacity>
-            ) : logo ? (
-                <Image source={logo} style={styles.logo} resizeMode="contain" />
-            ) : (
-                <View style={{ width: 40 }} />
-            )}
-        </View>
+}) => {
+    // compute initials from user when provided
+    let initials = null;
+    if (user) {
+        const first = (user.first_name || user.firstName || '') || '';
+        const last = (user.last_name || user.lastName || '') || '';
+        const computed = `${(first.charAt(0) || '')}${(last.charAt(0) || '')}`.toUpperCase();
+        initials = computed || null;
+    }
 
-        {/* CENTER TITLE */}
-        <Text style={styles.title} numberOfLines={1}>
-            {title}
-        </Text>
-
-        {/* RIGHT */}
-        <View style={styles.right}>
-            {rightAvatar ? (
-                <TouchableOpacity onPress={onRightPress} style={styles.avatarButton}>
-                    <View style={styles.avatarCircle}>
-                        <Text style={styles.avatarText}>{rightAvatar}</Text>
-                    </View>
-                </TouchableOpacity>
-            ) : rightText ? (
-                <TouchableOpacity
-                    onPress={onRightPress}
-                    style={styles.textButton}
-                    activeOpacity={0.7}
-                >
-                    <Text style={styles.rightText}>{rightText}</Text>
-                </TouchableOpacity>
-            ) : (
-                rightIcon && (
-                    <TouchableOpacity onPress={onRightPress} style={styles.iconButton}>
-                        <Icon name={rightIcon} size={24} color="#111827" />
+    return (
+        <View style={styles.container}>
+            {/* LEFT */}
+            <View style={styles.left}>
+                {leftIcon ? (
+                    <TouchableOpacity onPress={onLeftPress} style={styles.iconButton}>
+                        <Icon name={leftIcon} size={24} color="#111827" />
                     </TouchableOpacity>
-                )
-            )}
+                ) : logo ? (
+                    <Image source={logo} style={styles.logo} resizeMode="contain" />
+                ) : (
+                    <View style={{ width: 40 }} />
+                )}
+            </View>
+
+            {/* CENTER TITLE */}
+            <Text style={styles.title} numberOfLines={1}>
+                {title}
+            </Text>
+
+            {/* RIGHT */}
+            <View style={styles.right}>
+                {initials ? (
+                    <TouchableOpacity onPress={onRightPress} style={styles.avatarButton}>
+                        <View style={styles.avatarCircle}>
+                            <Text style={styles.avatarText}>{initials}</Text>
+                        </View>
+                    </TouchableOpacity>
+                ) : rightAvatar ? (
+                    <TouchableOpacity onPress={onRightPress} style={styles.avatarButton}>
+                        <View style={styles.avatarCircle}>
+                            <Text style={styles.avatarText}>{rightAvatar}</Text>
+                        </View>
+                    </TouchableOpacity>
+                ) : rightText ? (
+                    <TouchableOpacity
+                        onPress={onRightPress}
+                        style={styles.textButton}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.rightText}>{rightText}</Text>
+                    </TouchableOpacity>
+                ) : (
+                    rightIcon && (
+                        <TouchableOpacity onPress={onRightPress} style={styles.iconButton}>
+                            <Icon name={rightIcon} size={24} color="#111827" />
+                        </TouchableOpacity>
+                    )
+                )}
+            </View>
         </View>
-    </View>
-);
+    );
+};
 
 const styles = StyleSheet.create({
     container: {

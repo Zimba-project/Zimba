@@ -114,7 +114,6 @@ const discussionData = [
 const MainScreen = ({ navigation, route }) => {
     const [activeTab, setActiveTab] = useState('polls');
     const user = route && route.params && route.params.user;
-    const initials = user ? `${(user.first_name || user.firstName || '').charAt(0) || ''}${(user.last_name || user.lastName || '').charAt(0) || ''}`.toUpperCase() : null;
     const data = activeTab === 'polls' ? pollData : discussionData;
 
     return (
@@ -123,10 +122,10 @@ const MainScreen = ({ navigation, route }) => {
                 title="ZIMBA"
                 leftIcon="menu"
                 onLeftPress={() => alert('Open drawer')}
-                rightText={!initials ? 'Login' : null}
-                rightAvatar={initials}
+                user={user}
+                rightText={!user ? 'Login' : null}
                 onRightPress={() => {
-                    if (!initials) navigation.navigate('Login');
+                    if (!user) navigation.navigate('Login');
                     else navigation.navigate('Profile');
                 }}
             />
