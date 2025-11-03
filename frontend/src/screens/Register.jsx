@@ -25,6 +25,7 @@ const COUNTRIES = [
     { name: 'Pakistan', dial_code: '+92', code: 'PK', flag: '🇵🇰' },
     { name: 'Canada', dial_code: '+1', code: 'CA', flag: '🇨🇦' },
     { name: 'Australia', dial_code: '+61', code: 'AU', flag: '🇦🇺' },
+    { name: 'Finland', dial_code: '+358', code: 'FI', flag: '🇫🇮' },
 ];
 
 const Register = ({ navigation }) => {
