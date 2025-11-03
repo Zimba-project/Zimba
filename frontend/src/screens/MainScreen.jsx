@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { View, FlatList, StyleSheet } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, FlatList, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import TabSwitcher from '../components/MainPage/TabSwitcher';
+import InfoBoard from '../components/MainPage/InfoBoard';
 import PollCard from '../components/Cards/PollCard';
 import DiscussionCard from '../components/Cards/DiscussionCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -111,9 +112,124 @@ const discussionData = [
     },
 ];
 
+const infoItems = [
+    {
+        id: 'i1',
+        title: 'Traffic arrangements in downtown (wk 45)',
+        subtitle: 'Road and cable works in the city center — expect detours and temporary closures.',
+        image: 'https://unsplash.com/photos/HCDmcskE_Zk/download?force=true&w=800',
+        background: '#fffaf0',
+    },
+    {
+        id: 'i2',
+        title: 'City park renovation begins',
+        subtitle: 'Park renovation starts next month: walking paths will be adjusted and the playground renewed.',
+        image: 'https://unsplash.com/photos/GjnpGl9KYL4/download?force=true&w=800',
+        background: '#f9fafb',
+    },
+    {
+        id: 'i3',
+        title: 'Public transport timetable changes',
+        subtitle: 'New bus schedules take effect on Monday — check routes in the app.',
+        image: 'https://unsplash.com/photos/CI3UhW7AaZE/download?force=true&w=800',
+        background: '#fff7ed',
+    },
+];
+
+
+// const MainScreen = ({ navigation }) => {
+//     const [activeTab, setActiveTab] = useState('polls');
+//     const data = activeTab === 'polls' ? pollData : discussionData;
+
+//     return (
+//         <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+//             <TopBar
+//                 title="ZIMBA"
+//                 leftIcon="menu"
+//                 onLeftPress={() => alert('Open drawer')}
+//                 rightText="Login"
+//                 onRightPress={() => navigation.navigate('Login')}
+//             />
+//             <FlatList
+//                 data={data}
+//                 keyExtractor={(item) => item.id}
+//                 renderItem={({ item }) =>
+//                     activeTab === 'polls' ? (
+//                         <PollCard
+//                             {...item}
+//                             onTakePoll={() => alert('Poll opened!')}
+//                             share={item.share}
+//                             onSave={item.onSave}
+//                         />
+//                     ) : (
+//                         <DiscussionCard
+//                             {...item}
+//                             share={item.share}
+//                             onSave={item.onSave}
+//                         />
+//                     )
+//                 }
+//                 showsVerticalScrollIndicator={false}
+//             />
+
+//             {/* <-- SWITCHER at the bottom --> */}
+//             <TabSwitcher activeTab={activeTab} onTabChange={setActiveTab} />
+//         </SafeAreaView>
+//     );
+// };
+
+// const styles = StyleSheet.create({
+//     container: { flex: 1, backgroundColor: '#f9fafb' },
+// });
+
+const HeaderWithInfo = ({ infoItems, onCardPress, onSeeAll }) => (
+    <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>Upcoming in your area</Text>
+            <TouchableOpacity onPress={onSeeAll}>
+                <Text style={{ color: '#6366f1', fontWeight: '600' }}>See all</Text>
+            </TouchableOpacity>
+        </View>
+
+        <InfoBoard
+            items={infoItems}
+            onCardPress={onCardPress}
+        />
+    </View>
+);
+
 const MainScreen = ({ navigation }) => {
-    const [activeTab, setActiveTab] = useState('polls');
-    const data = activeTab === 'polls' ? pollData : discussionData;
+    // create a mixed feed by alternating poll and discussion items
+    const [feed] = useState(() => {
+        const mixed = [];
+        const max = Math.max(pollData.length, discussionData.length);
+        for (let i = 0; i < max; i++) {
+            if (pollData[i]) mixed.push({ ...pollData[i], _type: 'poll' });
+            if (discussionData[i]) mixed.push({ ...discussionData[i], _type: 'discussion' });
+        }
+        return mixed;
+    });
+
+    const renderItem = useCallback(({ item }) => {
+        if (item._type === 'poll') {
+            return (
+                <PollCard
+                    {...item}
+                    onTakePoll={() => alert('Poll opened!')}
+                    share={item.share}
+                    onSave={item.onSave}
+                />
+            );
+        }
+
+        return (
+            <DiscussionCard
+                {...item}
+                share={item.share}
+                onSave={item.onSave}
+            />
+        );
+    }, []);
 
     return (
         <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -124,30 +240,15 @@ const MainScreen = ({ navigation }) => {
                 rightText="Login"
                 onRightPress={() => navigation.navigate('Login')}
             />
-            <FlatList
-                data={data}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) =>
-                    activeTab === 'polls' ? (
-                        <PollCard
-                            {...item}
-                            onTakePoll={() => alert('Poll opened!')}
-                            share={item.share}
-                            onSave={item.onSave}
-                        />
-                    ) : (
-                        <DiscussionCard
-                            {...item}
-                            share={item.share}
-                            onSave={item.onSave}
-                        />
-                    )
-                }
-                showsVerticalScrollIndicator={false}
-            />
 
-            {/* <-- SWITCHER at the bottom --> */}
-            <TabSwitcher activeTab={activeTab} onTabChange={setActiveTab} />
+            <FlatList
+                data={feed}
+                keyExtractor={(item, index) => `${item._type}-${item.id}-${index}`}
+                renderItem={renderItem}
+                showsVerticalScrollIndicator={false}
+                ListHeaderComponent={<HeaderWithInfo infoItems={infoItems} onCardPress={(it) => alert(`Info: ${it.title}`)} onSeeAll={() => alert('Show all upcoming changes')} />}
+                contentContainerStyle={{ paddingBottom: 24 }}
+            />
         </SafeAreaView>
     );
 };
@@ -155,5 +256,4 @@ const MainScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f9fafb' },
 });
-
 export default MainScreen;
