@@ -8,17 +8,6 @@ import {
 } from 'react-native';
 import { Feather as Icon } from '@expo/vector-icons';
 
-/**
- * General TopBar
- * Props:
- *   title        → center text
- *   leftIcon     → name (e.g. 'arrow-left', 'menu')
- *   onLeftPress  → callback
- *   rightIcon    → name (e.g. 'search', 'bell')
- *   rightText    → text button (e.g. "Save", "Done")
- *   onRightPress → callback
- *   logo         → optional image source
- */
 const TopBar = ({
     title = '',
     leftIcon,
@@ -93,7 +82,6 @@ const styles = StyleSheet.create({
     },
     logo: { width: 32, height: 32 },
 
-    // NEW: Text as button
     textButton: {
         backgroundColor: '#e0e7ff',
         paddingHorizontal: 12,

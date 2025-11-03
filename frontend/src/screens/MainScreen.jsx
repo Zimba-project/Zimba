@@ -1,6 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { View, FlatList, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import TabSwitcher from '../components/MainPage/TabSwitcher';
 import InfoBoard from '../components/MainPage/InfoBoard';
 import PollCard from '../components/Cards/PollCard';
 import DiscussionCard from '../components/Cards/DiscussionCard';
@@ -137,67 +136,6 @@ const infoItems = [
 ];
 
 
-// const MainScreen = ({ navigation }) => {
-//     const [activeTab, setActiveTab] = useState('polls');
-//     const data = activeTab === 'polls' ? pollData : discussionData;
-
-//     return (
-//         <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-//             <TopBar
-//                 title="ZIMBA"
-//                 leftIcon="menu"
-//                 onLeftPress={() => alert('Open drawer')}
-//                 rightText="Login"
-//                 onRightPress={() => navigation.navigate('Login')}
-//             />
-//             <FlatList
-//                 data={data}
-//                 keyExtractor={(item) => item.id}
-//                 renderItem={({ item }) =>
-//                     activeTab === 'polls' ? (
-//                         <PollCard
-//                             {...item}
-//                             onTakePoll={() => alert('Poll opened!')}
-//                             share={item.share}
-//                             onSave={item.onSave}
-//                         />
-//                     ) : (
-//                         <DiscussionCard
-//                             {...item}
-//                             share={item.share}
-//                             onSave={item.onSave}
-//                         />
-//                     )
-//                 }
-//                 showsVerticalScrollIndicator={false}
-//             />
-
-//             {/* <-- SWITCHER at the bottom --> */}
-//             <TabSwitcher activeTab={activeTab} onTabChange={setActiveTab} />
-//         </SafeAreaView>
-//     );
-// };
-
-// const styles = StyleSheet.create({
-//     container: { flex: 1, backgroundColor: '#f9fafb' },
-// });
-
-const HeaderWithInfo = ({ infoItems, onCardPress, onSeeAll }) => (
-    <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>Upcoming in your area</Text>
-            <TouchableOpacity onPress={onSeeAll}>
-                <Text style={{ color: '#6366f1', fontWeight: '600' }}>See all</Text>
-            </TouchableOpacity>
-        </View>
-
-        <InfoBoard
-            items={infoItems}
-            onCardPress={onCardPress}
-        />
-    </View>
-);
-
 const MainScreen = ({ navigation }) => {
     // create a mixed feed by alternating poll and discussion items
     const [feed] = useState(() => {
@@ -210,7 +148,7 @@ const MainScreen = ({ navigation }) => {
         return mixed;
     });
 
-    const renderItem = useCallback(({ item }) => {
+    const renderItem = ({ item }) => {
         if (item._type === 'poll') {
             return (
                 <PollCard
@@ -229,7 +167,7 @@ const MainScreen = ({ navigation }) => {
                 onSave={item.onSave}
             />
         );
-    }, []);
+    };
 
     return (
         <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -246,7 +184,21 @@ const MainScreen = ({ navigation }) => {
                 keyExtractor={(item, index) => `${item._type}-${item.id}-${index}`}
                 renderItem={renderItem}
                 showsVerticalScrollIndicator={false}
-                ListHeaderComponent={<HeaderWithInfo infoItems={infoItems} onCardPress={(it) => alert(`Info: ${it.title}`)} onSeeAll={() => alert('Show all upcoming changes')} />}
+                ListHeaderComponent={() => (
+                    <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>Upcoming in your area</Text>
+                            <TouchableOpacity onPress={() => alert('Show all upcoming changes')}>
+                                <Text style={{ color: '#6366f1', fontWeight: '600' }}>See all</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <InfoBoard
+                            items={infoItems}
+                            onCardPress={(it) => alert(`Info: ${it.title}`)}
+                        />
+                    </View>
+                )}
                 contentContainerStyle={{ paddingBottom: 24 }}
             />
         </SafeAreaView>
