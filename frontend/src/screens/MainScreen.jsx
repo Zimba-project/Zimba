@@ -130,7 +130,7 @@ const MainScreen = ({ navigation, route }) => {
             <TopBar
                 title="ZIMBA"
                 leftIcon="menu"
-                onLeftPress={() => alert('Open drawer')}
+                onLeftPress={() => navigation.openDrawer()}
                 user={user}
                 rightText={!user ? 'Login' : null}
                 onRightPress={() => {
