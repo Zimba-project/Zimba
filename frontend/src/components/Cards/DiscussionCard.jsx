@@ -1,25 +1,51 @@
 import React from 'react';
-import { View, Text, ImageBackground, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ImageBackground, StyleSheet, TouchableOpacity, useAnimatedValue } from 'react-native';
 import StatsBar from './StatsBar';
 import CardHeader from './CardHeader';
 import CardContainer from './CardContainer';
+import { useNavigation } from '@react-navigation/native';
 
 const DiscussionCard = ({
-    author,
+    id,
+    topic = 'Discussion',
+    author_name,
+    author_avatar,
     image,
     title,
-    preview,
+    description,
     comments,
-    topic = 'Discussion',
     views,
-    onSave,
-    share,
+    created_at,
+    onShare = () => {},
+    onSave = () => {},
+
 }) => {
+
+    const navigation = useNavigation();
+
+    const handlePress = () => {
+        navigation.navigate('Discuss', {
+            postId: id,
+            postData: {
+                id,
+                topic,
+                author_name,
+                author_avatar,
+                image,
+                title,
+                description,
+                comments,
+                views,
+                created_at,
+            },
+        });
+    };
+
     return (
-        <TouchableOpacity onPress={()=> navigation.navigate('Discuss')}>
+        <TouchableOpacity onPress={handlePress}>
             <CardContainer>
                 {/* HEADER */}
-                <CardHeader author={author} topic={topic} />
+                <CardHeader author={{ avatar: author_avatar, name: author_name, time: created_at }} topic={topic}/>
 
                 {/* IMAGE (title overlays image) */}
                 {image && (
@@ -33,8 +59,8 @@ const DiscussionCard = ({
                 {/* BODY */}
                 <View style={styles.body}>
                     {!image && <Text style={styles.title}>{title}</Text>}
-                    <Text style={styles.preview} numberOfLines={3} ellipsizeMode="tail">{preview}</Text>
-                    <StatsBar comments={comments} views={views} share={share} onSave={onSave} />
+                    <Text style={styles.preview} numberOfLines={3} ellipsizeMode="tail">{description}</Text>
+                    <StatsBar comments={comments} views={views} share={onShare} onSave={onSave} />
                 </View>
             </CardContainer>
         </TouchableOpacity>

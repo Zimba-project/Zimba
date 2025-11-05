@@ -1,4 +1,4 @@
-const API_BASE = 'http://192.168.0.103:3001/api';
+import { API_BASE } from '@env';
 
 async function request(path, method = 'GET', body) {
     const opts = { method, headers: { 'Content-Type': 'application/json' } };

@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { View, FlatList, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import InfoBoard from '../components/MainPage/InfoBoard';
 import PollCard from '../components/Cards/PollCard';
 import DiscussionCard from '../components/Cards/DiscussionCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TopBar from '../components/TopBar';
-
-const API_BASE = 'http://10.0.2.2:3001/api'; 
+import { getAllPosts } from '../api/postService';
 
 const MainScreen = ({ navigation, route }) => {
   const [feed, setFeed] = useState([]);
@@ -15,43 +13,33 @@ const MainScreen = ({ navigation, route }) => {
   const [error, setError] = useState(null); 
   const user = route?.params?.user;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const res = await axios.get(`${API_BASE}/posts`);
-        console.log("Fetched posts:", res.data);
-        const posts = Array.isArray(res.data)
-          ? res.data
-          : res.data.posts || [];
-        const polls = posts.filter(p => p.type === 'poll');
-        const discussions = posts.filter(p => p.type === 'discussion');
+      const posts = await getAllPosts();
+      const polls = posts.filter(p => p.type === 'poll');
+      const discussions = posts.filter(p => p.type === 'discussion');
 
-        const mixed = [];
-        const max = Math.max(polls.length, discussions.length);
-        for (let i = 0; i < max; i++) {
-          if (polls[i]) mixed.push({ ...polls[i], _type: 'poll' });
-          if (discussions[i]) mixed.push({ ...discussions[i], _type: 'discussion' });
-        }
-
-        setFeed(mixed);
-      } catch (err) {
-        console.error("Error fetching posts:", err.message);
-        if (err.response) {
-          setError(`Server error: ${err.response.data?.error || err.response.statusText}`);
-        } else if (err.request) {
-          setError("Network error: Unable to reach the server. Check your connection.");
-        } else {
-          setError(`Unexpected error: ${err.message}`);
-        }
-      } finally {
-        setLoading(false);
+      const mixed = [];
+      const max = Math.max(polls.length, discussions.length);
+      for (let i = 0; i < max; i++) {
+        if (polls[i]) mixed.push({ ...polls[i], _type: 'poll' });
+        if (discussions[i]) mixed.push({ ...discussions[i], _type: 'discussion' });
       }
-    };
 
-    fetchData();
+      setFeed(mixed);
+    } catch (err) {
+      console.error("Error fetching posts:", err.message);
+      setError("Unable to fetch posts. Check your network or server.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPosts();
   }, []);
 
   if (loading) {
@@ -67,18 +55,7 @@ const MainScreen = ({ navigation, route }) => {
     return (
       <SafeAreaView style={styles.centered}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={() => {
-            setError(null);
-            setLoading(true);
-            setFeed([]);
-            axios.get(`${API_BASE}/posts`)
-              .then(res => setFeed(res.data.posts || res.data))
-              .catch(() => setError("Retry failed. Please check your network."))
-              .finally(() => setLoading(false));
-          }}
-        >
+        <TouchableOpacity style={styles.retryButton} onPress={fetchPosts}>
           <Text style={styles.retryText}>Retry</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -93,10 +70,7 @@ const MainScreen = ({ navigation, route }) => {
         onLeftPress={() => alert('Open drawer')}
         user={user}
         rightText={!user ? 'Login' : null}
-        onRightPress={() => {
-          if (!user) navigation.navigate('Login');
-          else navigation.navigate('Profile');
-        }}
+        onRightPress={() => (!user ? navigation.navigate('Login') : navigation.navigate('Profile'))}
       />
 
       <FlatList
@@ -113,6 +87,7 @@ const MainScreen = ({ navigation, route }) => {
           ) : (
             <DiscussionCard
               {...item}
+              navigation={navigation}
               share={item.share}
               onSave={item.onSave}
             />
@@ -121,26 +96,13 @@ const MainScreen = ({ navigation, route }) => {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={() => (
           <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 8,
-              }}
-            >
-              <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>
-                Upcoming in your area
-              </Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>Upcoming in your area</Text>
               <TouchableOpacity onPress={() => alert('Show all upcoming changes')}>
                 <Text style={{ color: '#6366f1', fontWeight: '600' }}>See all</Text>
               </TouchableOpacity>
             </View>
-
-            <InfoBoard
-              items={infoItems}
-              onCardPress={(it) => alert(`Info: ${it.title}`)}
-            />
+            <InfoBoard items={infoItems} onCardPress={(it) => alert(`Info: ${it.title}`)} />
           </View>
         )}
         contentContainerStyle={{ paddingBottom: 24 }}
