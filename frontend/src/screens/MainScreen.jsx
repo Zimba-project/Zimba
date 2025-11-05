@@ -152,6 +152,7 @@ const MainScreen = ({ navigation, route }) => {
                     ) : (
                         <DiscussionCard
                             {...item}
+                            navigation={navigation}
                             share={item.share}
                             onSave={item.onSave}
                         />

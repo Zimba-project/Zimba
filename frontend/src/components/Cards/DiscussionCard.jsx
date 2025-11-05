@@ -3,6 +3,7 @@ import { View, Text, ImageBackground, StyleSheet, TouchableOpacity } from 'react
 import StatsBar from './StatsBar';
 import CardHeader from './CardHeader';
 import CardContainer from './CardContainer';
+import { useNavigation } from '@react-navigation/native'
 
 const DiscussionCard = ({
     author,
@@ -15,6 +16,10 @@ const DiscussionCard = ({
     onSave,
     share,
 }) => {
+
+
+    const navigation = useNavigation();
+
     return (
         <TouchableOpacity onPress={()=> navigation.navigate('Discuss')}>
             <CardContainer>
