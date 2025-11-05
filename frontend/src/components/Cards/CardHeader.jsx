@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Avatar from '../Profile/Avatar';
 import { getTopicColors } from '../../utils/TopicColors';
+import { formatTime } from '../../utils/TimeFormatter';
 
 const CardHeader = ({ author, topic }) => {
     const { bg, text } = getTopicColors(topic);
@@ -10,7 +11,7 @@ const CardHeader = ({ author, topic }) => {
             <Avatar uri={author.avatar} />
             <View style={styles.headerCenter}>
                 <Text style={styles.authorName}>{author.name}</Text>
-                <Text style={styles.time}>{author.time}</Text>
+                <Text style={styles.time}>{formatTime(author.time)}</Text>
             </View>
             <View style={[styles.topicContainer, { backgroundColor: bg }]}>
                 <Text style={[styles.topic, { color: text }]}>{topic}</Text>
