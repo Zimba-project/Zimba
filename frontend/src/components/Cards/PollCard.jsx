@@ -10,24 +10,27 @@ import { Feather as Icon } from '@expo/vector-icons';
 import StatsBar from './StatsBar';
 import CardHeader from './CardHeader';
 import CardContainer from './CardContainer';
+import { formatTime } from '../../utils/TimeFormatter';
 
 const PollCard = ({
-    author,
+    topic = 'Poll',
+    author_name,
+    author_avatar,
     image,
     title,
     description,
     votes,
     comments,
-    endTime,
-    onTakePoll,
-    topic = 'Poll',
-    share,
-    onSave,
+    end_time,
+    created_at,
+    onTakePoll = () => {},
+    onShare = () => {},
+    onSave = () => {},
 }) => {
     return (
         <CardContainer>
             {/* HEADER */}
-            <CardHeader author={author} topic={topic} />
+            <CardHeader author={{ avatar: author_avatar, name: author_name, time: created_at }} topic={topic}/>
 
             {/* IMAGE (title overlays image) */}
             {image && (
@@ -49,10 +52,10 @@ const PollCard = ({
 
                 <View style={styles.endTime}>
                     <Icon name="clock" size={14} color="#6b7280" />
-                    <Text style={styles.endTimeText}>Ends: {endTime}</Text>
+                    <Text style={styles.endTimeText}>Ends: {formatTime(end_time)}</Text>
                 </View>
 
-                <StatsBar votes={votes} comments={comments} share={share} onSave={onSave} />
+                <StatsBar votes={votes} comments={comments} share={onShare} onSave={onSave} />
             </View>
         </CardContainer>
     );

@@ -7,6 +7,7 @@ import MainScreen from './screens/MainScreen';
 import Login from './screens/Login';
 import Register from './screens/Register';
 import Profile from './screens/Profile';
+import Discuss from './screens/Discuss';
 
 const Stack = createNativeStackNavigator();
 
@@ -19,6 +20,7 @@ export default function App() {
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Register" component={Register} />
            <Stack.Screen name="Profile" component={Profile} />
+           <Stack.Screen name="Discuss" component={Discuss} />
         </Stack.Navigator>
       </NavigationContainer>
       <StatusBar style="auto" />
