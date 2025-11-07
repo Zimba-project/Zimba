@@ -131,7 +131,7 @@ const infoItems = [
     title: 'Public transport timetable changes',
     subtitle: 'New bus schedules take effect on Monday — check routes in the app.',
     image: 'https://unsplash.com/photos/CI3UhW7AaZE/download?force=true&w=800',
-    background: '#fff7ed',
+    background: '#fff7edff',
   },
 ];
 

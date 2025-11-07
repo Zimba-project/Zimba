@@ -1,16 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  SafeAreaView,
-  Text,
-  TextInput,
-  StyleSheet,
-  Button,
-  View,
-  Alert,
-  ActivityIndicator,
-  ScrollView,
-} from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { SafeAreaView, Text, TextInput, StyleSheet, Button, View, Alert, ActivityIndicator, ScrollView, Pressable } from 'react-native';
 
 const Profile = ({ navigation, route }) => {
   const [user, setUser] = useState(null);
@@ -21,7 +10,6 @@ const Profile = ({ navigation, route }) => {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        // TODO: replace this with an API call
         const passedUser = route?.params?.user;
         const data =
           passedUser || {
@@ -43,7 +31,6 @@ const Profile = ({ navigation, route }) => {
   const handleSave = async () => {
     setIsEditing(false);
     try {
-      // TODO: send data to backend with fetch/axios
       setUser(form);
       Alert.alert('Profile Updated', 'Your changes have been saved.', [
         { text: 'OK', onPress: () => navigation.navigate('Main', { user: form }) },
@@ -61,7 +48,6 @@ const Profile = ({ navigation, route }) => {
         style: 'destructive',
         onPress: async () => {
           try {
-            // TODO: call your DELETE endpoint
             Alert.alert('Account Deleted', 'User removed successfully.', [
               { text: 'OK', onPress: () => navigation.navigate('Main') },
             ]);
@@ -85,11 +71,11 @@ const Profile = ({ navigation, route }) => {
     <SafeAreaView style={styles.safeArea}>
       {/* Simple top bar */}
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Pressable onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
+        </Pressable>
         <Text style={styles.topTitle}>Profile</Text>
-        <View style={{ width: 40 }} /> {/* placeholder to balance layout */}
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView
@@ -137,7 +123,6 @@ const Profile = ({ navigation, route }) => {
           )}
         </View>
 
-        {/* empty boxes for future features for example polls the user has voted on */}
         <View style={styles.featureBox}>
           <Text style={styles.featureText}>Empty Box 1</Text>
         </View>
@@ -156,7 +141,7 @@ const Profile = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f9fafb', // matches MainScreen
+    backgroundColor: '#f9fafb',
   },
   scrollContent: {
     alignItems: 'center',
@@ -174,7 +159,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: 30,
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',

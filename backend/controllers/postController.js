@@ -69,7 +69,7 @@ exports.createPost = async (req, res) => {
   try {
     const postResponse = await pgPool.query(
       `INSERT INTO posts (type, topic, author_id, created_at)
-       VALUES ($1, $2, $3, NOW()) RETURNING id;`,
+       VALUES ($1, $2, $3, NOW() AT TIME ZONE 'Europe/Helsinki') RETURNING id;`,
       [type, topic, authorId]
     );
 

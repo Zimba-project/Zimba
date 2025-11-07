@@ -20,6 +20,7 @@ const Login = ({ navigation, route }) => {
         setLoading(true);
         try {
             const res = await loginApi({ phone, password });
+            console.log('Login response:', res);
             if (res && res.ok) {
                 if (res.body && res.body.token) {
                     // TODO: persist token (AsyncStorage / SecureStore) later
