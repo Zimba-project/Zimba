@@ -8,9 +8,11 @@ import {
   View,
   Alert,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
-const Profile = () => {
+const Profile = ({ navigation, route }) => {
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', bio: '' });
@@ -20,11 +22,13 @@ const Profile = () => {
     const loadUser = async () => {
       try {
         // TODO: replace this with an API call
-        const data = {
-          name: 'Jane Doe',
-          email: 'jane.doe@example.com',
-          bio: 'React Native developer who loves clean design and coffee ☕',
-        };
+        const passedUser = route?.params?.user;
+        const data =
+          passedUser || {
+            name: 'Jane Doe',
+            email: 'jane.doe@example.com',
+            bio: 'React Native developer who loves clean design and coffee ☕',
+          };
         setUser(data);
         setForm(data);
       } catch (error) {
@@ -34,14 +38,16 @@ const Profile = () => {
       }
     };
     loadUser();
-  }, []);
+  }, [route?.params?.user]);
 
   const handleSave = async () => {
     setIsEditing(false);
     try {
       // TODO: send data to backend with fetch/axios
       setUser(form);
-      Alert.alert('Profile Updated', 'Your changes have been saved.');
+      Alert.alert('Profile Updated', 'Your changes have been saved.', [
+        { text: 'OK', onPress: () => navigation.navigate('Main', { user: form }) },
+      ]);
     } catch (error) {
       Alert.alert('Error', 'Failed to save profile.');
     }
@@ -56,7 +62,9 @@ const Profile = () => {
         onPress: async () => {
           try {
             // TODO: call your DELETE endpoint
-            Alert.alert('Account Deleted', 'User removed successfully.');
+            Alert.alert('Account Deleted', 'User removed successfully.', [
+              { text: 'OK', onPress: () => navigation.navigate('Main') },
+            ]);
           } catch (error) {
             Alert.alert('Error', 'Failed to delete account.');
           }
@@ -74,84 +82,128 @@ const Profile = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.profileBox}>
-        {isEditing ? (
-          <>
-            <TextInput
-              style={styles.input}
-              value={form.name}
-              onChangeText={(text) => setForm({ ...form, name: text })}
-              placeholder="Name"
-            />
-            <TextInput
-              style={styles.input}
-              value={form.email}
-              onChangeText={(text) => setForm({ ...form, email: text })}
-              placeholder="Email"
-              keyboardType="email-address"
-            />
-            <TextInput
-              style={[styles.input, { height: 80 }]}
-              value={form.bio}
-              onChangeText={(text) => setForm({ ...form, bio: text })}
-              placeholder="Bio"
-              multiline
-            />
-            <View style={styles.buttonRow}>
-              <Button title="Cancel" onPress={() => setIsEditing(false)} />
-              <Button title="Save" onPress={handleSave} />
-            </View>
-          </>
-        ) : (
-          <>
-            <Text style={styles.title}>{user.name}</Text>
-            <Text style={styles.text}>{user.email}</Text>
-            <Text style={styles.text}>{user.bio}</Text>
-
-            <View style={styles.buttonRow}>
-              <Button title="Edit Profile" onPress={() => setIsEditing(true)} />
-            </View>
-          </>
-        )}
+    <SafeAreaView style={styles.safeArea}>
+      {/* Simple top bar */}
+      <View style={styles.topBar}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={styles.backText}>← Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.topTitle}>Profile</Text>
+        <View style={{ width: 40 }} /> {/* placeholder to balance layout */}
       </View>
 
- {/* empty boxes for future features for example polls the user has voted on */}
-      <View style={styles.box}>
-        <Text>Empty Box 1</Text>
-      </View>
-      <View style={styles.box}>
-        <Text>Empty Box 2</Text>
-      </View>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.profileCard}>
+          {isEditing ? (
+            <>
+              <TextInput
+                style={styles.input}
+                value={form.name}
+                onChangeText={(text) => setForm({ ...form, name: text })}
+                placeholder="Name"
+              />
+              <TextInput
+                style={styles.input}
+                value={form.email}
+                onChangeText={(text) => setForm({ ...form, email: text })}
+                placeholder="Email"
+                keyboardType="email-address"
+              />
+              <TextInput
+                style={[styles.input, { height: 80 }]}
+                value={form.bio}
+                onChangeText={(text) => setForm({ ...form, bio: text })}
+                placeholder="Bio"
+                multiline
+              />
+              <View style={styles.buttonRow}>
+                <Button title="Cancel" onPress={() => setIsEditing(false)} />
+                <Button title="Save" onPress={handleSave} />
+              </View>
+            </>
+          ) : (
+            <>
+              <Text style={styles.title}>{user.name}</Text>
+              <Text style={styles.text}>{user.email}</Text>
+              <Text style={styles.text}>{user.bio}</Text>
 
-      <View style={{ marginTop: 20 }}>
-        <Button title="Delete Account" color="red" onPress={handleDelete} />
-      </View>
+              <View style={styles.buttonRow}>
+                <Button title="Edit Profile" onPress={() => setIsEditing(true)} />
+              </View>
+            </>
+          )}
+        </View>
+
+        {/* empty boxes for future features for example polls the user has voted on */}
+        <View style={styles.featureBox}>
+          <Text style={styles.featureText}>Empty Box 1</Text>
+        </View>
+        <View style={styles.featureBox}>
+          <Text style={styles.featureText}>Empty Box 2</Text>
+        </View>
+
+        <View style={{ marginTop: 20 }}>
+          <Button title="Delete Account" color="red" onPress={handleDelete} />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#eef1f5', 
-    justifyContent: 'center',
+    backgroundColor: '#f9fafb', // matches MainScreen
+  },
+  scrollContent: {
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 40,
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  profileBox: {
-    width: '90%',
+  topBar: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    backgroundColor: '#fff',
+  },
+  topTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  backText: {
+    color: '#6366f1',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  profileCard: {
+    width: '100%',
     backgroundColor: '#ffffff',
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: '#007AFF', 
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
     padding: 20,
-    marginBottom: 20,
+    marginTop: 20,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
     alignItems: 'center',
   },
   title: {
@@ -159,20 +211,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 6,
     textAlign: 'center',
+    color: '#111827',
   },
   text: {
     fontSize: 16,
     marginBottom: 6,
     textAlign: 'center',
+    color: '#374151',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 8,
-    borderRadius: 6,
+    borderColor: '#d1d5db',
+    padding: 10,
+    borderRadius: 8,
     marginBottom: 10,
     fontSize: 16,
     width: '100%',
+    backgroundColor: '#f9fafb',
   },
   buttonRow: {
     flexDirection: 'row',
@@ -180,16 +235,24 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 10,
   },
-  box: {
+  featureBox: {
     borderWidth: 1,
-    borderColor: '#aaa',
-    borderRadius: 6,
-    height: 80,
-    width: '90%',
+    borderColor: '#e5e7eb',
+    borderRadius: 10,
+    height: 90,
+    width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fafafa',
+    backgroundColor: '#ffffff',
     marginVertical: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  featureText: {
+    color: '#6b7280',
   },
 });
 

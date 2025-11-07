@@ -3,7 +3,7 @@ const cors = require('cors');
 const express = require('express');
 const registerTestRoute = require("./test/registerTest");
 const authRoutes = require("./routes/auth");
-
+const postRoutes = require("./routes/post");
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
@@ -20,6 +20,9 @@ app.use("/api", registerTestRoute);
 
 // new auth routes
 app.use("/api/auth", authRoutes);
+
+// new post routes
+app.use("/api/posts", postRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
