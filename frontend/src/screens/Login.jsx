@@ -23,12 +23,11 @@ const Login = ({ navigation, route }) => {
             if (res && res.ok) {
                 if (res.body && res.body.token) {
                     // TODO: persist token (AsyncStorage / SecureStore) later
-                    navigation.replace('Main', {
-                        screen: 'Home', // Drawer screen
-                        params: {
-                            screen: 'Home', // Tab screen inside the Drawer
-                            params: { user: res.body.user },
-                        },
+                    // Reset navigation stack to make 'Main' the only route so there
+                    // is no back history and the header won't show a back button.
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Main', params: { user: res.body.user } }],
                     });
                 } else {
                     setError('Login succeeded but no token returned');

@@ -4,7 +4,6 @@ import InfoBoard from '../components/MainPage/InfoBoard';
 import PollCard from '../components/Cards/PollCard';
 import DiscussionCard from '../components/Cards/DiscussionCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import TopBar from '../components/TopBar';
 import { getAllPosts } from '../api/postService';
 
 const MainScreen = ({ navigation, route }) => {
@@ -64,17 +63,6 @@ const MainScreen = ({ navigation, route }) => {
 
     return (
         <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-            <TopBar
-                title="ZIMBA"
-                leftIcon="menu"
-                onLeftPress={() => navigation.openDrawer()}
-                user={user}
-                rightText={!user ? 'Login' : null}
-                onRightPress={() => {
-                    if (!user) navigation.navigate('Login');
-                    else navigation.navigate('Profile');
-                }}
-            />
             <FlatList
                 data={feed}
                 keyExtractor={(item, index) => `${item._type}-${item.id}-${index}`}
