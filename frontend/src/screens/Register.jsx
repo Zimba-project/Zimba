@@ -32,6 +32,7 @@ const Register = ({ navigation }) => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState('');
     // country picker
     const [country, setCountry] = useState({ name: 'United States', dial_code: '+1', code: 'US', flag: '🇺🇸' });
     const [showCountryPicker, setShowCountryPicker] = useState(false);
@@ -59,7 +60,7 @@ const Register = ({ navigation }) => {
         try {
             // build full phone with country code
             const fullPhone = `${country.dial_code}${phone}`;
-            const payload = { firstName, lastName, phone: fullPhone, birthdate: birthdate ? formatDate(birthdate) : null, password, confirmPassword, about };
+            const payload = { firstName, lastName, email: email || null, phone: fullPhone, birthdate: birthdate ? formatDate(birthdate) : null, password, confirmPassword, about };
             const res = await registerApi(payload);
             if (res && res.ok) {
                 // success: backend returns token and user
@@ -105,6 +106,10 @@ const Register = ({ navigation }) => {
                         <TextInput placeholder="Last name" placeholderTextColor="#666" value={lastName} onChangeText={setLastName} style={[styles.input, styles.inputSmall]} />
                     </View>
                 </View>
+                <Text style={styles.label}>Phone</Text>
+                <Text style={styles.label}>Email (optional)</Text>
+                <TextInput placeholder="Email address" placeholderTextColor="#666" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={styles.input} />
+
                 <Text style={styles.label}>Phone</Text>
                 <View style={styles.phoneContainer}>
                     <TouchableOpacity style={styles.countryButton} onPress={() => setShowCountryPicker(true)}>

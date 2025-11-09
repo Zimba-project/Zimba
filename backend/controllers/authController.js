@@ -10,7 +10,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 // ---------- REGISTER ----------
 exports.register = async (req, res) => {
   try {
-    const { firstName, lastName, phone, birthdate, password, confirmPassword, about } = req.body;
+    const { firstName, lastName, phone, email, birthdate, password, confirmPassword, about } = req.body;
 
     if (!firstName || !lastName || !phone || !password || !confirmPassword)
       return res.status(400).json({ message: 'Missing required fields.' });
@@ -18,18 +18,25 @@ exports.register = async (req, res) => {
     if (password !== confirmPassword)
       return res.status(400).json({ message: 'Passwords do not match.' });
 
-    const { rows: existing } = await pgPool.query('SELECT id FROM users WHERE phone = $1', [phone]);
-    if (existing.length > 0)
+    // ensure phone unique and optionally email unique
+    const { rows: existingPhone } = await pgPool.query('SELECT id FROM users WHERE phone = $1', [phone]);
+    if (existingPhone.length > 0)
       return res.status(409).json({ message: 'Phone number already registered.' });
+
+    if (email) {
+      const { rows: existingEmail } = await pgPool.query('SELECT id FROM users WHERE email = $1', [email]);
+      if (existingEmail.length > 0)
+        return res.status(409).json({ message: 'Email already registered.' });
+    }
 
     const hashed = await bcrypt.hash(password, SALT_ROUNDS);
 
     const insertQuery = `
-      INSERT INTO users (first_name, last_name, birthdate, hashed_password, phone, about)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING id, first_name, last_name, phone, birthdate, about, verified, created_at;
+      INSERT INTO users (first_name, last_name, email, birthdate, hashed_password, phone, about)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id, first_name, last_name, email, phone, birthdate, about, verified, created_at;
     `;
-    const values = [firstName, lastName, birthdate || null, hashed, phone, about || null];
+    const values = [firstName, lastName, email || null, birthdate || null, hashed, phone, about || null];
     const { rows } = await pgPool.query(insertQuery, values);
     const user = rows[0];
 
@@ -70,7 +77,7 @@ exports.me = async (req, res) => {
   try {
     const userId = req.userId;
     const { rows } = await pgPool.query(
-      'SELECT id, first_name, last_name, phone, birthdate, about, verified, created_at FROM users WHERE id = $1',
+      'SELECT id, first_name, last_name, email, phone, birthdate, about, verified, created_at FROM users WHERE id = $1',
       [userId]
     );
     const user = rows[0];
