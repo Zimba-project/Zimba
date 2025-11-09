@@ -57,12 +57,13 @@ const Register = ({ navigation }) => {
             const payload = { firstName, lastName, email: email || null, phone: fullPhone, birthdate: birthdate ? formatDate(birthdate) : null, password, confirmPassword, about };
             const res = await registerApi(payload);
             if (res && res.ok) {
-                // success: backend returns token and user
-                const firstNameFromRes = (res.body && res.body.user && (res.body.user.first_name || res.body.user.firstName)) || firstName;
-                const welcome = `Welcome to Zimba, ${firstNameFromRes || 'friend'}!`;
-                // show sweet message then navigate on OK
-                // After registration, show welcome message and send user to Login (do NOT auto-login)
-                Alert.alert('Account created', welcome, [
+                // success: backend returns user
+                // Inform user to verify their email and send them to Login
+                const emailAddr = email || (res.body && res.body.user && (res.body.user.email || res.body.user.email_address));
+                const msg = emailAddr
+                  ? `Account created. We've sent a verification email to ${emailAddr}. Please check your inbox.`
+                  : 'Account created. Please check your email for a verification link.';
+                Alert.alert('Account created', msg, [
                     { text: 'OK', onPress: () => {
                         // navigate to Login and prefill phone so user can easily sign in
                         navigation.replace('Login', { phone: fullPhone });
