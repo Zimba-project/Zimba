@@ -9,8 +9,8 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 const { sendMail } = require('../lib/mailer');
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:19006';
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
+const FRONTEND_URL = process.env.FRONTEND_URL 
+const BACKEND_URL = process.env.BACKEND_URL 
 
 // ---------- REGISTER ----------
 exports.register = async (req, res) => {
