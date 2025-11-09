@@ -23,8 +23,13 @@ const Login = ({ navigation, route }) => {
             if (res && res.ok) {
                 if (res.body && res.body.token) {
                     // TODO: persist token (AsyncStorage / SecureStore) later
-                    // pass user to Main so top bar can show initials
-                    navigation.replace('Main', { user: res.body.user });
+                    navigation.replace('Main', {
+                        screen: 'Home', // Drawer screen
+                        params: {
+                            screen: 'Home', // Tab screen inside the Drawer
+                            params: { user: res.body.user },
+                        },
+                    });
                 } else {
                     setError('Login succeeded but no token returned');
                 }
