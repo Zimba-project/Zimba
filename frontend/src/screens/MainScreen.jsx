@@ -4,144 +4,137 @@ import InfoBoard from '../components/MainPage/InfoBoard';
 import PollCard from '../components/Cards/PollCard';
 import DiscussionCard from '../components/Cards/DiscussionCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import TopBar from '../components/TopBar';
 import { getAllPosts } from '../api/postService';
 
 const MainScreen = ({ navigation, route }) => {
-  const [feed, setFeed] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); 
-  const user = route?.params?.user;
+    const [feed, setFeed] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const user = route?.params?.user;
 
-  const fetchPosts = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    const fetchPosts = async () => {
+        try {
+            setLoading(true);
+            setError(null);
 
-      const posts = await getAllPosts();
-      const polls = posts.filter(p => p.type === 'poll');
-      const discussions = posts.filter(p => p.type === 'discussion');
+            const posts = await getAllPosts();
+            const polls = posts.filter(p => p.type === 'poll');
+            const discussions = posts.filter(p => p.type === 'discussion');
 
-      const mixed = [];
-      const max = Math.max(polls.length, discussions.length);
-      for (let i = 0; i < max; i++) {
-        if (polls[i]) mixed.push({ ...polls[i], _type: 'poll' });
-        if (discussions[i]) mixed.push({ ...discussions[i], _type: 'discussion' });
-      }
+            const mixed = [];
+            const max = Math.max(polls.length, discussions.length);
+            for (let i = 0; i < max; i++) {
+                if (polls[i]) mixed.push({ ...polls[i], _type: 'poll' });
+                if (discussions[i]) mixed.push({ ...discussions[i], _type: 'discussion' });
+            }
 
-      setFeed(mixed);
-    } catch (err) {
-      console.error("Error fetching posts:", err.message);
-      setError("Unable to fetch posts. Check your network or server.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPosts();
-  }, []);
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.centered}>
-        <ActivityIndicator size="large" color="#6366f1" />
-        <Text style={styles.loadingText}>Loading posts...</Text>
-      </SafeAreaView>
-    );
-  }
-
-  if (error) {
-    return (
-      <SafeAreaView style={styles.centered}>
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchPosts}>
-          <Text style={styles.retryText}>Retry</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-      <TopBar
-        title="ZIMBA"
-        leftIcon="menu"
-        onLeftPress={() => alert('Open drawer')}
-        user={user}
-        rightText={!user ? 'Login' : null}
-        onRightPress={() => (!user ? navigation.navigate('Login') : navigation.navigate('Profile'))}
-      />
-
-      <FlatList
-        data={feed}
-        keyExtractor={(item, index) => `${item._type}-${item.id}-${index}`}
-        renderItem={({ item }) =>
-          item._type === 'poll' ? (
-            <PollCard
-              {...item}
-              onTakePoll={() => alert('Poll opened!')}
-              share={item.share}
-              onSave={item.onSave}
-            />
-          ) : (
-            <DiscussionCard
-              {...item}
-              navigation={navigation}
-              share={item.share}
-              onSave={item.onSave}
-            />
-          )
+            setFeed(mixed);
+        } catch (err) {
+            console.error("Error fetching posts:", err.message);
+            setError("Unable to fetch posts. Check your network or server.");
+        } finally {
+            setLoading(false);
         }
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={() => (
-          <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>Upcoming in your area</Text>
-              <TouchableOpacity onPress={() => alert('Show all upcoming changes')}>
-                <Text style={{ color: '#6366f1', fontWeight: '600' }}>See all</Text>
-              </TouchableOpacity>
-            </View>
-            <InfoBoard items={infoItems} onCardPress={(it) => alert(`Info: ${it.title}`)} />
-          </View>
-        )}
-        contentContainerStyle={{ paddingBottom: 24 }}
-      />
-    </SafeAreaView>
-  );
+    };
+
+    useEffect(() => {
+        fetchPosts();
+    }, []);
+
+    if (loading) {
+        return (
+            <SafeAreaView style={styles.centered}>
+                <ActivityIndicator size="large" color="#6366f1" />
+                <Text style={styles.loadingText}>Loading posts...</Text>
+            </SafeAreaView>
+        );
+    }
+
+    if (error) {
+        return (
+            <SafeAreaView style={styles.centered}>
+                <Text style={styles.errorText}>{error}</Text>
+                <TouchableOpacity style={styles.retryButton} onPress={fetchPosts}>
+                    <Text style={styles.retryText}>Retry</Text>
+                </TouchableOpacity>
+            </SafeAreaView>
+        );
+    }
+
+    return (
+        <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+            <FlatList
+                data={feed}
+                keyExtractor={(item, index) => `${item._type}-${item.id}-${index}`}
+                renderItem={({ item }) =>
+                    item._type === 'poll' ? (
+                        <PollCard
+                            {...item}
+                            onTakePoll={() => alert('Poll opened!')}
+                            share={item.share}
+                            onSave={item.onSave}
+                        />
+                    ) : (
+                        <DiscussionCard
+                            {...item}
+                            share={item.share}
+                            onSave={item.onSave}
+                        />
+                    )
+                }
+                showsVerticalScrollIndicator={false}
+                ListHeaderComponent={() => (
+                    <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>Upcoming in your area</Text>
+                            <TouchableOpacity onPress={() => alert('Show all upcoming changes')}>
+                                <Text style={{ color: '#6366f1', fontWeight: '600' }}>See all</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <InfoBoard
+                            items={infoItems}
+                            onCardPress={(it) => alert(`Info: ${it.title}`)}
+                        />
+                    </View>
+                )}
+                contentContainerStyle={{ paddingBottom: 24 }}
+            />
+        </SafeAreaView>
+    );
 };
 
 const infoItems = [
-  {
-    id: 'i1',
-    title: 'Traffic arrangements in downtown (wk 45)',
-    subtitle: 'Road and cable works in the city center — expect detours and temporary closures.',
-    image: 'https://unsplash.com/photos/HCDmcskE_Zk/download?force=true&w=800',
-    background: '#fffaf0',
-  },
-  {
-    id: 'i2',
-    title: 'City park renovation begins',
-    subtitle: 'Park renovation starts next month: walking paths will be adjusted and the playground renewed.',
-    image: 'https://unsplash.com/photos/GjnpGl9KYL4/download?force=true&w=800',
-    background: '#f9fafb',
-  },
-  {
-    id: 'i3',
-    title: 'Public transport timetable changes',
-    subtitle: 'New bus schedules take effect on Monday — check routes in the app.',
-    image: 'https://unsplash.com/photos/CI3UhW7AaZE/download?force=true&w=800',
-    background: '#fff7ed',
-  },
+    {
+        id: 'i1',
+        title: 'Traffic arrangements in downtown (wk 45)',
+        subtitle: 'Road and cable works in the city center — expect detours and temporary closures.',
+        image: 'https://unsplash.com/photos/HCDmcskE_Zk/download?force=true&w=800',
+        background: '#fffaf0',
+    },
+    {
+        id: 'i2',
+        title: 'City park renovation begins',
+        subtitle: 'Park renovation starts next month: walking paths will be adjusted and the playground renewed.',
+        image: 'https://unsplash.com/photos/GjnpGl9KYL4/download?force=true&w=800',
+        background: '#f9fafb',
+    },
+    {
+        id: 'i3',
+        title: 'Public transport timetable changes',
+        subtitle: 'New bus schedules take effect on Monday — check routes in the app.',
+        image: 'https://unsplash.com/photos/CI3UhW7AaZE/download?force=true&w=800',
+        background: '#fff7ed',
+    },
 ];
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb' },
-  loadingText: { marginTop: 8, fontSize: 16, color: '#555' },
-  errorText: { color: '#b91c1c', fontSize: 16, textAlign: 'center', marginBottom: 12, paddingHorizontal: 16 },
-  retryButton: { backgroundColor: '#6366f1', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 },
-  retryText: { color: '#fff', fontWeight: '600' },
+    container: { flex: 1, backgroundColor: '#f9fafb' },
+    centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb' },
+    loadingText: { marginTop: 8, fontSize: 16, color: '#555' },
+    errorText: { color: '#b91c1c', fontSize: 16, textAlign: 'center', marginBottom: 12, paddingHorizontal: 16 },
+    retryButton: { backgroundColor: '#6366f1', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 },
+    retryText: { color: '#fff', fontWeight: '600' },
 });
 
 export default MainScreen;

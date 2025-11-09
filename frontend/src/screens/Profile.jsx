@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+// TouchableOpacity not needed; TopBar provided by navigator
 
 const Profile = ({ navigation, route }) => {
   const [user, setUser] = useState(null);
@@ -83,14 +83,6 @@ const Profile = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Simple top bar */}
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.topTitle}>Profile</Text>
-        <View style={{ width: 40 }} /> {/* placeholder to balance layout */}
-      </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
