@@ -19,12 +19,6 @@ function displayDate(d){
 }
 
 const COUNTRIES = [
-    { name: 'United States', dial_code: '+1', code: 'US', flag: '🇺🇸' },
-    { name: 'United Kingdom', dial_code: '+44', code: 'GB', flag: '🇬🇧' },
-    { name: 'India', dial_code: '+91', code: 'IN', flag: '🇮🇳' },
-    { name: 'Pakistan', dial_code: '+92', code: 'PK', flag: '🇵🇰' },
-    { name: 'Canada', dial_code: '+1', code: 'CA', flag: '🇨🇦' },
-    { name: 'Australia', dial_code: '+61', code: 'AU', flag: '🇦🇺' },
     { name: 'Finland', dial_code: '+358', code: 'FI', flag: '🇫🇮' },
 ];
 
@@ -106,7 +100,6 @@ const Register = ({ navigation }) => {
                         <TextInput placeholder="Last name" placeholderTextColor="#666" value={lastName} onChangeText={setLastName} style={[styles.input, styles.inputSmall]} />
                     </View>
                 </View>
-                <Text style={styles.label}>Phone</Text>
                 <Text style={styles.label}>Email (optional)</Text>
                 <TextInput placeholder="Email address" placeholderTextColor="#666" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={styles.input} />
 
