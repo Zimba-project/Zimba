@@ -41,8 +41,8 @@ const Register = ({ navigation }) => {
 
     const handleRegister = async () => {
         setError(null);
-        if (!firstName || !lastName || !phone || !password || !confirmPassword) {
-            setError('Please fill all required fields');
+        if (!firstName || !lastName || !phone || !email || !password || !confirmPassword) {
+            setError('Please fill all required fields (email is required)');
             return;
         }
         if (password !== confirmPassword) {
@@ -100,7 +100,7 @@ const Register = ({ navigation }) => {
                         <TextInput placeholder="Last name" placeholderTextColor="#666" value={lastName} onChangeText={setLastName} style={[styles.input, styles.inputSmall]} />
                     </View>
                 </View>
-                <Text style={styles.label}>Email (optional)</Text>
+                <Text style={styles.label}>Email (required)</Text>
                 <TextInput placeholder="Email address" placeholderTextColor="#666" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={styles.input} />
 
                 <Text style={styles.label}>Phone</Text>

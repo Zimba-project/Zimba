@@ -17,7 +17,7 @@ exports.register = async (req, res) => {
   try {
     const { firstName, lastName, phone, email, birthdate, password, confirmPassword, about } = req.body;
 
-    if (!firstName || !lastName || !phone || !password || !confirmPassword)
+    if (!firstName || !lastName || !phone || !email || !password || !confirmPassword)
       return res.status(400).json({ message: 'Missing required fields.' });
 
     if (password !== confirmPassword)
@@ -28,11 +28,10 @@ exports.register = async (req, res) => {
     if (existingPhone.length > 0)
       return res.status(409).json({ message: 'Phone number already registered.' });
 
-    if (email) {
-      const { rows: existingEmail } = await pgPool.query('SELECT id FROM users WHERE email = $1', [email]);
-      if (existingEmail.length > 0)
-        return res.status(409).json({ message: 'Email already registered.' });
-    }
+    // email is required and must be unique
+    const { rows: existingEmail } = await pgPool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (existingEmail.length > 0)
+      return res.status(409).json({ message: 'Email already registered.' });
 
     const hashed = await bcrypt.hash(password, SALT_ROUNDS);
 
@@ -74,16 +73,30 @@ exports.register = async (req, res) => {
 // ---------- LOGIN ----------
 exports.login = async (req, res) => {
   try {
-    const { phone, password } = req.body;
-    if (!phone || !password)
-      return res.status(400).json({ message: 'Missing phone or password' });
+    // allow identifier to be either email or phone
+    // also accept legacy 'phone' key for compatibility
+    let { identifier, password } = req.body;
+    // fallback to phone or email if client still sends those fields
+    if (!identifier && req.body.phone) identifier = req.body.phone;
+    if (!identifier && req.body.email) identifier = req.body.email;
+    if (!identifier || !password)
+      return res.status(400).json({ message: 'Missing identifier or password' });
 
-    const { rows } = await pgPool.query('SELECT * FROM users WHERE phone = $1', [phone]);
-    const user = rows[0];
+    console.log('Login attempt, identifier:', identifier);
+    let rows;
+    if (identifier.includes('@')) {
+      rows = await pgPool.query('SELECT * FROM users WHERE email = $1', [identifier]);
+    } else {
+      rows = await pgPool.query('SELECT * FROM users WHERE phone = $1', [identifier]);
+    }
+    console.log('DB lookup rows count:', rows.rows ? rows.rows.length : 0);
+    const user = rows.rows ? rows.rows[0] : rows[0];
+    if (user) console.log('Found user id:', user.id, 'email:', user.email, 'phone:', user.phone, 'verified:', user.verified);
     if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
-    const valid = await bcrypt.compare(password, user.hashed_password);
-    if (!valid) return res.status(401).json({ message: 'Invalid credentials' });
+  const valid = await bcrypt.compare(password, user.hashed_password);
+  console.log('bcrypt.compare result:', valid);
+  if (!valid) return res.status(401).json({ message: 'Invalid credentials' });
 
     // If user provided email, require verification before allowing login
     if (user.email && !user.verified) {
