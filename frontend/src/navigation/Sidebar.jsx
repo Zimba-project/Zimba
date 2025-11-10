@@ -1,14 +1,80 @@
 import React from 'react';
-import { View } from 'react-native';
-import { createDrawerNavigator } from '@react-navigation/drawer';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
 import MainTabs from './MainTabs';
+// for now fetch from static file
+import { TOPIC_COLORS } from '../utils/TopicColors';
 
 
 // Placeholder-screenit (Pitää korvata oikeilla sitte)
 
 function LanguageScreen() { return <View style={{ flex: 1 }} />; }
 function DarkmodeScreen() { return <View style={{ flex: 1 }} />; }
+
+// Custom drawer content — renders standard links plus a collapsible Topics section
+function CustomDrawerContent(props) {
+  const { navigation } = props;
+  const topics = Object.keys(TOPIC_COLORS || {});
+  const [topicsOpen, setTopicsOpen] = React.useState(false);
+
+  return (
+    <DrawerContentScrollView {...props} contentContainerStyle={styles.content}>
+      {/* Topics collapsible */}
+      <View style={styles.drawerItem}>
+        <TouchableOpacity style={styles.drawerRow} activeOpacity={0.7} onPress={() => setTopicsOpen(s => !s)}>
+          <View style={styles.drawerRow}>
+            <Ionicons name="list-outline" size={20} color="#374151" />
+            <Text style={styles.drawerLabel}>Topics</Text>
+          </View>
+          <Ionicons name={topicsOpen ? 'chevron-up' : 'chevron-down'} size={18} color="#6b7280" />
+        </TouchableOpacity>
+
+        {topicsOpen && (
+          <View style={styles.topicsList}>
+            {topics.map((t) => {
+              return (
+                <TouchableOpacity
+                  key={t}
+                  style={styles.topicInnerRow}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    // Close drawer and navigate Home (could pass topic param later)
+                    try { navigation.closeDrawer && navigation.closeDrawer(); } catch (e) { }
+                    navigation.navigate('Home');
+                  }}
+                >
+                  <View style={styles.topicInnerRowContent}>
+                    <Text style={styles.topicLabel} numberOfLines={1}>{t}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+      </View>
+      <View style={styles.separator} />
+
+      {/* Language link */}
+      <TouchableOpacity style={styles.drawerItem} activeOpacity={0.7} onPress={() => navigation.navigate('Language')}>
+        <View style={styles.drawerRow}>
+          <Ionicons name="language-outline" size={20} color="#374151" />
+          <Text style={styles.drawerLabel}>Language</Text>
+        </View>
+      </TouchableOpacity>
+      <View style={styles.separator} />
+
+
+      {/* Dark mode link */}
+      <TouchableOpacity style={styles.drawerItem} onPress={() => navigation.navigate('Darkmode')}>
+        <View style={styles.drawerRow}>
+          <Ionicons name="moon-outline" size={20} color="#374151" />
+          <Text style={styles.drawerLabel}>Dark mode</Text>
+        </View>
+      </TouchableOpacity>
+    </DrawerContentScrollView>
+  );
+}
 
 const Drawer = createDrawerNavigator();
 
@@ -38,6 +104,7 @@ export default function Sidebar({ route, navigation }) {
 
   return (
     <Drawer.Navigator
+      drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{ headerShown: false, drawerActiveTintColor: '#111827' }}
     >
       <Drawer.Screen
@@ -48,24 +115,27 @@ export default function Sidebar({ route, navigation }) {
         }}
       />
 
-      <Drawer.Screen
-        name="Language"
-        component={LanguageScreen}
-        options={{
-          drawerIcon: ({ color, size }) => (
-            <Ionicons name="language-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="Darkmode"
-        component={DarkmodeScreen}
-        options={{
-          drawerIcon: ({ color, size }) => (
-            <Ionicons name="moon-outline" size={size} color={color} />
-          ),
-        }}
-      />
+      <Drawer.Screen name="Language" component={LanguageScreen} />
+      <Drawer.Screen name="Darkmode" component={DarkmodeScreen} />
     </Drawer.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#fff' },
+  content: { padding: 16 },
+  heading: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
+  drawerItem: { paddingVertical: 10 },
+  drawerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  drawerLabel: { marginLeft: 8, fontSize: 16, color: '#111827', fontWeight: '600' },
+  topicsList: { marginTop: 8, paddingLeft: 12 },
+  topicInnerRow: { marginBottom: 6, borderRadius: 6, borderBottomWidth: 1, borderBottomColor: '#eef2ff' },
+  topicInnerRowContent: { paddingVertical: 8, paddingHorizontal: 6, paddingLeft: 12 },
+  topicRowContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+  topicRow: { flex: 1 },
+  chevButton: { padding: 6 },
+  badge: { paddingVertical: 8, paddingHorizontal: 10, borderRadius: 8, minWidth: 44, alignItems: 'center', justifyContent: 'center' },
+  badgeText: { fontWeight: '600', fontSize: 13 },
+  topicLabel: { fontSize: 13, color: '#6b7280', paddingVertical: 6, lineHeight: 18 },
+  separator: { height: 1, backgroundColor: '#eef2ff', marginVertical: 8 },
+});
