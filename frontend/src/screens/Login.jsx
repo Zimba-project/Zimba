@@ -6,20 +6,20 @@ import { login as loginApi } from '../api/auth';
 
 const Login = ({ navigation, route }) => {
     const initialPhone = route && route.params && route.params.phone ? route.params.phone : '';
-    const [identifier, setIdentifier] = useState(initialPhone);
+    const [phone, setPhone] = useState(initialPhone);
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const handleLogin = async () => {
         setError(null);
-        if (!identifier || !password) {
-            setError('Please enter email/phone and password');
+        if (!phone || !password) {
+            setError('Please enter phone and password');
             return;
         }
         setLoading(true);
         try {
-            const res = await loginApi({ identifier, password });
+            const res = await loginApi({ phone, password });
             if (res && res.ok) {
                 if (res.body && res.body.token) {
                     // TODO: persist token (AsyncStorage / SecureStore) later
@@ -53,10 +53,11 @@ const Login = ({ navigation, route }) => {
                 {error ? <Text style={styles.error}>{error}</Text> : null}
 
                 <TextInput
-                    placeholder="Email or phone"
+                    placeholder="Phone"
                     placeholderTextColor="#666"
-                    value={identifier}
-                    onChangeText={setIdentifier}
+                    value={phone}
+                    onChangeText={setPhone}
+                    keyboardType="phone-pad"
                     style={styles.input}
                 />
 

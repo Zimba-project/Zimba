@@ -1,4 +1,4 @@
-const API_BASE = process.env.API_BASE 
+import { API_BASE } from '@env';
 
 async function request(path, method = 'GET', body) {
     const opts = { method, headers: { 'Content-Type': 'application/json' } };
@@ -16,6 +16,5 @@ async function request(path, method = 'GET', body) {
 export const register = (data) => request('/auth/register', 'POST', data);
 export const login = (data) => request('/auth/login', 'POST', data);
 export const me = () => request('/auth/me', 'GET');
-export const resendVerification = (data) => request('/auth/resend-verification', 'POST', data);
 
 export default { register, login, me };
