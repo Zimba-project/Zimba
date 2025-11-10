@@ -19,6 +19,12 @@ function displayDate(d){
 }
 
 const COUNTRIES = [
+    { name: 'United States', dial_code: '+1', code: 'US', flag: '🇺🇸' },
+    { name: 'United Kingdom', dial_code: '+44', code: 'GB', flag: '🇬🇧' },
+    { name: 'India', dial_code: '+91', code: 'IN', flag: '🇮🇳' },
+    { name: 'Pakistan', dial_code: '+92', code: 'PK', flag: '🇵🇰' },
+    { name: 'Canada', dial_code: '+1', code: 'CA', flag: '🇨🇦' },
+    { name: 'Australia', dial_code: '+61', code: 'AU', flag: '🇦🇺' },
     { name: 'Finland', dial_code: '+358', code: 'FI', flag: '🇫🇮' },
 ];
 
@@ -26,7 +32,6 @@ const Register = ({ navigation }) => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [phone, setPhone] = useState('');
-    const [email, setEmail] = useState('');
     // country picker
     const [country, setCountry] = useState({ name: 'United States', dial_code: '+1', code: 'US', flag: '🇺🇸' });
     const [showCountryPicker, setShowCountryPicker] = useState(false);
@@ -41,8 +46,8 @@ const Register = ({ navigation }) => {
 
     const handleRegister = async () => {
         setError(null);
-        if (!firstName || !lastName || !phone || !email || !password || !confirmPassword) {
-            setError('Please fill all required fields (email is required)');
+        if (!firstName || !lastName || !phone || !password || !confirmPassword) {
+            setError('Please fill all required fields');
             return;
         }
         if (password !== confirmPassword) {
@@ -54,16 +59,15 @@ const Register = ({ navigation }) => {
         try {
             // build full phone with country code
             const fullPhone = `${country.dial_code}${phone}`;
-            const payload = { firstName, lastName, email: email || null, phone: fullPhone, birthdate: birthdate ? formatDate(birthdate) : null, password, confirmPassword, about };
+            const payload = { firstName, lastName, phone: fullPhone, birthdate: birthdate ? formatDate(birthdate) : null, password, confirmPassword, about };
             const res = await registerApi(payload);
             if (res && res.ok) {
-                // success: backend returns user
-                // Inform user to verify their email and send them to Login
-                const emailAddr = email || (res.body && res.body.user && (res.body.user.email || res.body.user.email_address));
-                const msg = emailAddr
-                  ? `Account created. We've sent a verification email to ${emailAddr}. Please check your inbox.`
-                  : 'Account created. Please check your email for a verification link.';
-                Alert.alert('Account created', msg, [
+                // success: backend returns token and user
+                const firstNameFromRes = (res.body && res.body.user && (res.body.user.first_name || res.body.user.firstName)) || firstName;
+                const welcome = `Welcome to Zimba, ${firstNameFromRes || 'friend'}!`;
+                // show sweet message then navigate on OK
+                // After registration, show welcome message and send user to Login (do NOT auto-login)
+                Alert.alert('Account created', welcome, [
                     { text: 'OK', onPress: () => {
                         // navigate to Login and prefill phone so user can easily sign in
                         navigation.replace('Login', { phone: fullPhone });
@@ -101,9 +105,6 @@ const Register = ({ navigation }) => {
                         <TextInput placeholder="Last name" placeholderTextColor="#666" value={lastName} onChangeText={setLastName} style={[styles.input, styles.inputSmall]} />
                     </View>
                 </View>
-                <Text style={styles.label}>Email (required)</Text>
-                <TextInput placeholder="Email address" placeholderTextColor="#666" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={styles.input} />
-
                 <Text style={styles.label}>Phone</Text>
                 <View style={styles.phoneContainer}>
                     <TouchableOpacity style={styles.countryButton} onPress={() => setShowCountryPicker(true)}>
