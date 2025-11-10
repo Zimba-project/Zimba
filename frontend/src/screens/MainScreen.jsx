@@ -62,7 +62,7 @@ const MainScreen = ({ navigation, route }) => {
     }
 
     return (
-        <SafeAreaView style={styles.container} edges={["bottom"]}>
+        <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
             <FlatList
                 data={feed}
                 keyExtractor={(item, index) => `${item._type}-${item.id}-${index}`}

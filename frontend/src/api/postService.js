@@ -1,4 +1,4 @@
-const API_BASE = process.env.API_BASE 
+import { API_BASE } from '@env';
 
 async function request(path, method = 'GET', body) {
     const opts = { method, headers: { 'Content-Type': 'application/json' } };

@@ -1,6 +1,6 @@
 import React from 'react';
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, Image, TextInput } from 'react-native';
-import { Feather as Icon } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import TopBar from '../components/TopBar';
 import { DrawerActions } from '@react-navigation/native';
 import { navigationRef } from '../App';
 
@@ -112,134 +112,21 @@ export function HeaderForStack({ navigation, route, back, options }) {
         else navigation.navigate && navigation.navigate('Profile', { user });
     };
 
-    const title = "";
-
-    // Local search state moved from component TopBar
-    const [searching, setSearching] = React.useState(false);
-    const [query, setQuery] = React.useState('');
+    const title = ""
 
     return (
         // Wrap TopBar in SafeAreaView so it is positioned below device notch/status bar
         <SafeAreaView edges={["top"]} style={{ backgroundColor: '#fff' }}>
-            <View style={styles.container}>
-                {/* LEFT */}
-                <View style={styles.left}>
-                    <TouchableOpacity onPress={onLeftPress} style={styles.iconButton}>
-                        <Icon name={showBack ? 'arrow-left' : 'menu'} size={24} color="#111827" />
-                    </TouchableOpacity>
-                </View>
-
-                {/* CENTER: title or search input when active */}
-                {searching ? (
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder="Search..."
-                        value={query}
-                        onChangeText={setQuery}
-                        autoFocus
-                        returnKeyType="search"
-                        onSubmitEditing={() => {
-                            // no-op: integrate onSearch behavior later if needed
-                        }}
-                    />
-                ) : (
-                    <Text style={styles.title} numberOfLines={1}>{title}</Text>
-                )}
-
-                {/* RIGHT */}
-                <View style={styles.right}>
-                    {searching ? (
-                        <TouchableOpacity
-                            onPress={() => {
-                                setSearching(false);
-                                setQuery('');
-                            }}
-                            style={styles.iconButton}
-                        >
-                            <Icon name="x" size={22} color="#111827" />
-                        </TouchableOpacity>
-                    ) : null}
-
-                    {/* Render search icon to the left of the login/avatar control */}
-                    {!searching && (
-                        <TouchableOpacity onPress={() => setSearching(true)} style={styles.searchIconButton}>
-                            <Icon name="search" size={20} color="#111827" />
-                        </TouchableOpacity>
-                    )}
-
-                    {user ? (
-                        <TouchableOpacity onPress={onRightPress} style={styles.avatarButton}>
-                            <View style={styles.avatarCircle}>
-                                <Text style={styles.avatarText}>{(user.first_name || user.firstName || '').charAt(0).toUpperCase()}{(user.last_name || user.lastName || '').charAt(0).toUpperCase()}</Text>
-                            </View>
-                        </TouchableOpacity>
-                    ) : rightText ? (
-                        <TouchableOpacity onPress={onRightPress} style={styles.textButton} activeOpacity={0.7}>
-                            <Text style={styles.rightText}>{rightText}</Text>
-                        </TouchableOpacity>
-                    ) : null}
-                </View>
-            </View>
+            <TopBar
+                title={title}
+                leftIcon={showBack ? 'arrow-left' : 'menu'}
+                onLeftPress={onLeftPress}
+                user={user}
+                rightText={rightText}
+                onRightPress={onRightPress}
+            />
         </SafeAreaView>
     );
 }
 
-export default HeaderForStack;
-
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#e5e7eb',
-        height: 56,
-    },
-    left: { width: 40, justifyContent: 'center' },
-    right: { minWidth: 80, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' },
-    iconButton: { padding: 4 },
-    title: {
-        flex: 1,
-        textAlign: 'center',
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#111827',
-        marginHorizontal: 40,
-    },
-    logo: { width: 32, height: 32 },
-    textButton: {
-        backgroundColor: '#e0e7ff',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
-        minWidth: 60,
-        alignItems: 'center',
-        justifyContent: 'center',
-        elevation: 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-    },
-    rightText: {
-        color: '#4338ca',
-        fontWeight: '600',
-        fontSize: 14,
-        letterSpacing: 0.3,
-    },
-    avatarButton: { padding: 4 },
-    avatarCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#2563eb', alignItems: 'center', justifyContent: 'center' },
-    avatarText: { color: '#fff', fontWeight: '700' },
-    searchInput: {
-        flex: 1,
-        height: 40,
-        backgroundColor: '#f1f5f9',
-        borderRadius: 10,
-        paddingHorizontal: 12,
-        marginHorizontal: 8,
-    },
-    searchIconButton: { paddingHorizontal: 8, paddingVertical: 6, marginRight: 8 },
-});
+export default TopBar;
