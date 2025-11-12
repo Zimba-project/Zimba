@@ -27,7 +27,7 @@ const Profile = ({ navigation, route }) => {
           passedUser || {
             name: 'Jane Doe',
             email: 'jane.doe@example.com',
-            bio: 'React Native developer who loves clean design and coffee ☕',
+            bio: 'React Native developer who loves clean design and coffee',
           };
         setUser(data);
         setForm(data);
@@ -67,6 +67,29 @@ const Profile = ({ navigation, route }) => {
             ]);
           } catch (error) {
             Alert.alert('Error', 'Failed to delete account.');
+          }
+        },
+      },
+    ]);
+  };
+
+  // Added: handleLogout function
+  const handleLogout = async () => {
+    Alert.alert('Log Out', 'Are you sure you want to log out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Log Out',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            // TODO: clear authentication tokens 
+            setUser(null);
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }], 
+            });
+          } catch (error) {
+            Alert.alert('Error', 'Failed to log out.');
           }
         },
       },
@@ -145,7 +168,12 @@ const Profile = ({ navigation, route }) => {
           <Text style={styles.featureText}>Empty Box 2</Text>
         </View>
 
+        {/* Added: Logout button */}
         <View style={{ marginTop: 20 }}>
+          <Button title="Log Out" color="#6366f1" onPress={handleLogout} />
+        </View>
+
+        <View style={{ marginTop: 10 }}>
           <Button title="Delete Account" color="red" onPress={handleDelete} />
         </View>
       </ScrollView>
@@ -156,7 +184,7 @@ const Profile = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f9fafb', // matches MainScreen
+    backgroundColor: '#f9fafb',
   },
   scrollContent: {
     alignItems: 'center',
