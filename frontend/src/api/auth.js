@@ -1,4 +1,5 @@
 import { API_BASE } from '@env';
+import { sessionStorage } from '../utils/Storage';
 
 async function request(path, method = 'GET', body) {
     const opts = { method, headers: { 'Content-Type': 'application/json' } };
@@ -13,8 +14,31 @@ async function request(path, method = 'GET', body) {
     return { ok: res.ok, status: res.status, body: json };
 }
 
+async function getRequest(path, method = 'GET', extraHeaders = "fuck this") {
+   const opts = {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            "Authorization": 'Bearer ' + extraHeaders
+        }
+    };
+
+    const res = await fetch(`${API_BASE}${path}`, opts);
+    let json = {};
+    try {
+        json = await res.json();
+    } catch (e) {
+        // No JSON body
+    }
+
+    return { ok: res.ok, status: res.status, body: json };
+}
+
+
+
 export const register = (data) => request('/auth/register', 'POST', data);
 export const login = (data) => request('/auth/login', 'POST', data);
-export const me = () => request('/auth/me', 'GET');
+export const me = (token) => getRequest('/auth/me', "GET", token);
+
 
 export default { register, login, me };

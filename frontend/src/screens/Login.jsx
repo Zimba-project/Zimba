@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import { Feather as Icon, FontAwesome } from '@expo/vector-icons';
 import { login as loginApi } from '../api/auth';
+import { sessionStorage } from '../utils/Storage';
 
 const Login = ({ navigation, route }) => {
     const initialPhone = route && route.params && route.params.phone ? route.params.phone : '';
@@ -24,6 +25,7 @@ const Login = ({ navigation, route }) => {
                 if (res.body && res.body.token) {
                     // TODO: persist token (AsyncStorage / SecureStore) later
                     // pass user to Main so top bar can show initials
+                    sessionStorage.setItem('authToken', res.body.token);
                     navigation.replace('Main', { user: res.body.user });
                 } else {
                     setError('Login succeeded but no token returned');

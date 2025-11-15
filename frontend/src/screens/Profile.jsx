@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { me as info } from '../api/auth';
+import { sessionStorage } from '../utils/Storage';
 import {
   SafeAreaView,
   Text,
@@ -9,8 +11,8 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
+  Pressable
 } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const Profile = ({ navigation, route }) => {
   const [user, setUser] = useState(null);
@@ -18,16 +20,20 @@ const Profile = ({ navigation, route }) => {
   const [form, setForm] = useState({ name: '', email: '', bio: '' });
   const [loading, setLoading] = useState(true);
 
+
   useEffect(() => {
     const loadUser = async () => {
       try {
+
         // TODO: replace this with an API call
-        const passedUser = route?.params?.user;
+        const res = await info(sessionStorage.getItem('authToken'));
+        console.log(res.body.user);
+        const passedUser = res?.body?.user;// //res.body.user;
         const data =
           passedUser || {
-            name: 'Jane Doe',
-            email: 'jane.doe@example.com',
-            bio: 'React Native developer who loves clean design and coffee ☕',
+            first_name: 'Jane Doe',
+            phone: 'jane.doe@example.com',
+            about: 'React Native developer who loves clean design and coffee ☕',
           };
         setUser(data);
         setForm(data);
@@ -85,11 +91,13 @@ const Profile = ({ navigation, route }) => {
     <SafeAreaView style={styles.safeArea}>
       {/* Simple top bar */}
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Pressable onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
+        </Pressable>
         <Text style={styles.topTitle}>Profile</Text>
-        <View style={{ width: 40 }} /> {/* placeholder to balance layout */}
+        <View style={{ width: 40 }}> 
+          <Text style={styles.topTitle}>placeholder to balance layout </Text>
+        </View>
       </View>
 
       <ScrollView
@@ -126,9 +134,9 @@ const Profile = ({ navigation, route }) => {
             </>
           ) : (
             <>
-              <Text style={styles.title}>{user.name}</Text>
-              <Text style={styles.text}>{user.email}</Text>
-              <Text style={styles.text}>{user.bio}</Text>
+              <Text style={styles.title}>{user.first_name} {user.last_name}</Text>
+              <Text style={styles.text}>{user.phone}</Text>
+              <Text style={styles.text}>{user.about}</Text>
 
               <View style={styles.buttonRow}>
                 <Button title="Edit Profile" onPress={() => setIsEditing(true)} />

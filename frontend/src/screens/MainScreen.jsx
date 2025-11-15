@@ -19,7 +19,7 @@ const MainScreen = ({ navigation, route }) => {
       setError(null);
 
       const posts = await getAllPosts();
-      const polls = posts.filter(p => p.type === 'poll');
+      /*const polls = posts.filter(p => p.type === 'poll');
       const discussions = posts.filter(p => p.type === 'discussion');
 
       const mixed = [];
@@ -27,9 +27,9 @@ const MainScreen = ({ navigation, route }) => {
       for (let i = 0; i < max; i++) {
         if (polls[i]) mixed.push({ ...polls[i], _type: 'poll' });
         if (discussions[i]) mixed.push({ ...discussions[i], _type: 'discussion' });
-      }
+      }*/
 
-      setFeed(mixed);
+      setFeed(posts);
     } catch (err) {
       console.error("Error fetching posts:", err.message);
       setError("Unable to fetch posts. Check your network or server.");
