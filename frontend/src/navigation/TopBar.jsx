@@ -2,13 +2,11 @@ import React from 'react';
 import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, Image, TextInput } from 'react-native';
 import { Feather as Icon } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
-import { navigationRef } from '../App';
+
 
 export function HeaderForStack({ navigation, route, back, options }) {
     // Try to resolve the current user from route params or from the active nested route's params.
-    // When we use a single header for a Stack that contains a Drawer/Tab navigator, the
-    // active screen's params may live in a nested navigator. We traverse the navigation
-    // state to find the deepest active route and read its params.user if available.
+    // ... (resolveUserFromNavigation pysyy samana)
     const resolveUserFromNavigation = () => {
         if (route?.params?.user) return route.params.user;
         try {
@@ -19,7 +17,7 @@ export function HeaderForStack({ navigation, route, back, options }) {
                 if (!r) break;
                 if (r.params && r.params.user) return r.params.user;
                 // some navigators (navigate('Main', { screen, params })) keep nested params under r.params.params
-                if (r.params && r.params.params && r.params.params.user) return r.params.params.user;
+                if (r.params && r.params.params && r.params.params.params && r.params.params.params.user) return r.params.params.params.user; // Huom: Lisätty kerros syvyyttä todennäköisesti oikea
                 // dive into nested state if present
                 if (r.state) current = r.state;
                 else break;
@@ -31,11 +29,8 @@ export function HeaderForStack({ navigation, route, back, options }) {
     };
 
     const user = resolveUserFromNavigation() || null;
-    // compute rightText only when there's no user (quick shortcut)
-    // Do not show the 'Login' button when we're already on the Login screen
     const rightText = (!user && route?.name !== 'Login') ? 'Login' : null;
 
-    // Determine whether this screen should show a back button instead of the drawer menu.
     const resolveActiveRouteName = () => {
         try {
             const state = navigation && navigation.getState && navigation.getState();
@@ -81,8 +76,12 @@ export function HeaderForStack({ navigation, route, back, options }) {
             // ignore and try other fallbacks
         }
 
-        // Prefer using the root navigation ref to dispatch DrawerActions.openDrawer()
+        // TÄRKEÄ MUUTOS: Dynaaminen require() käytössä navigationRef:lle
         try {
+            // Ladataan navigationRef ja DrawerActions TÄSSÄ
+            const { navigationRef } = require('../App'); 
+            const { DrawerActions } = require('@react-navigation/native'); 
+            
             if (navigationRef && navigationRef.isReady && navigationRef.isReady()) {
                 navigationRef.dispatch && navigationRef.dispatch(DrawerActions.openDrawer());
                 return;
@@ -94,7 +93,7 @@ export function HeaderForStack({ navigation, route, back, options }) {
         // Final fallback: navigate to the Drawer screen and request it to open
         if (navigation && navigation.navigate) {
             try {
-                navigation.navigate('Main', { screen: 'Home', params: { openDrawer: true } });
+                navigation.navigate('Main', { screen: 'Root', params: { openDrawer: true } });
                 return;
             } catch (e) {
                 // ignore
@@ -112,7 +111,7 @@ export function HeaderForStack({ navigation, route, back, options }) {
         else navigation.navigate && navigation.navigate('Profile', { user });
     };
 
-    const title = "";
+    const title = options?.title || route?.name || "";
 
     // Local search state moved from component TopBar
     const [searching, setSearching] = React.useState(false);

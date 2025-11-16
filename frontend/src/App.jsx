@@ -12,8 +12,7 @@ import Discuss from './screens/Discuss';
 import Sidebar from './navigation/Sidebar';
 import { HeaderForStack } from './navigation/TopBar';
 
-import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider/index';
-//import { config } from '@/components/ui/gluestack-ui-provider/config';
+import { GluestackUIProvider } from '@gluestack-ui/themed';
 import '@/global.css';
 
 // navigation ref so headers/components can dispatch drawer actions
@@ -23,24 +22,26 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    
-    <GluestackUIProvider mode="dark">
+    <GluestackUIProvider>
       <SafeAreaProvider>
-      <NavigationContainer ref={navigationRef}>
-        <Stack.Navigator
-          screenOptions={{ header: (props) => <HeaderForStack {...props} /> }}
-        >
-          <Stack.Screen name="Main" component={Sidebar} options={{ title: 'ZIMBA' }} />
+        <NavigationContainer ref={navigationRef}>
+          <Stack.Navigator>
+            <Stack.Screen name="Main"
+              component={Sidebar}
+              options={{
+                title: 'ZIMBA',
+                header: (props) => <HeaderForStack {...props} />,
+              }}
+              />
           <Stack.Screen name="Login" component={Login} />
-          <Stack.Screen name="Register" component={Register} />
-          <Stack.Screen name="Profile" component={Profile} />
-          <Stack.Screen name="Discuss" component={Discuss} />
-        </Stack.Navigator>
-      </NavigationContainer>
-      <StatusBar style="auto" />
-    </SafeAreaProvider>
+            <Stack.Screen name="Register" component={Register} />
+            <Stack.Screen name="Profile" component={Profile} />
+            <Stack.Screen name="Discuss" component={Discuss} />
+          </Stack.Navigator>
+        </NavigationContainer>
+        <StatusBar style="auto" />
+      </SafeAreaProvider>
     </GluestackUIProvider>
-  
   );
 }
 

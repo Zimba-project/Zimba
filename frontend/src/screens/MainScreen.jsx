@@ -18,8 +18,22 @@ const MainScreen = ({ navigation, route }) => {
             setError(null);
 
             const posts = await getAllPosts();
-            const polls = posts.filter(p => p.type === 'poll');
-            const discussions = posts.filter(p => p.type === 'discussion');
+
+            // Defensive: ensure we have an array. The API may return { posts: [...] } or an array.
+            let postsArray = posts;
+            if (!Array.isArray(postsArray)) {
+                if (postsArray && Array.isArray(postsArray.posts)) {
+                    postsArray = postsArray.posts;
+                } else {
+                    console.warn('getAllPosts returned unexpected shape:', postsArray);
+                    setError('Unable to fetch posts — unexpected response from server.');
+                    setFeed([]);
+                    return;
+                }
+            }
+
+            const polls = postsArray.filter(p => p.type === 'poll');
+            const discussions = postsArray.filter(p => p.type === 'discussion');
 
             const mixed = [];
             const max = Math.max(polls.length, discussions.length);
@@ -32,7 +46,7 @@ const MainScreen = ({ navigation, route }) => {
             const finalFeed = topic ? mixed.filter(item => (item.topic || item.topic === 0) && item.topic === topic) : mixed;
             setFeed(finalFeed);
         } catch (err) {
-            console.error("Error fetching posts:", err.message);
+            console.error("Error fetching posts:", err);
             setError("Unable to fetch posts. Check your network or server.");
         } finally {
             setLoading(false);

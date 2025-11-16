@@ -5,10 +5,10 @@ import { View, ViewProps } from 'react-native';
 import { OverlayProvider } from '@gluestack-ui/core/overlay/creator';
 import { ToastProvider } from '@gluestack-ui/core/toast/creator';
 import { useColorScheme } from 'nativewind';
-// TÄMÄ ON TÄRKEÄ! Oikean providerin tuonti (asenna, jos ei ole)
-import { StyledProvider } from '@gluestack-style/react'; 
+//import { StyledProvider } from '@gluestack-style/react'; 
 
 export type ModeType = 'light' | 'dark' | 'system';
+const { StyledProvider } = require('@gluestack-style/react');
 
 export function GluestackUIProvider({
   mode = 'light',
@@ -25,8 +25,8 @@ export function GluestackUIProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
-  return (
-    // KIETOA TÄHÄN StyledProvideriin, joka saa configin
+ return (
+    // StyledProvider on ehdottoman pakollinen.
     <StyledProvider config={config}> 
       <View
         style={[
@@ -39,6 +39,6 @@ export function GluestackUIProvider({
           <ToastProvider>{props.children}</ToastProvider>
         </OverlayProvider>
       </View>
-    </StyledProvider> // SULJE TÄHÄN
+    </StyledProvider> // Sulje tähän
   );
 }
