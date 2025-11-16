@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { me as info } from '../api/auth';
+import { sessionStorage } from '../utils/Storage';
 import {
   SafeAreaView,
   Text,
@@ -9,8 +11,8 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
+  Pressable
 } from 'react-native';
-// TouchableOpacity not needed; TopBar provided by navigator
 
 const Profile = ({ navigation, route }) => {
   const [user, setUser] = useState(null);
@@ -18,16 +20,20 @@ const Profile = ({ navigation, route }) => {
   const [form, setForm] = useState({ name: '', email: '', bio: '' });
   const [loading, setLoading] = useState(true);
 
+
   useEffect(() => {
     const loadUser = async () => {
       try {
+
         // TODO: replace this with an API call
-        const passedUser = route?.params?.user;
+        const res = await info(sessionStorage.getItem('authToken'));
+        console.log(res.body.user);
+        const passedUser = res?.body?.user;// //res.body.user;
         const data =
           passedUser || {
-            name: 'Jane Doe',
-            email: 'jane.doe@example.com',
-            bio: 'React Native developer who loves clean design and coffee ☕',
+            first_name: 'Jane Doe',
+            phone: 'jane.doe@example.com',
+            about: 'React Native developer who loves clean design and coffee ☕',
           };
         setUser(data);
         setForm(data);
@@ -73,6 +79,29 @@ const Profile = ({ navigation, route }) => {
     ]);
   };
 
+  // Added: handleLogout function
+  const handleLogout = async () => {
+    Alert.alert('Log Out', 'Are you sure you want to log out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Log Out',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            // TODO: clear authentication tokens 
+            setUser(null);
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }], 
+            });
+          } catch (error) {
+            Alert.alert('Error', 'Failed to log out.');
+          }
+        },
+      },
+    ]);
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.center}>
@@ -83,6 +112,16 @@ const Profile = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* Simple top bar */}
+      <View style={styles.topBar}>
+        <Pressable onPress={() => navigation.goBack()}>
+          <Text style={styles.backText}>← Back</Text>
+        </Pressable>
+        <Text style={styles.topTitle}>Profile</Text>
+        <View style={{ width: 40 }}> 
+          <Text style={styles.topTitle}>placeholder to balance layout </Text>
+        </View>
+      </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -118,9 +157,9 @@ const Profile = ({ navigation, route }) => {
             </>
           ) : (
             <>
-              <Text style={styles.title}>{user.name}</Text>
-              <Text style={styles.text}>{user.email}</Text>
-              <Text style={styles.text}>{user.bio}</Text>
+              <Text style={styles.title}>{user.first_name} {user.last_name}</Text>
+              <Text style={styles.text}>{user.phone}</Text>
+              <Text style={styles.text}>{user.about}</Text>
 
               <View style={styles.buttonRow}>
                 <Button title="Edit Profile" onPress={() => setIsEditing(true)} />
@@ -137,7 +176,12 @@ const Profile = ({ navigation, route }) => {
           <Text style={styles.featureText}>Empty Box 2</Text>
         </View>
 
+        {/* Added: Logout button */}
         <View style={{ marginTop: 20 }}>
+          <Button title="Log Out" color="#6366f1" onPress={handleLogout} />
+        </View>
+
+        <View style={{ marginTop: 10 }}>
           <Button title="Delete Account" color="red" onPress={handleDelete} />
         </View>
       </ScrollView>
@@ -148,7 +192,7 @@ const Profile = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f9fafb', // matches MainScreen
+    backgroundColor: '#f9fafb',
   },
   scrollContent: {
     alignItems: 'center',

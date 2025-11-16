@@ -17,25 +17,25 @@ const MainScreen = ({ navigation, route }) => {
             setLoading(true);
             setError(null);
 
-            const posts = await getAllPosts();
-            const polls = posts.filter(p => p.type === 'poll');
-            const discussions = posts.filter(p => p.type === 'discussion');
+      const posts = await getAllPosts();
+      /*const polls = posts.filter(p => p.type === 'poll');
+      const discussions = posts.filter(p => p.type === 'discussion');
 
-            const mixed = [];
-            const max = Math.max(polls.length, discussions.length);
-            for (let i = 0; i < max; i++) {
-                if (polls[i]) mixed.push({ ...polls[i], _type: 'poll' });
-                if (discussions[i]) mixed.push({ ...discussions[i], _type: 'discussion' });
-            }
+      const mixed = [];
+      const max = Math.max(polls.length, discussions.length);
+      for (let i = 0; i < max; i++) {
+        if (polls[i]) mixed.push({ ...polls[i], _type: 'poll' });
+        if (discussions[i]) mixed.push({ ...discussions[i], _type: 'discussion' });
+      }*/
 
-            setFeed(mixed);
-        } catch (err) {
-            console.error("Error fetching posts:", err.message);
-            setError("Unable to fetch posts. Check your network or server.");
-        } finally {
-            setLoading(false);
-        }
-    };
+      setFeed(posts);
+    } catch (err) {
+      console.error("Error fetching posts:", err.message);
+      setError("Unable to fetch posts. Check your network or server.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
     useEffect(() => {
         fetchPosts();

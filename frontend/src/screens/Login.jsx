@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import { Feather as Icon, FontAwesome } from '@expo/vector-icons';
 import { login as loginApi } from '../api/auth';
+import { sessionStorage } from '../utils/Storage';
 
 const Login = ({ navigation, route }) => {
     const initialPhone = route && route.params && route.params.phone ? route.params.phone : '';
@@ -23,12 +24,9 @@ const Login = ({ navigation, route }) => {
             if (res && res.ok) {
                 if (res.body && res.body.token) {
                     // TODO: persist token (AsyncStorage / SecureStore) later
-                    // Reset navigation stack to make 'Main' the only route so there
-                    // is no back history and the header won't show a back button.
-                    navigation.reset({
-                        index: 0,
-                        routes: [{ name: 'Main', params: { user: res.body.user } }],
-                    });
+                    // pass user to Main so top bar can show initials
+                    sessionStorage.setItem('authToken', res.body.token);
+                    navigation.replace('Main', { user: res.body.user });
                 } else {
                     setError('Login succeeded but no token returned');
                 }
