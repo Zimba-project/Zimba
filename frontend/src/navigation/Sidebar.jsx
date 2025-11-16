@@ -1,7 +1,16 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
+import { 
+  HStack,
+  Box,
+  VStack,
+  Pressable,
+  Divider, 
+  Text, 
+  Heading,
+ } from '@gluestack-ui/themed';
 import MainTabs from './MainTabs';
 // for now fetch from static file
 import { TOPIC_COLORS } from '../utils/TopicColors';
@@ -9,105 +18,95 @@ import { TOPIC_COLORS } from '../utils/TopicColors';
 
 // Placeholder-screenit (Pitää korvata oikeilla sitte)
 
-function LanguageScreen() { return <View style={{ flex: 1 }} />; }
-function DarkmodeScreen() { return <View style={{ flex: 1 }} />; }
+function LanguageScreen() {
+  return (
+    <Box flex={1} alignItems="center" justifyContent="center">
+      <Text>Language Settings</Text>
+    </Box>
+  )
+}
 
+function DarkmodeScreen() {
+  return (
+    <Box flex={1} alignItems="center" justifyContent="center">
+      <Text>Dark Mode Settings</Text>
+    </Box>
+  )
+}
+
+const DrawerNav = createDrawerNavigator();
 // Custom drawer content — renders standard links plus a collapsible Topics section
-function CustomDrawerContent(props) {
-  const { navigation } = props;
+function CustomDrawerContent({ navigation }) {
   const topics = Object.keys(TOPIC_COLORS || {});
   const [topicsOpen, setTopicsOpen] = React.useState(false);
 
   return (
-    <DrawerContentScrollView {...props} contentContainerStyle={styles.content}>
-      {/* Topics collapsible */}
-      <View style={styles.drawerItem}>
-        <TouchableOpacity style={styles.drawerRow} activeOpacity={0.7} onPress={() => setTopicsOpen(s => !s)}>
-          <View style={styles.drawerRow}>
-            <Ionicons name="list-outline" size={20} color="#374151" />
-            <Text style={styles.drawerLabel}>Topics</Text>
-          </View>
-          <Ionicons name={topicsOpen ? 'chevron-up' : 'chevron-down'} size={18} color="#6b7280" />
-        </TouchableOpacity>
+    <DrawerContentScrollView>
+      <VStack p="$4" space="lg">
+        <Heading size="md" mb="$2">
+          Menu
+        </Heading>
 
-        {topicsOpen && (
-          <View style={styles.topicsList}>
-            {topics.map((t) => {
-              return (
-                <TouchableOpacity
-                  key={t}
-                  style={styles.topicInnerRow}
-                  activeOpacity={0.7}
-                  onPress={() => {
-                    // Close drawer and navigate Home (could pass topic param later)
-                    try { navigation.closeDrawer && navigation.closeDrawer(); } catch (e) { }
-                    navigation.navigate('Home');
-                  }}
-                >
-                  <View style={styles.topicInnerRowContent}>
-                    <Text style={styles.topicLabel} numberOfLines={1}>{t}</Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        )}
-      </View>
-      <View style={styles.separator} />
+        {/* Topics Section */}
+        <Pressable onPress={() => setTopicsOpen(!topicsOpen)}>
+          <HStack justifyContent="space-between" alignItems="center">
+            <HStack alignItems="center" space="sm">
+              <Ionicons name="list-outline" size={20} color="#374151" />
+              <Text bold>Topics</Text>
+            </HStack>
+            <Ionicons
+              name={topicsOpen ? 'chevron-up' : 'chevron-down'}
+              size={18}
+              color="#6b7280"
+            />
+          </HStack>
+        </Pressable>
 
-      {/* Language link */}
-      <TouchableOpacity style={styles.drawerItem} activeOpacity={0.7} onPress={() => navigation.navigate('Language')}>
-        <View style={styles.drawerRow}>
-          <Ionicons name="language-outline" size={20} color="#374151" />
-          <Text style={styles.drawerLabel}>Language</Text>
-        </View>
+    {topicsOpen && (
+  <View style={{ paddingLeft: 20 }}>
+    {topics.map((topic) => (
+      <TouchableOpacity
+        key={topic}
+        onPress={() => {
+          navigation.closeDrawer?.();
+          navigation.navigate('Home');
+        }}
+      >
+        <Text style={{ color: '#6B7280', fontSize: 14 }}>{topic}</Text>
       </TouchableOpacity>
-      <View style={styles.separator} />
+    ))}
+  </View>
+)}
 
+        <Divider my="$3" />
 
-      {/* Dark mode link */}
-      <TouchableOpacity style={styles.drawerItem} onPress={() => navigation.navigate('Darkmode')}>
-        <View style={styles.drawerRow}>
-          <Ionicons name="moon-outline" size={20} color="#374151" />
-          <Text style={styles.drawerLabel}>Dark mode</Text>
-        </View>
-      </TouchableOpacity>
+        {/* Language Link */}
+        <Pressable onPress={() => navigation.navigate('Language')}>
+          <HStack space="sm" alignItems="center" mb="$3">
+            <Ionicons name="language-outline" size={20} color="#374151" />
+            <Text bold>Language</Text>
+          </HStack>
+        </Pressable>
+
+        {/* Dark Mode Link */}
+        <Pressable onPress={() => navigation.navigate('Darkmode')}>
+          <HStack space="sm" alignItems="center">
+            <Ionicons name="moon-outline" size={20} color="#374151" />
+            <Text bold>Dark Mode</Text>
+          </HStack>
+        </Pressable>
+      </VStack>
     </DrawerContentScrollView>
   );
 }
 
-const Drawer = createDrawerNavigator();
-
-export default function Sidebar({ route, navigation }) {
-  React.useEffect(() => {
-    // If the parent Stack passed { openDrawer: true } as a param to this screen,
-    // open the drawer and then clear the param so it doesn't re-open repeatedly.
-    const shouldOpen = route?.params?.openDrawer;
-    if (shouldOpen) {
-      // open the drawer
-      try {
-        navigation.openDrawer && navigation.openDrawer();
-      } catch (e) {
-        // ignore
-      }
-
-      // clear the param on the parent (the Stack) so this runs only once
-      try {
-        // navigation.getParent() should point to the Stack navigator
-        const parent = navigation.getParent && navigation.getParent();
-        parent && parent.setParams && parent.setParams({ openDrawer: false });
-      } catch (e) {
-        // ignore
-      }
-    }
-  }, [route?.params?.openDrawer]);
-
+export default function Sidebar() {
   return (
-    <Drawer.Navigator
+    <DrawerNav.Navigator
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{ headerShown: false, drawerActiveTintColor: '#111827' }}
     >
-      <Drawer.Screen
+      <DrawerNav.Screen
         name="Home"
         component={MainTabs}
         options={{
@@ -115,9 +114,9 @@ export default function Sidebar({ route, navigation }) {
         }}
       />
 
-      <Drawer.Screen name="Language" component={LanguageScreen} />
-      <Drawer.Screen name="Darkmode" component={DarkmodeScreen} />
-    </Drawer.Navigator>
+      <DrawerNav.Screen name="Language" component={LanguageScreen} />
+      <DrawerNav.Screen name="Darkmode" component={DarkmodeScreen} />
+    </DrawerNav.Navigator>
   );
 }
 

@@ -12,7 +12,7 @@ const MainScreen = ({ navigation, route }) => {
     const [error, setError] = useState(null);
     const user = route?.params?.user;
 
-    const fetchPosts = async () => {
+    const fetchPosts = async (topic = null) => {
         try {
             setLoading(true);
             setError(null);
@@ -28,7 +28,9 @@ const MainScreen = ({ navigation, route }) => {
                 if (discussions[i]) mixed.push({ ...discussions[i], _type: 'discussion' });
             }
 
-            setFeed(mixed);
+            // If a topic is provided, filter the mixed feed by topic
+            const finalFeed = topic ? mixed.filter(item => (item.topic || item.topic === 0) && item.topic === topic) : mixed;
+            setFeed(finalFeed);
         } catch (err) {
             console.error("Error fetching posts:", err.message);
             setError("Unable to fetch posts. Check your network or server.");
@@ -37,9 +39,11 @@ const MainScreen = ({ navigation, route }) => {
         }
     };
 
+    // Re-fetch / re-filter whenever the route topic param changes
     useEffect(() => {
-        fetchPosts();
-    }, []);
+        const topic = route?.params?.topic ?? null;
+        fetchPosts(topic);
+    }, [route?.params?.topic]);
 
     if (loading) {
         return (
@@ -49,7 +53,7 @@ const MainScreen = ({ navigation, route }) => {
             </SafeAreaView>
         );
     }
-
+/*
     if (error) {
         return (
             <SafeAreaView style={styles.centered}>
@@ -60,7 +64,7 @@ const MainScreen = ({ navigation, route }) => {
             </SafeAreaView>
         );
     }
-
+*/
     return (
         <SafeAreaView style={styles.container} edges={["bottom"]}>
             <FlatList

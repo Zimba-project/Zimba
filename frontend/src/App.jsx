@@ -12,6 +12,10 @@ import Discuss from './screens/Discuss';
 import Sidebar from './navigation/Sidebar';
 import { HeaderForStack } from './navigation/TopBar';
 
+import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider/index';
+//import { config } from '@/components/ui/gluestack-ui-provider/config';
+import '@/global.css';
+
 // navigation ref so headers/components can dispatch drawer actions
 export const navigationRef = createNavigationContainerRef();
 
@@ -19,7 +23,9 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <SafeAreaProvider>
+    
+    <GluestackUIProvider mode="dark">
+      <SafeAreaProvider>
       <NavigationContainer ref={navigationRef}>
         <Stack.Navigator
           screenOptions={{ header: (props) => <HeaderForStack {...props} /> }}
@@ -33,6 +39,8 @@ export default function App() {
       </NavigationContainer>
       <StatusBar style="auto" />
     </SafeAreaProvider>
+    </GluestackUIProvider>
+  
   );
 }
 
