@@ -294,6 +294,33 @@ exports.resetPassword = async (req, res) => {
     const hashed = await bcrypt.hash(newPassword, SALT_ROUNDS);
     await pgPool.query('UPDATE users SET hashed_password = $1 WHERE id = $2', [hashed, userId]);
 
+    // If the request came from an HTML form (email link -> browser), return a friendly HTML page.
+    const contentType = (req.headers['content-type'] || '').toLowerCase();
+    const isFormPost = contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data');
+    if (isFormPost) {
+      const frontendLogin = FRONTEND_URL && /^https?:\/\//i.test(FRONTEND_URL) ? `${FRONTEND_URL.replace(/\/$/, '')}/login` : null;
+      const page = `
+        <!doctype html>
+        <html>
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width,initial-scale=1" />
+            <title>Password reset</title>
+            <style>body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;padding:24px;background:#f7fafc;color:#111} .card{max-width:720px;margin:48px auto;padding:24px;background:#fff;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.06)} a.button{display:inline-block;padding:10px 16px;background:#2563eb;color:#fff;border-radius:6px;text-decoration:none}</style>
+          </head>
+          <body>
+            <div class="card">
+              <h2>Password updated</h2>
+              <p>Your password has been updated successfully. You can now sign in with your new password.</p>
+              ${frontendLogin ? `<p><a class="button" href="${frontendLogin}">Open login page</a></p>` : ''}
+              <p>If the app is installed, open it and sign in. You can now close this page.</p>
+            </div>
+          </body>
+        </html>
+      `;
+      return res.status(200).send(page);
+    }
+
     return res.json({ message: 'Password updated' });
   } catch (err) {
     console.error('resetPassword error', err);
