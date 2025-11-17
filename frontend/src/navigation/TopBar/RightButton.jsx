@@ -1,9 +1,14 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Feather as Icon } from '@expo/vector-icons';
+import { useRoute } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeProvider';
 
 export default function RightButton({ navigation, user, searching, setSearching, query, setQuery }) {
     const { colors } = useTheme();
+    const route = useRoute();
+
+    // Hide the right-side header button on authentication screens
+    if (route?.name === 'Login' || route?.name === 'Register') return null;
 
     // Use a strong purple for the login pill in both modes (prefer theme primary)
     const btnBg = colors?.primary || '#6366f1';
