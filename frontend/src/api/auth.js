@@ -49,6 +49,7 @@ export const deleteAccount = (data, token) => {
         return { ok: res.ok, status: res.status, body: json };
     });
 };
+export const forgotPassword = (data) => request('/auth/forgot-password', 'POST', data);
+export const resetPassword = (data) => request('/auth/reset-password', 'POST', data);
 
-
-export default { register, login, me };
+export default { register, login, me, forgotPassword, resetPassword };

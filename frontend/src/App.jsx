@@ -8,6 +8,7 @@ import Login from './screens/Login';
 import Register from './screens/Register';
 import Profile from './screens/Profile';
 import Discuss from './screens/Discuss';
+import ResetPassword from './screens/ResetPassword';
 import Sidebar from './navigation/Sidebar';
 import { HeaderForStack } from './navigation/TopBar';
 
@@ -26,6 +27,7 @@ export default function App() {
           <Stack.Screen name="Main" component={Sidebar} options={{ title: 'ZIMBA' }} />
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Register" component={Register} />
+          <Stack.Screen name="ResetPassword" component={ResetPassword} />
           <Stack.Screen name="Profile" component={Profile} />
           <Stack.Screen name="Discuss" component={Discuss} />
         </Stack.Navigator>

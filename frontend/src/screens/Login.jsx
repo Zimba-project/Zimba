@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, Modal } from 'react-native';
 import { Feather as Icon, FontAwesome } from '@expo/vector-icons';
-import { login as loginApi } from '../api/auth';
+import { login as loginApi, forgotPassword as forgotPasswordApi } from '../api/auth';
 import { sessionStorage } from '../utils/Storage';
 
 const Login = ({ navigation, route }) => {
@@ -11,6 +11,9 @@ const Login = ({ navigation, route }) => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [showForgot, setShowForgot] = useState(false);
+    const [forgotEmail, setForgotEmail] = useState('');
+    const [forgotLoading, setForgotLoading] = useState(false);
 
     const handleLogin = async () => {
         setError(null);
@@ -51,11 +54,13 @@ const Login = ({ navigation, route }) => {
                 {error ? <Text style={styles.error}>{error}</Text> : null}
 
                 <TextInput
-                    placeholder="Phone"
+                    placeholder="Phone or email"
                     placeholderTextColor="#666"
                     value={phone}
                     onChangeText={setPhone}
-                    keyboardType="phone-pad"
+                    keyboardType="default"
+                    autoCapitalize="none"
+                    autoCorrect={false}
                     style={styles.input}
                 />
 
@@ -77,6 +82,10 @@ const Login = ({ navigation, route }) => {
                             <Text style={styles.loginText}>Login</Text>
                         </TouchableOpacity>
                         <View style={{ height: 12 }} />
+
+                        <TouchableOpacity onPress={() => setShowForgot(true)}>
+                            <Text style={{ color: '#2563eb', textAlign: 'center', marginTop: 12 }}>Forgot password?</Text>
+                        </TouchableOpacity>
 
                         <TouchableOpacity
                             style={styles.googleButton}
@@ -104,6 +113,45 @@ const Login = ({ navigation, route }) => {
                         <Text style={styles.link}> Register</Text>
                     </TouchableOpacity>
                 </View>
+                {/* Forgot password modal */}
+                <Modal visible={showForgot} transparent animationType="fade" onRequestClose={() => setShowForgot(false)}>
+                    <View style={styles.forgotOverlay}>
+                        <View style={styles.forgotCard}>
+                            <Text style={{ fontSize: 18, fontWeight: '700', marginBottom: 8 }}>Reset password</Text>
+                            <Text style={{ color: '#6b7280', marginBottom: 12 }}>Enter your account email and we'll send a reset link.</Text>
+                            <TextInput placeholder="Email" value={forgotEmail} onChangeText={setForgotEmail} style={styles.input} keyboardType="email-address" autoCapitalize="none" />
+                            {forgotLoading ? (
+                                <ActivityIndicator />
+                            ) : (
+                                <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                                    <TouchableOpacity style={[styles.actionSmall, { marginRight: 8 }]} onPress={() => { setShowForgot(false); setForgotEmail(''); }}>
+                                        <Text style={{ color: '#111827' }}>Cancel</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={[styles.actionSmall, { backgroundColor: '#2563eb' }]} onPress={async () => {
+                                        setForgotLoading(true);
+                                        try {
+                                            const res = await forgotPasswordApi({ email: forgotEmail });
+                                            if (res && res.ok) {
+                                                Alert.alert('Email sent', res.body?.message || 'Check your email for the reset link');
+                                                setShowForgot(false);
+                                                setForgotEmail('');
+                                            } else {
+                                                // keep modal open on failure and show message
+                                                Alert.alert('Error', res.body?.message || 'Failed to send reset email');
+                                            }
+                                        } catch (e) {
+                                            Alert.alert('Error', e.message || 'Network error');
+                                        } finally {
+                                            setForgotLoading(false);
+                                        }
+                                    }}>
+                                        <Text style={{ color: '#fff' }}>Send</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </Modal>
             </View>
         </SafeAreaView>
     );
@@ -123,6 +171,10 @@ const styles = StyleSheet.create({
     socialText: { color: '#111827', fontWeight: '600' },
     loginButton: { backgroundColor: '#2563eb', paddingVertical: 12, borderRadius: 8, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
     loginText: { color: '#fff', fontWeight: '700' }
+    ,
+    forgotOverlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' },
+    forgotCard: { width: '92%', maxWidth: 420, backgroundColor: '#fff', padding: 18, borderRadius: 12, elevation: 4 },
+    actionSmall: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center' }
 });
 
 export default Login;
