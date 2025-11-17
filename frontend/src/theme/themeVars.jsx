@@ -7,8 +7,8 @@ export const themeVars = {
     "--color-success": "34 197 94",        // #22c55e
     "--color-info": "14 165 233",          // #0ea5e9
     "--color-warning": "245 158 11",       // #f59e0b
-    "--color-background": "225 229 233",   // #e1e5e9ff - background
-    "--color-surface": "255 255 255",      // surface / cards
+    "--color-background": "255 255 255",   // #white  (background)
+    "--color-surface": "243 244 246",      // #f3f4f6 -cards and surfaces
     "--color-text": "17 24 39",            // #111827
     "--color-border": "229 231 235",       // #e5e7eb
     "--color-muted": "107 114 128",        // #6b7280
