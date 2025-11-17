@@ -66,8 +66,10 @@ const Profile = ({ navigation, route }) => {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   const confirmDelete = async () => {
+    setDeleting(true);
     try {
       const token = sessionStorage.getItem('authToken');
       const res = await apiDeleteAccount({ password: deletePassword }, token);
@@ -83,6 +85,7 @@ const Profile = ({ navigation, route }) => {
       console.error('delete error', error);
       Alert.alert('Error', 'Failed to delete account');
     } finally {
+      setDeleting(false);
       setShowDeleteModal(false);
       setDeletePassword('');
     }
@@ -199,6 +202,7 @@ const Profile = ({ navigation, route }) => {
           onConfirm={confirmDelete}
           password={deletePassword}
           setPassword={setDeletePassword}
+          loading={deleting}
           title="Confirm Account Deletion"
           description="This action is permanent. Enter your password to confirm."
           confirmLabel="Delete"

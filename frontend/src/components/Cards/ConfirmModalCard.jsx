@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { Modal, View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 
 const ConfirmModalCard = ({
   visible,
@@ -7,6 +7,7 @@ const ConfirmModalCard = ({
   onConfirm,
   password,
   setPassword,
+  loading = false,
   title = 'Confirm',
   description = 'Enter your password to confirm this action',
   confirmLabel = 'Delete',
@@ -29,18 +30,23 @@ const ConfirmModalCard = ({
               onChangeText={setPassword}
               style={[styles.input, styles.modalInput]}
               autoCapitalize="none"
+              editable={!loading}
             />
-            <Pressable onPress={() => setShowPassword((p) => !p)} style={styles.showToggle}>
+            <Pressable disabled={loading} onPress={() => setShowPassword((p) => !p)} style={styles.showToggle}>
               <Text style={styles.showToggleText}>{showPassword ? 'Hide' : 'Show'}</Text>
             </Pressable>
           </View>
 
           <View style={styles.modalButtons}>
-            <Pressable style={[styles.actionButton, styles.cancelButton]} onPress={() => { onClose(); setPassword(''); }}>
+            <Pressable disabled={loading} style={[styles.actionButton, styles.cancelButton]} onPress={() => { onClose(); setPassword(''); }}>
               <Text style={styles.cancelButtonText}>{cancelLabel}</Text>
             </Pressable>
-            <Pressable style={[styles.actionButton, styles.destructiveButton]} onPress={onConfirm}>
-              <Text style={styles.actionButtonText}>{confirmLabel}</Text>
+            <Pressable disabled={loading} style={[styles.actionButton, styles.destructiveButton]} onPress={onConfirm}>
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.actionButtonText}>{confirmLabel}</Text>
+              )}
             </Pressable>
           </View>
         </View>
