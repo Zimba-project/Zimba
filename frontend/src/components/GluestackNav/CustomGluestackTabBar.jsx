@@ -3,6 +3,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native'; 
 import { DrawerActions } from '@react-navigation/native';
+import { StyledProvider } from '@gluestack-style/react';
 
 // TÄRKEÄÄ: Require() on pakko käyttää komponentin sisällä!
 // Tämä antaa Gluestack-ui:lle viimeisen mahdollisuuden alustaa.
@@ -26,13 +27,10 @@ export default function CustomGluestackTabBar({ state, descriptors, navigation }
   } = require('lucide-react-native'); 
 
   // Theme token fallbacks gluestackin mukaisesti
-  const primary = '$indigo500'; 
-  const textMuted = '$gray500';
-  const bg = '$white'; 
-  
+
   // Mappaus reitin nimestä kuvakkeeseen (lucide-react-native)
   const getIcon = (routeName, isFocused) => {
-    const color = isFocused ? primary : textMuted;
+    const color = isFocused ? "$primary" : "$textMuted";
     
     switch (routeName) {
       case 'Home':
@@ -48,9 +46,18 @@ export default function CustomGluestackTabBar({ state, descriptors, navigation }
 
   return (
     // Box-komponentti taustalle ja varjolle
+    <StyledProvider config= {{
+      tokens: {
+          colors: {
+            primary: '$indigo500',
+            textMuted: '$gray500', 
+            bg: '$white'
+          }
+        }
+    }}>
     <Box
       flexDirection="row"
-      bg={bg}
+      bg="$bg"
       style={{
         shadowColor: "#000",
         shadowOffset: { width: 0, height: -2 },
@@ -107,7 +114,7 @@ export default function CustomGluestackTabBar({ state, descriptors, navigation }
               {/* Teksti */}
               <Text 
                 size="xs" 
-                color={isFocused ? primary : textMuted} 
+                color={isFocused ? "$primary" : "$textMuted"} 
                 mt="$1"
                 fontWeight={isFocused ? '$bold' : '$normal'}
               >
@@ -121,7 +128,7 @@ export default function CustomGluestackTabBar({ state, descriptors, navigation }
                   top={0}
                   w="$1/2" 
                   h="$0.5" 
-                  bg={primary}
+                  bg="$primary"
                   borderRadius="$full"
                 />
               )}
@@ -130,5 +137,6 @@ export default function CustomGluestackTabBar({ state, descriptors, navigation }
         );
       })}
     </Box>
+    </StyledProvider>
   );
 };

@@ -18,7 +18,7 @@ const MainScreen = ({ navigation, route }) => {
             setError(null);
 
             const posts = await getAllPosts();
-
+            console.log (posts);
             // Defensive: ensure we have an array. The API may return { posts: [...] } or an array.
             let postsArray = posts;
             if (!Array.isArray(postsArray)) {

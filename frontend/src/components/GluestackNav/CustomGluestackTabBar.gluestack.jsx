@@ -1,6 +1,7 @@
 import React from 'react';
 import { VStack, HStack, Pressable, Text, Box } from '@gluestack-ui/themed';
 import { HomeIcon, MessageCircleIcon, BarChartIcon } from 'lucide-react-native';
+import { StyledProvider } from '@gluestack-style/react';
 
 export default function CustomGluestackTabBar({ state, descriptors, navigation }) {
   return (
