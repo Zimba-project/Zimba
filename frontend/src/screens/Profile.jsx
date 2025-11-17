@@ -5,7 +5,6 @@ import {
   SafeAreaView,
   Text,
   TextInput,
-  StyleSheet,
   Button,
   View,
   Alert,
@@ -13,6 +12,8 @@ import {
   ScrollView,
   Pressable
 } from 'react-native';
+import useThemedStyles from '../theme/useThemedStyles';
+import { useTheme } from '../theme/ThemeProvider';
 
 const Profile = ({ navigation, route }) => {
   const [user, setUser] = useState(null);
@@ -92,7 +93,7 @@ const Profile = ({ navigation, route }) => {
             setUser(null);
             navigation.reset({
               index: 0,
-              routes: [{ name: 'Login' }], 
+              routes: [{ name: 'Login' }],
             });
           } catch (error) {
             Alert.alert('Error', 'Failed to log out.');
@@ -102,194 +103,112 @@ const Profile = ({ navigation, route }) => {
     ]);
   };
 
+  const { colors } = useTheme();
+  const t = useThemedStyles((c) => ({
+    safeArea: { flex: 1, backgroundColor: c.background },
+    scrollContent: { alignItems: 'center', paddingHorizontal: 16, paddingBottom: 40 },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    topBar: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: c.border, backgroundColor: c.surface },
+    topTitle: { fontSize: 18, fontWeight: '700', color: c.text },
+    backText: { color: c.primary, fontSize: 16, fontWeight: '600' },
+    profileCard: { width: '100%', backgroundColor: c.surface, borderRadius: 12, borderWidth: 1, borderColor: c.border, padding: 20, marginTop: 20, marginBottom: 12, shadowOpacity: 0.08, shadowRadius: 3, elevation: 2, alignItems: 'center' },
+    title: { fontSize: 22, fontWeight: 'bold', marginBottom: 6, textAlign: 'center', color: c.text },
+    text: { fontSize: 16, marginBottom: 6, textAlign: 'center', color: c.text },
+    input: { borderWidth: 1, borderColor: c.border, padding: 10, borderRadius: 8, marginBottom: 10, fontSize: 16, width: '100%', backgroundColor: c.surface },
+    buttonRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginTop: 10 },
+    featureBox: { borderWidth: 1, borderColor: c.border, borderRadius: 10, height: 90, width: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: c.surface, marginVertical: 6, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
+    featureText: { color: c.muted }
+  }));
+
   if (loading) {
     return (
-      <SafeAreaView style={styles.center}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <SafeAreaView style={t.center}>
+        <ActivityIndicator size="large" color={colors?.primary} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={t.safeArea}>
       {/* Simple top bar */}
-      <View style={styles.topBar}>
+      <View style={t.topBar}>
         <Pressable onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>← Back</Text>
+          <Text style={t.backText}>← Back</Text>
         </Pressable>
-        <Text style={styles.topTitle}>Profile</Text>
-        <View style={{ width: 40 }}> 
-          <Text style={styles.topTitle}>placeholder to balance layout </Text>
+        <Text style={t.topTitle}>Profile</Text>
+        <View style={{ width: 40 }}>
+          <Text style={t.topTitle}>placeholder to balance layout </Text>
         </View>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={t.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.profileCard}>
+        <View style={t.profileCard}>
           {isEditing ? (
             <>
               <TextInput
-                style={styles.input}
+                style={t.input}
                 value={form.name}
                 onChangeText={(text) => setForm({ ...form, name: text })}
                 placeholder="Name"
+                placeholderTextColor={colors?.muted}
               />
               <TextInput
-                style={styles.input}
+                style={t.input}
                 value={form.email}
                 onChangeText={(text) => setForm({ ...form, email: text })}
                 placeholder="Email"
                 keyboardType="email-address"
+                placeholderTextColor={colors?.muted}
               />
               <TextInput
-                style={[styles.input, { height: 80 }]}
+                style={[t.input, { height: 80 }]}
                 value={form.bio}
                 onChangeText={(text) => setForm({ ...form, bio: text })}
                 placeholder="Bio"
                 multiline
+                placeholderTextColor={colors?.muted}
               />
-              <View style={styles.buttonRow}>
-                <Button title="Cancel" onPress={() => setIsEditing(false)} />
-                <Button title="Save" onPress={handleSave} />
+              <View style={t.buttonRow}>
+                <Button title="Cancel" color={colors?.muted} onPress={() => setIsEditing(false)} />
+                <Button title="Save" color={colors?.primary} onPress={handleSave} />
               </View>
             </>
           ) : (
             <>
-              <Text style={styles.title}>{user.first_name} {user.last_name}</Text>
-              <Text style={styles.text}>{user.phone}</Text>
-              <Text style={styles.text}>{user.about}</Text>
+              <Text style={t.title}>{user.first_name} {user.last_name}</Text>
+              <Text style={t.text}>{user.phone}</Text>
+              <Text style={t.text}>{user.about}</Text>
 
-              <View style={styles.buttonRow}>
-                <Button title="Edit Profile" onPress={() => setIsEditing(true)} />
+              <View style={t.buttonRow}>
+                <Button title="Edit Profile" color={colors?.primary} onPress={() => setIsEditing(true)} />
               </View>
             </>
           )}
         </View>
 
         {/* empty boxes for future features for example polls the user has voted on */}
-        <View style={styles.featureBox}>
-          <Text style={styles.featureText}>Empty Box 1</Text>
+        <View style={t.featureBox}>
+          <Text style={t.featureText}>Empty Box 1</Text>
         </View>
-        <View style={styles.featureBox}>
-          <Text style={styles.featureText}>Empty Box 2</Text>
+        <View style={t.featureBox}>
+          <Text style={t.featureText}>Empty Box 2</Text>
         </View>
 
         {/* Added: Logout button */}
         <View style={{ marginTop: 20 }}>
-          <Button title="Log Out" color="#6366f1" onPress={handleLogout} />
+          <Button title="Log Out" color={colors?.primary} onPress={handleLogout} />
         </View>
 
         <View style={{ marginTop: 10 }}>
-          <Button title="Delete Account" color="red" onPress={handleDelete} />
+          <Button title="Delete Account" color={colors?.danger} onPress={handleDelete} />
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-  },
-  scrollContent: {
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 40,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  topBar: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    backgroundColor: '#fff',
-  },
-  topTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  backText: {
-    color: '#6366f1',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  profileCard: {
-    width: '100%',
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    padding: 20,
-    marginTop: 20,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 6,
-    textAlign: 'center',
-    color: '#111827',
-  },
-  text: {
-    fontSize: 16,
-    marginBottom: 6,
-    textAlign: 'center',
-    color: '#374151',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-    fontSize: 16,
-    width: '100%',
-    backgroundColor: '#f9fafb',
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginTop: 10,
-  },
-  featureBox: {
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
-    height: 90,
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    marginVertical: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  featureText: {
-    color: '#6b7280',
-  },
-});
+// styles moved to `useThemedStyles` (variable `t`)
 
 export default Profile;

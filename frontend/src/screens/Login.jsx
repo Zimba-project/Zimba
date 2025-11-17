@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, Button, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import { Feather as Icon, FontAwesome } from '@expo/vector-icons';
 import { login as loginApi } from '../api/auth';
 import { sessionStorage } from '../utils/Storage';
+import useThemedStyles from '../theme/useThemedStyles';
+import { useTheme } from '../theme/ThemeProvider';
 
 const Login = ({ navigation, route }) => {
     const initialPhone = route && route.params && route.params.phone ? route.params.phone : '';
@@ -43,65 +45,82 @@ const Login = ({ navigation, route }) => {
         }
     };
 
-    return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.card}>
-                <Text style={styles.title}>Login</Text>
+    const { colors } = useTheme();
+    const t = useThemedStyles((c) => ({
+        container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16, backgroundColor: c.background },
+        card: { width: '100%', maxWidth: 420, backgroundColor: c.surface, padding: 20, borderRadius: 12, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3, borderWidth: 1, borderColor: c.border },
+        title: { fontSize: 22, fontWeight: '600', marginBottom: 12, color: c.text },
+        input: { backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, padding: 10, marginBottom: 12, borderRadius: 8, color: c.text },
+        row: { flexDirection: 'row', marginTop: 12, alignItems: 'center' },
+        rowText: { color: c.text },
+        link: { color: c.primary },
+        error: { color: c.danger, marginBottom: 8 },
+        googleButton: { backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, paddingVertical: 10, borderRadius: 8, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
+        facebookButton: { backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, paddingVertical: 10, borderRadius: 8, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
+        socialText: { color: c.text, fontWeight: '600' },
+        loginButton: { backgroundColor: c.primary, paddingVertical: 12, borderRadius: 8, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
+        loginText: { color: c.onPrimary, fontWeight: '700' }
+    }));
 
-                {error ? <Text style={styles.error}>{error}</Text> : null}
+    return (
+        <SafeAreaView style={t.container}>
+            <View style={t.card}>
+                <Text style={t.title}>Login</Text>
+
+                {error ? <Text style={t.error}>{error}</Text> : null}
 
                 <TextInput
                     placeholder="Phone"
-                    placeholderTextColor="#666"
+                    placeholderTextColor={colors?.muted}
                     value={phone}
                     onChangeText={setPhone}
                     keyboardType="phone-pad"
-                    style={styles.input}
+                    style={t.input}
                 />
 
                 <TextInput
                     placeholder="Password"
-                    placeholderTextColor="#666"
+                    placeholderTextColor={colors?.muted}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry
-                    style={styles.input}
+                    style={t.input}
                 />
 
                 {loading ? (
                     <ActivityIndicator />
                 ) : (
                     <>
-                        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                            <Icon name="log-in" size={16} color="#fff" style={{ marginRight: 8 }} />
-                            <Text style={styles.loginText}>Login</Text>
+                        <TouchableOpacity style={t.loginButton} onPress={handleLogin}>
+                            <Icon name="log-in" size={16} color={colors?.onPrimary} style={{ marginRight: 8 }} />
+                            <Text style={t.loginText}>Login</Text>
                         </TouchableOpacity>
                         <View style={{ height: 12 }} />
 
                         <TouchableOpacity
-                            style={styles.googleButton}
+                            style={t.googleButton}
                             onPress={() => Alert.alert('Not implemented', 'Google sign-in is decorative only')}
                         >
-                            <FontAwesome name="google" size={18} color="#DB4437" style={{ marginRight: 10 }} />
-                            <Text style={[styles.socialText, { color: '#111827' }]}>Sign in with Google</Text>
+                            <FontAwesome name="google" size={18} color={colors?.primary} style={{ marginRight: 10 }} />
+                            <Text style={t.socialText}>Sign in with Google</Text>
                         </TouchableOpacity>
 
                         <View style={{ height: 8 }} />
 
                         <TouchableOpacity
-                            style={styles.facebookButton}
+                            style={t.facebookButton}
                             onPress={() => Alert.alert('Not implemented', 'Facebook sign-in is decorative only')}
                         >
-                            <FontAwesome name="facebook" size={18} color="#1877F2" style={{ marginRight: 10 }} />
-                            <Text style={[styles.socialText, { color: '#111827' }]}>Sign in with Facebook</Text>
+                            <FontAwesome name="facebook" size={18} color={colors?.primary} style={{ marginRight: 10 }} />
+                            <Text style={t.socialText}>Sign in with Facebook</Text>
                         </TouchableOpacity>
                     </>
                 )}
 
-                <View style={styles.row}>
-                    <Text style={styles.rowText}>Don't have an account?</Text>
+                <View style={t.row}>
+                    <Text style={t.rowText}>Don't have an account?</Text>
                     <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                        <Text style={styles.link}> Register</Text>
+                        <Text style={t.link}> Register</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -109,20 +128,6 @@ const Login = ({ navigation, route }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16, backgroundColor: '#f3f4f6' },
-    card: { width: '100%', maxWidth: 420, backgroundColor: '#fff', padding: 20, borderRadius: 12, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
-    title: { fontSize: 22, fontWeight: '600', marginBottom: 12, color: '#111827' },
-    input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', padding: 10, marginBottom: 12, borderRadius: 8, color: '#000' },
-    row: { flexDirection: 'row', marginTop: 12, alignItems: 'center' },
-    rowText: { color: '#374151' },
-    link: { color: '#2563eb' },
-    error: { color: 'red', marginBottom: 8 },
-    googleButton: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', paddingVertical: 10, borderRadius: 8, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
-    facebookButton: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', paddingVertical: 10, borderRadius: 8, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
-    socialText: { color: '#111827', fontWeight: '600' },
-    loginButton: { backgroundColor: '#2563eb', paddingVertical: 12, borderRadius: 8, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
-    loginText: { color: '#fff', fontWeight: '700' }
-});
+// styles moved to `useThemedStyles` (variable `t`)
 
 export default Login;

@@ -1,10 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Switch } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
 import MainTabs from './MainTabs';
 // for now fetch from static file
 import { TOPIC_COLORS } from '../utils/TopicColors';
+import { useTheme } from '../theme/ThemeProvider';
+import useThemedStyles from '../theme/useThemedStyles';
 
 
 // Placeholder-screenit (Pitää korvata oikeilla sitte)
@@ -17,26 +19,51 @@ function CustomDrawerContent(props) {
   const { navigation } = props;
   const topics = Object.keys(TOPIC_COLORS || {});
   const [topicsOpen, setTopicsOpen] = React.useState(false);
+  const { toggleTheme, colors, isDark } = useTheme();
+  const themeStyles = useThemedStyles((c) => ({
+    iconColor: c.text || '#374151',
+    switchThumb: c.primary || '#6366f1',
+    switchTrackOn: c.primary ? c.primary.replace(/^rgb\(/, 'rgba(').replace(/\)$/, ',0.3)') : 'rgba(99,102,241,0.3)'
+  }));
+
+  const t = useThemedStyles((c) => ({
+    container: { flex: 1, backgroundColor: c.background },
+    content: { padding: 16, backgroundColor: c.background },
+    heading: { fontSize: 18, fontWeight: '700', marginBottom: 12, color: c.text },
+    drawerItem: { paddingVertical: 10 },
+    drawerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    drawerLabel: { marginLeft: 8, fontSize: 16, color: c.text, fontWeight: '600' },
+    topicsList: { marginTop: 8, paddingLeft: 12 },
+    topicInnerRow: { marginBottom: 6, borderRadius: 6, borderBottomWidth: 1, borderBottomColor: c.border },
+    topicInnerRowContent: { paddingVertical: 8, paddingHorizontal: 6, paddingLeft: 12 },
+    topicRowContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+    topicRow: { flex: 1 },
+    chevButton: { padding: 6 },
+    badge: { paddingVertical: 8, paddingHorizontal: 10, borderRadius: 8, minWidth: 44, alignItems: 'center', justifyContent: 'center' },
+    badgeText: { fontWeight: '600', fontSize: 13 },
+    topicLabel: { fontSize: 13, color: c.muted, paddingVertical: 6, lineHeight: 18 },
+    separator: { height: 1, backgroundColor: c.border, marginVertical: 8 },
+  }));
 
   return (
-    <DrawerContentScrollView {...props} contentContainerStyle={styles.content}>
+    <DrawerContentScrollView {...props} style={{ backgroundColor: colors?.background }} contentContainerStyle={t.content}>
       {/* Topics collapsible */}
-      <View style={styles.drawerItem}>
-        <TouchableOpacity style={styles.drawerRow} activeOpacity={0.7} onPress={() => setTopicsOpen(s => !s)}>
-          <View style={styles.drawerRow}>
-            <Ionicons name="list-outline" size={20} color="#374151" />
-            <Text style={styles.drawerLabel}>Topics</Text>
+      <View style={t.drawerItem}>
+        <TouchableOpacity style={t.drawerRow} activeOpacity={0.7} onPress={() => setTopicsOpen(s => !s)}>
+          <View style={t.drawerRow}>
+            <Ionicons name="list-outline" size={20} color={themeStyles.iconColor} />
+            <Text style={[t.drawerLabel, { color: colors?.text }]}>Topics</Text>
           </View>
-          <Ionicons name={topicsOpen ? 'chevron-up' : 'chevron-down'} size={18} color="#6b7280" />
+          <Ionicons name={topicsOpen ? 'chevron-up' : 'chevron-down'} size={18} color={colors?.muted} />
         </TouchableOpacity>
 
         {topicsOpen && (
-          <View style={styles.topicsList}>
-            {topics.map((t) => {
+          <View style={t.topicsList}>
+            {topics.map((topicName) => {
               return (
                 <TouchableOpacity
-                  key={t}
-                  style={styles.topicInnerRow}
+                  key={topicName}
+                  style={[t.topicInnerRow, { borderBottomColor: colors?.border }]}
                   activeOpacity={0.7}
                   onPress={() => {
                     // Close drawer and navigate Home (could pass topic param later)
@@ -44,8 +71,8 @@ function CustomDrawerContent(props) {
                     navigation.navigate('Home');
                   }}
                 >
-                  <View style={styles.topicInnerRowContent}>
-                    <Text style={styles.topicLabel} numberOfLines={1}>{t}</Text>
+                  <View style={t.topicInnerRowContent}>
+                    <Text style={[t.topicLabel, { color: colors?.text }]} numberOfLines={1}>{topicName}</Text>
                   </View>
                 </TouchableOpacity>
               );
@@ -53,25 +80,40 @@ function CustomDrawerContent(props) {
           </View>
         )}
       </View>
-      <View style={styles.separator} />
+      <View style={[t.separator, { backgroundColor: colors?.border }]} />
 
       {/* Language link */}
-      <TouchableOpacity style={styles.drawerItem} activeOpacity={0.7} onPress={() => navigation.navigate('Language')}>
-        <View style={styles.drawerRow}>
-          <Ionicons name="language-outline" size={20} color="#374151" />
-          <Text style={styles.drawerLabel}>Language</Text>
+      <TouchableOpacity style={t.drawerItem} activeOpacity={0.7} onPress={() => navigation.navigate('Language')}>
+        <View style={t.drawerRow}>
+          <Ionicons name="language-outline" size={20} color={themeStyles.iconColor} />
+          <Text style={[t.drawerLabel, { color: colors?.text }]}>Language</Text>
         </View>
       </TouchableOpacity>
-      <View style={styles.separator} />
+      <View style={[t.separator, { backgroundColor: colors?.border }]} />
 
 
-      {/* Dark mode link */}
-      <TouchableOpacity style={styles.drawerItem} onPress={() => navigation.navigate('Darkmode')}>
-        <View style={styles.drawerRow}>
-          <Ionicons name="moon-outline" size={20} color="#374151" />
-          <Text style={styles.drawerLabel}>Dark mode</Text>
+      {/* Dark mode switch */}
+      <TouchableOpacity
+        style={t.drawerItem}
+        activeOpacity={0.8}
+        onPress={() => {
+          toggleTheme(); // from useTheme()
+        }}
+      >
+        <View style={[t.drawerRow, { justifyContent: 'space-between' }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="moon-outline" size={20} color={themeStyles.iconColor} />
+            <Text style={[t.drawerLabel, { color: colors?.text }]}>Dark mode</Text>
+          </View>
+          <Switch
+            value={!!isDark}
+            onValueChange={toggleTheme}
+            thumbColor={isDark ? themeStyles.switchThumb : '#f4f3f4'}
+            trackColor={{ false: '#767577', true: themeStyles.switchTrackOn }}
+          />
         </View>
       </TouchableOpacity>
+
     </DrawerContentScrollView>
   );
 }
@@ -102,10 +144,14 @@ export default function Sidebar({ route, navigation }) {
     }
   }, [route?.params?.openDrawer]);
 
+  const { colors } = useTheme();
+
   return (
     <Drawer.Navigator
       drawerContent={(props) => <CustomDrawerContent {...props} />}
-      screenOptions={{ headerShown: false, drawerActiveTintColor: '#111827' }}
+      screenOptions={{ headerShown: false, drawerActiveTintColor: colors?.text }}
+      drawerStyle={{ backgroundColor: colors?.background }}
+      sceneContainerStyle={{ backgroundColor: colors?.background }}
     >
       <Drawer.Screen
         name="Home"
@@ -121,21 +167,4 @@ export default function Sidebar({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  content: { padding: 16 },
-  heading: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
-  drawerItem: { paddingVertical: 10 },
-  drawerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  drawerLabel: { marginLeft: 8, fontSize: 16, color: '#111827', fontWeight: '600' },
-  topicsList: { marginTop: 8, paddingLeft: 12 },
-  topicInnerRow: { marginBottom: 6, borderRadius: 6, borderBottomWidth: 1, borderBottomColor: '#eef2ff' },
-  topicInnerRowContent: { paddingVertical: 8, paddingHorizontal: 6, paddingLeft: 12 },
-  topicRowContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  topicRow: { flex: 1 },
-  chevButton: { padding: 6 },
-  badge: { paddingVertical: 8, paddingHorizontal: 10, borderRadius: 8, minWidth: 44, alignItems: 'center', justifyContent: 'center' },
-  badgeText: { fontWeight: '600', fontSize: 13 },
-  topicLabel: { fontSize: 13, color: '#6b7280', paddingVertical: 6, lineHeight: 18 },
-  separator: { height: 1, backgroundColor: '#eef2ff', marginVertical: 8 },
-});
+// styles removed — using themed styles via `useThemedStyles` (see `t` above)

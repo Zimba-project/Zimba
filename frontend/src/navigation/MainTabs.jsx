@@ -3,6 +3,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { View } from 'react-native';
 import { default as HeaderForStack } from './TopBar';
+import { useTheme } from '../theme';
+import useThemedStyles from '../theme/useThemedStyles';
 
 //Tänne kaikki näytöt sitten / All screens go here: 
 import MainScreen from '../screens/MainScreen';
@@ -16,16 +18,29 @@ function PollsScreen() { return <View style={{ flex: 1 }} />; }
 const Tab = createBottomTabNavigator();
 
 export default function MainTabs() {
+  const { colors } = useTheme();
+
   const headerForRoute = (route, navigation, back) => {
     // Use the centralized HeaderForStack from navigation/TopBar
     return <HeaderForStack navigation={navigation} route={route} back={back} />;
   };
 
+  const t = useThemedStyles((c) => ({
+    tabBar: {
+      backgroundColor: c.surface || c.background,
+      borderTopColor: c.border,
+      borderTopWidth: 1,
+      height: 60,
+    },
+  }));
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#111827',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.muted,
+        tabBarStyle: t.tabBar,
         tabBarIcon: ({ color, size }) => {
           const name =
             route.name === 'Home' ? 'home-outline' :

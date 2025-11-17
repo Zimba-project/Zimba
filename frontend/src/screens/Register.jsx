@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, ScrollView, Alert, TouchableOpacity, Platform, Modal } from 'react-native';
+import { View, Text, TextInput, Button, ActivityIndicator, ScrollView, Alert, TouchableOpacity, Platform, Modal } from 'react-native';
 import { Feather as Icon } from '@expo/vector-icons';
 import { register as registerApi } from '../api/auth';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import useThemedStyles from '../theme/useThemedStyles';
+import { useTheme } from '../theme/ThemeProvider';
 
-function pad(n){ return n<10? '0'+n : ''+n }
-function formatDate(d){
-    if(!d) return '';
+function pad(n) { return n < 10 ? '0' + n : '' + n }
+function formatDate(d) {
+    if (!d) return '';
     const year = d.getFullYear();
-    const month = pad(d.getMonth()+1);
+    const month = pad(d.getMonth() + 1);
     const day = pad(d.getDate());
     return `${year}-${month}-${day}`;
 }
-function displayDate(d){
-    if(!d) return '';
-    try{ return d.toLocaleDateString(); }catch(e){ return formatDate(d); }
+function displayDate(d) {
+    if (!d) return '';
+    try { return d.toLocaleDateString(); } catch (e) { return formatDate(d); }
 }
 
 const COUNTRIES = [
@@ -61,13 +63,15 @@ const Register = ({ navigation }) => {
                 // Inform user to verify their email and send them to Login
                 const emailAddr = email || (res.body && res.body.user && (res.body.user.email || res.body.user.email_address));
                 const msg = emailAddr
-                  ? `Account created. We've sent a verification email to ${emailAddr}. Please check your inbox.`
-                  : 'Account created. Please check your email for a verification link.';
+                    ? `Account created. We've sent a verification email to ${emailAddr}. Please check your inbox.`
+                    : 'Account created. Please check your email for a verification link.';
                 Alert.alert('Account created', msg, [
-                    { text: 'OK', onPress: () => {
-                        // navigate to Login and prefill phone so user can easily sign in
-                        navigation.replace('Login', { phone: fullPhone });
-                    } }
+                    {
+                        text: 'OK', onPress: () => {
+                            // navigate to Login and prefill phone so user can easily sign in
+                            navigation.replace('Login', { phone: fullPhone });
+                        }
+                    }
                 ]);
             } else if (res) {
                 // show server-provided message when possible (e.g., 409)
@@ -83,51 +87,83 @@ const Register = ({ navigation }) => {
         }
     };
 
+    const { colors } = useTheme();
+    const bgRgb = (colors?.background || '').replace(/^rgb\(|\)$/g, '') || '0,0,0';
+    const overlayColor = `rgba(${bgRgb},0.35)`;
+    const t = useThemedStyles((c) => ({
+        container: { flex: 1, backgroundColor: c.background },
+        card: { padding: 20, alignItems: 'center', width: '100%', maxWidth: 460, backgroundColor: c.surface, borderRadius: 12, margin: 16, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2, borderWidth: 1, borderColor: c.border },
+        title: { fontSize: 22, fontWeight: '600', marginBottom: 12, color: c.text },
+        error: { color: c.danger, marginBottom: 8 },
+        subtitle: { width: '100%', fontSize: 14, color: c.text, marginTop: 8, marginBottom: 6 },
+        label: { width: '100%', color: c.muted, marginBottom: 6, fontSize: 13 },
+        rowNames: { flexDirection: 'row', width: '100%', marginBottom: 12 },
+        input: { backgroundColor: c.surface, width: '100%', borderWidth: 1, borderColor: c.border, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 12, borderRadius: 8, color: c.text, height: 44 },
+        inputSmall: { height: 44 },
+        phoneContainer: { flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 12, borderWidth: 1, borderColor: c.border, borderRadius: 8, backgroundColor: c.surface, overflow: 'hidden' },
+        countryButton: { paddingHorizontal: 12, backgroundColor: 'transparent', height: 44, justifyContent: 'center', minWidth: 92, alignItems: 'center', borderRightWidth: 1, borderRightColor: c.border },
+        countryText: { color: c.text },
+        phoneInput: { flex: 1, height: 44, paddingHorizontal: 12, paddingVertical: 0, color: c.text },
+        modalOverlay: { flex: 1, backgroundColor: overlayColor, justifyContent: 'flex-end' },
+        modalContent: { backgroundColor: c.surface, padding: 12, borderTopLeftRadius: 12, borderTopRightRadius: 12 },
+        dateRow: { justifyContent: 'space-between', flexDirection: 'row', alignItems: 'center', paddingRight: 10 },
+        dateText: { color: c.text },
+        placeholderText: { color: c.muted },
+        pickerContainer: { backgroundColor: c.surface, marginTop: 8, borderRadius: 12, padding: 8, shadowOpacity: 0.06, shadowRadius: 8, elevation: 4 },
+        countryModal: { backgroundColor: c.surface, margin: 16, borderRadius: 12, padding: 12 },
+        countryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: c.border },
+        registerButton: { width: '100%', backgroundColor: c.primary, paddingVertical: 12, borderRadius: 10, alignItems: 'center', marginTop: 6 },
+        registerText: { color: c.onPrimary, fontWeight: '700' },
+        loginRow: { flexDirection: 'row', marginTop: 12, alignItems: 'center' },
+        link: { color: c.primary },
+        pickerActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }
+    }));
+
     return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView contentContainerStyle={styles.card} keyboardShouldPersistTaps="handled">
-                <Text style={styles.title}>Create account</Text>
+        <SafeAreaView style={t.container}>
+            <ScrollView contentContainerStyle={t.card} keyboardShouldPersistTaps="handled">
+                <Text style={t.title}>Create account</Text>
 
-                {error ? <Text style={styles.error}>{error}</Text> : null}
+                {error ? <Text style={t.error}>{error}</Text> : null}
 
-                <Text style={styles.subtitle}>Personal info</Text>
-                <View style={styles.rowNames}>
+                <Text style={t.subtitle}>Personal info</Text>
+                <View style={t.rowNames}>
                     <View style={{ flex: 1, marginRight: 8 }}>
-                        <Text style={styles.label}>First name</Text>
-                        <TextInput placeholder="First name" placeholderTextColor="#666" value={firstName} onChangeText={setFirstName} style={[styles.input, styles.inputSmall]} />
+                        <Text style={t.label}>First name</Text>
+                        <TextInput placeholder="First name" placeholderTextColor={t.placeholderText.color} value={firstName} onChangeText={setFirstName} style={[t.input, t.inputSmall]} />
                     </View>
                     <View style={{ flex: 1 }}>
-                        <Text style={styles.label}>Last name</Text>
-                        <TextInput placeholder="Last name" placeholderTextColor="#666" value={lastName} onChangeText={setLastName} style={[styles.input, styles.inputSmall]} />
+                        <Text style={t.label}>Last name</Text>
+                        <TextInput placeholder="Last name" placeholderTextColor={t.placeholderText.color} value={lastName} onChangeText={setLastName} style={[t.input, t.inputSmall]} />
                     </View>
                 </View>
-                <Text style={styles.label}>Email (required)</Text>
-                <TextInput placeholder="Email address" placeholderTextColor="#666" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={styles.input} />
+                <Text style={t.label}>Email (required)</Text>
+                <TextInput placeholder="Email address" placeholderTextColor={t.placeholderText.color} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={t.input} />
 
-                <Text style={styles.label}>Phone</Text>
-                <View style={styles.phoneContainer}>
-                    <TouchableOpacity style={styles.countryButton} onPress={() => setShowCountryPicker(true)}>
-                        <Text style={styles.countryText}>{country.flag} {country.dial_code}</Text>
+                <Text style={t.label}>Phone</Text>
+                <View style={t.phoneContainer}>
+                    <TouchableOpacity style={t.countryButton} onPress={() => setShowCountryPicker(true)}>
+                        <Text style={t.countryText}>{country.flag} {country.dial_code}</Text>
                     </TouchableOpacity>
                     <TextInput
                         placeholder="Phone number"
-                        placeholderTextColor="#666"
+                        placeholderTextColor={t.placeholderText.color}
                         value={phone}
                         onChangeText={setPhone}
                         keyboardType="phone-pad"
-                        style={styles.phoneInput}
+                        style={t.phoneInput}
                     />
                 </View>
                 {showCountryPicker && (
                     <Modal visible={showCountryPicker} transparent animationType="slide" onRequestClose={() => setShowCountryPicker(false)}>
-                        <View style={styles.modalOverlay}>
-                            <View style={styles.countryModal}>
-                                <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8 }}>Select country</Text>
+                        <View style={t.modalOverlay}>
+                            <View style={t.countryModal}>
+                                <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: colors?.text }}>Select country</Text>
                                 <ScrollView style={{ maxHeight: 300 }}>
-                                    {COUNTRIES.map((c) => (
-                                        <TouchableOpacity key={c.code} style={styles.countryRow} onPress={() => { setCountry(c); setShowCountryPicker(false); }}>
-                                            <Text style={{ fontSize: 18 }}>{c.flag}  {c.name}</Text>
-                                            <Text style={{ color: '#374151' }}>{c.dial_code}</Text>
+                                    {COUNTRIES.map((cItem) => (
+                                        <TouchableOpacity key={cItem.code} style={t.countryRow} onPress={() => { setCountry(cItem); setShowCountryPicker(false); }}>
+                                            <Text style={{ fontSize: 18, color: colors?.text }}>{cItem.flag}  {cItem.name}</Text>
+                                            <Text style={{ color: colors?.muted }}>{cItem.dial_code}</Text>
                                         </TouchableOpacity>
                                     ))}
                                 </ScrollView>
@@ -137,12 +173,12 @@ const Register = ({ navigation }) => {
                     </Modal>
                 )}
                 {/* Birthdate picker (open native picker when tapped) */}
-                <Text style={styles.label}>Birthdate</Text>
-                <TouchableOpacity onPress={() => setShowDatePicker(true)} activeOpacity={0.8} style={[styles.input, styles.dateRow]}>
-                    <Text style={birthdate ? styles.dateText : styles.placeholderText}>
+                <Text style={t.label}>Birthdate</Text>
+                <TouchableOpacity onPress={() => setShowDatePicker(true)} activeOpacity={0.8} style={[t.input, t.dateRow]}>
+                    <Text style={birthdate ? t.dateText : t.placeholderText}>
                         {birthdate ? displayDate(birthdate) : 'Birthdate (YYYY-MM-DD)'}
                     </Text>
-                    <Icon name="calendar" size={18} color="#6b7280" />
+                    <Icon name="calendar" size={18} color={colors?.muted} />
                 </TouchableOpacity>
 
                 {/* Native picker: Android shows modal, iOS can render inline spinner inside a styled box */}
@@ -153,19 +189,19 @@ const Register = ({ navigation }) => {
                         transparent={true}
                         onRequestClose={() => setShowDatePicker(false)}
                     >
-                        <View style={styles.modalOverlay}>
-                            <View style={styles.modalContent}>
+                        <View style={t.modalOverlay}>
+                            <View style={t.modalContent}>
                                 <DateTimePicker
                                     value={birthdate || new Date(2000, 0, 1)}
                                     mode="date"
                                     display="spinner"
                                     maximumDate={new Date()}
-                                    textColor="#111827"
+                                    textColor={colors?.text}
                                     onChange={(event, selectedDate) => {
                                         if (selectedDate) setBirthdate(selectedDate);
                                     }}
                                 />
-                                <View style={styles.pickerActions}>
+                                <View style={t.pickerActions}>
                                     <Button title="Done" onPress={() => setShowDatePicker(false)} />
                                     <Button title="Clear" onPress={() => { setBirthdate(null); setShowDatePicker(false); }} />
                                 </View>
@@ -187,27 +223,27 @@ const Register = ({ navigation }) => {
                         }}
                     />
                 )}
-                <Text style={styles.label}>About (optional)</Text>
-                <TextInput placeholder="About (optional)" placeholderTextColor="#666" value={about} onChangeText={setAbout} style={[styles.input, { height: 80 }]} multiline />
+                <Text style={t.label}>About (optional)</Text>
+                <TextInput placeholder="About (optional)" placeholderTextColor={t.placeholderText.color || colors?.muted} value={about} onChangeText={setAbout} style={[t.input, { height: 80 }]} multiline />
 
-                <Text style={styles.label}>Password</Text>
-                <TextInput placeholder="Password" placeholderTextColor="#666" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
+                <Text style={t.label}>Password</Text>
+                <TextInput placeholder="Password" placeholderTextColor={t.placeholderText.color || colors?.muted} value={password} onChangeText={setPassword} secureTextEntry style={t.input} />
 
-                <Text style={styles.label}>Confirm password</Text>
-                <TextInput placeholder="Confirm password" placeholderTextColor="#666" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry style={styles.input} />
+                <Text style={t.label}>Confirm password</Text>
+                <TextInput placeholder="Confirm password" placeholderTextColor={t.placeholderText.color || colors?.muted} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry style={t.input} />
 
                 {loading ? (
                     <ActivityIndicator />
                 ) : (
-                    <TouchableOpacity style={styles.registerButton} onPress={handleRegister} activeOpacity={0.85}>
-                        <Text style={styles.registerText}>Create account</Text>
+                    <TouchableOpacity style={t.registerButton} onPress={handleRegister} activeOpacity={0.85}>
+                        <Text style={t.registerText}>Create account</Text>
                     </TouchableOpacity>
                 )}
 
-                <View style={styles.loginRow}>
-                    <Text style={{ color: '#6b7280' }}>Already have an account?</Text>
+                <View style={t.loginRow}>
+                    <Text style={{ color: colors?.muted }}>Already have an account?</Text>
                     <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                        <Text style={styles.link}> Sign in</Text>
+                        <Text style={t.link}> Sign in</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
@@ -215,35 +251,6 @@ const Register = ({ navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f3f4f6' },
-    card: { padding: 20, alignItems: 'center', width: '100%', maxWidth: 460, backgroundColor: '#fff', borderRadius: 12, margin: 16, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 },
-    title: { fontSize: 22, fontWeight: '600', marginBottom: 12, color: '#111827' },
-    input: { backgroundColor: '#fff', width: '100%', borderWidth: 1, borderColor: '#e5e7eb', paddingHorizontal: 12, paddingVertical: 10, marginBottom: 12, borderRadius: 8, color: '#000', height: 44 },
-    dateRow: { justifyContent: 'space-between', flexDirection: 'row', alignItems: 'center', paddingRight: 10 },
-    dateInput: { justifyContent: 'center' },
-    dateText: { color: '#111827' },
-    placeholderText: { color: '#666' },
-    pickerContainer: { backgroundColor: '#fff', marginTop: 8, borderRadius: 12, padding: 8, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, elevation: 4 },
-    pickerActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
-    modalContent: { backgroundColor: '#fff', padding: 12, borderTopLeftRadius: 12, borderTopRightRadius: 12 },
-    phoneRow: { flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 12 },
-    phoneContainer: { flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 12, borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 8, backgroundColor: '#fff', overflow: 'hidden' },
-    countryButton: { paddingHorizontal: 12, backgroundColor: 'transparent', height: 44, justifyContent: 'center', minWidth: 92, alignItems: 'center', borderRightWidth: 1, borderRightColor: '#e5e7eb' },
-    countryText: { color: '#111827' },
-    phoneInput: { flex: 1, height: 44, paddingHorizontal: 12, paddingVertical: 0, color: '#000' },
-    countryModal: { backgroundColor: '#fff', margin: 16, borderRadius: 12, padding: 12 },
-    countryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-    error: { color: 'red', marginBottom: 8 }
-    ,
-    subtitle: { width: '100%', fontSize: 14, color: '#374151', marginTop: 8, marginBottom: 6 },
-    label: { width: '100%', color: '#6b7280', marginBottom: 6, fontSize: 13 },
-    rowNames: { flexDirection: 'row', width: '100%', marginBottom: 12 },
-    inputSmall: { height: 44 },
-    registerButton: { width: '100%', backgroundColor: '#2563eb', paddingVertical: 12, borderRadius: 10, alignItems: 'center', marginTop: 6 },
-    registerText: { color: '#fff', fontWeight: '700' },
-    loginRow: { flexDirection: 'row', marginTop: 12, alignItems: 'center' }
-});
+// styles moved to `useThemedStyles` (variable `t`)
 
 export default Register;

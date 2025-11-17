@@ -1,20 +1,23 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Platform } from 'react-native';
+import useThemedStyles from '../../theme/useThemedStyles';
 
-const CardContainer = ({ children }) => (
-    <View style={styles.card}>
-        {children}
-    </View>
-);
+const CardContainer = ({ children, style }) => {
+    const t = useThemedStyles((c) => ({
+        card: {
+            backgroundColor: c.surface,
+            borderRadius: 16,
+            margin: 16,
+            overflow: 'hidden',
+            ...Platform.select({ android: { elevation: 3 } }),
+        },
+    }));
 
-const styles = StyleSheet.create({
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        margin: 16,
-        overflow: 'hidden',
-        elevation: 3,
-    },
-});
+    return (
+        <View style={[t.card, style]}>
+            {children}
+        </View>
+    );
+};
 
 export default CardContainer;

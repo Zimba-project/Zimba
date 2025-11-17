@@ -1,6 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Share, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, Share, Linking } from 'react-native';
 import { Feather as Icon } from '@expo/vector-icons';
+import useThemedStyles from '../../theme/useThemedStyles';
+import { useTheme } from '../../theme/ThemeProvider';
 
 // Shows votes/comments/views on the left and compact icon actions (share/save) on the right
 const StatsBar = ({ votes, comments, views, onShare, onSave, share }) => {
@@ -40,52 +42,54 @@ const StatsBar = ({ votes, comments, views, onShare, onSave, share }) => {
         }
     };
 
+    const { colors } = useTheme();
+    const t = useThemedStyles((c) => ({
+        row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
+        leftItems: { flexDirection: 'row', alignItems: 'center' },
+        item: { flexDirection: 'row', alignItems: 'center', marginRight: 12 },
+        label: { marginLeft: 6, fontSize: 13, color: c.muted },
+        actions: { flexDirection: 'row', alignItems: 'center' },
+        iconButton: { paddingHorizontal: 8, paddingVertical: 4 },
+    }));
+
+    const iconColor = colors.primary;
+
     return (
-        <View style={styles.row}>
-            <View style={styles.leftItems}>
+        <View style={t.row}>
+            <View style={t.leftItems}>
                 {votes !== undefined && (
-                    <View style={styles.item}>
-                        <Icon name="bar-chart-2" size={16} color="#6366f1" />
-                        <Text style={styles.label}>{votes.toLocaleString()} Votes</Text>
+                    <View style={t.item}>
+                        <Icon name="bar-chart-2" size={16} color={iconColor} />
+                        <Text style={t.label}>{votes.toLocaleString()} Votes</Text>
                     </View>
                 )}
                 {comments !== undefined && (
-                    <View style={styles.item}>
-                        <Icon name="message-circle" size={16} color="#6366f1" />
-                        <Text style={styles.label}>{comments} Comments</Text>
+                    <View style={t.item}>
+                        <Icon name="message-circle" size={16} color={iconColor} />
+                        <Text style={t.label}>{comments} Comments</Text>
                     </View>
                 )}
                 {views !== undefined && (
-                    <View style={styles.item}>
-                        <Icon name="eye" size={16} color="#6366f1" />
-                        <Text style={styles.label}>{views.toLocaleString()} Views</Text>
+                    <View style={t.item}>
+                        <Icon name="eye" size={16} color={iconColor} />
+                        <Text style={t.label}>{views.toLocaleString()} Views</Text>
                     </View>
                 )}
             </View>
 
-            <View style={styles.actions}>
+            <View style={t.actions}>
                 {(onShare || share) && (
-                    <TouchableOpacity onPress={handleShare} style={styles.iconButton}>
-                        <Icon name="share-2" size={18} color="#6366f1" />
+                    <TouchableOpacity onPress={handleShare} style={t.iconButton}>
+                        <Icon name="share-2" size={18} color={iconColor} />
                     </TouchableOpacity>
                 )}
                 {onSave && (
-                    <TouchableOpacity onPress={onSave} style={styles.iconButton}>
-                        <Icon name="bookmark" size={18} color="#6366f1" />
+                    <TouchableOpacity onPress={onSave} style={t.iconButton}>
+                        <Icon name="bookmark" size={18} color={iconColor} />
                     </TouchableOpacity>
                 )}
             </View>
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
-    leftItems: { flexDirection: 'row', alignItems: 'center' },
-    item: { flexDirection: 'row', alignItems: 'center', marginRight: 12 },
-    label: { marginLeft: 6, fontSize: 13, color: '#4b5563' },
-    actions: { flexDirection: 'row', alignItems: 'center' },
-    iconButton: { paddingHorizontal: 8, paddingVertical: 4 },
-});
-
 export default StatsBar;
