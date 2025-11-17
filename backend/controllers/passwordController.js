@@ -1,33 +1,13 @@
-const auth = require('./auth');
-const account = require('./accountController');
-const password = require('./passwordController');
+const pgPool = require('../database/pg_connection');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const { sendMail } = require('../lib/mailer');
 
-module.exports = { ...auth, ...account, ...password };
-// ---------- DELETE ACCOUNT ----------
-exports.deleteAccount = async (req, res) => {
-  try {
-    const userId = req.userId;
-    const { password } = req.body;
-    if (!password) return res.status(400).json({ message: 'Password required' });
+const SALT_ROUNDS = parseInt(process.env.BCRYPT_SALT_ROUNDS || '12');
+const JWT_SECRET = process.env.JWT_SECRET;
+const FRONTEND_URL = process.env.FRONTEND_URL;
+const BACKEND_URL = process.env.BACKEND_URL;
 
-    const { rows } = await pgPool.query('SELECT id, hashed_password FROM users WHERE id = $1', [userId]);
-    const user = rows[0];
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    const valid = await bcrypt.compare(password, user.hashed_password);
-    if (!valid) return res.status(403).json({ message: 'Invalid password' });
-
-    // Delete user and related data as appropriate. Here we remove the user row.
-    await pgPool.query('DELETE FROM users WHERE id = $1', [userId]);
-
-    return res.json({ message: 'Account deleted' });
-  } catch (err) {
-    console.error('deleteAccount error', err);
-    return res.status(500).json({ message: 'Failed to delete account' });
-  }
-};
-
-// ---------- REQUEST PASSWORD RESET ----------
 exports.requestPasswordReset = async (req, res) => {
   try {
     const { email } = req.body;
@@ -37,10 +17,8 @@ exports.requestPasswordReset = async (req, res) => {
     const user = rows[0];
     if (!user) return res.status(200).json({ message: 'If that email is registered, a reset link has been sent.' });
 
-    // create reset token
     const rToken = jwt.sign({ type: 'reset_password', userId: user.id }, JWT_SECRET, { expiresIn: '1h' });
 
-    // fall back to BACKEND_URL which serves a simple HTML reset form.
     const isHttpFrontend = FRONTEND_URL && /^https?:\/\//i.test(FRONTEND_URL);
     const frontendResetLink = isHttpFrontend ? `${FRONTEND_URL.replace(/\/$/, '')}/reset-password?token=${rToken}` : null;
     const backendResetLink = `${BACKEND_URL.replace(/\/$/, '')}/api/auth/reset-password?token=${rToken}`;
@@ -55,7 +33,6 @@ exports.requestPasswordReset = async (req, res) => {
       await sendMail({ to: email, subject: 'Reset your Zimba password', html, text });
     } catch (e) {
       console.error('Error sending password reset email:', e);
-      // don't fail the request in case of mail problems
     }
 
     return res.json({ message: 'If that email is registered, a reset link has been sent.' });
@@ -65,7 +42,6 @@ exports.requestPasswordReset = async (req, res) => {
   }
 };
 
-// ---------- RESET PASSWORD ----------
 exports.resetPassword = async (req, res) => {
   try {
     const { token, newPassword, confirmPassword } = req.body;
@@ -86,7 +62,6 @@ exports.resetPassword = async (req, res) => {
     const hashed = await bcrypt.hash(newPassword, SALT_ROUNDS);
     await pgPool.query('UPDATE users SET hashed_password = $1 WHERE id = $2', [hashed, userId]);
 
-    // If the request came from an HTML form (email link -> browser), return a friendly HTML page.
     const contentType = (req.headers['content-type'] || '').toLowerCase();
     const isFormPost = contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data');
     if (isFormPost) {
@@ -120,12 +95,10 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-// ---------- RESET PASSWORD FORM (GET) ----------
 exports.resetPasswordForm = async (req, res) => {
   try {
     const token = req.query.token;
     if (!token) return res.status(400).send('Missing token');
-    // Serve a minimal HTML form that posts to POST /api/auth/reset-password
     const page = `
       <!doctype html>
       <html>
@@ -160,4 +133,3 @@ exports.resetPasswordForm = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
-
