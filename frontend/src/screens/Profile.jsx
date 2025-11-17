@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { me as info } from '../api/auth';
+import { me as info, deleteAccount as apiDeleteAccount } from '../api/auth';
 import { sessionStorage } from '../utils/Storage';
 import {
   SafeAreaView,
@@ -13,6 +13,7 @@ import {
   ScrollView,
   Pressable
 } from 'react-native';
+import ConfirmModalCard from '../components/Cards/ConfirmModalCard';
 
 const Profile = ({ navigation, route }) => {
   const [user, setUser] = useState(null);
@@ -60,23 +61,31 @@ const Profile = ({ navigation, route }) => {
   };
 
   const handleDelete = async () => {
-    Alert.alert('Confirm Delete', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            // TODO: call your DELETE endpoint
-            Alert.alert('Account Deleted', 'User removed successfully.', [
-              { text: 'OK', onPress: () => navigation.navigate('Main') },
-            ]);
-          } catch (error) {
-            Alert.alert('Error', 'Failed to delete account.');
-          }
-        },
-      },
-    ]);
+    setShowDeleteModal(true);
+  };
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+
+  const confirmDelete = async () => {
+    try {
+      const token = sessionStorage.getItem('authToken');
+      const res = await apiDeleteAccount({ password: deletePassword }, token);
+      if (res?.ok) {
+        sessionStorage.removeItem('authToken');
+        Alert.alert('Account Deleted', 'Your account has been deleted.', [
+          { text: 'OK', onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Login' }] }) },
+        ]);
+      } else {
+        Alert.alert('Error', res.body?.message || 'Failed to delete account');
+      }
+    } catch (error) {
+      console.error('delete error', error);
+      Alert.alert('Error', 'Failed to delete account');
+    } finally {
+      setShowDeleteModal(false);
+      setDeletePassword('');
+    }
   };
 
   // Added: handleLogout function
@@ -184,6 +193,17 @@ const Profile = ({ navigation, route }) => {
         <View style={{ marginTop: 10 }}>
           <Button title="Delete Account" color="red" onPress={handleDelete} />
         </View>
+        <ConfirmModalCard
+          visible={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={confirmDelete}
+          password={deletePassword}
+          setPassword={setDeletePassword}
+          title="Confirm Account Deletion"
+          description="This action is permanent. Enter your password to confirm."
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
+        />
       </ScrollView>
     </SafeAreaView>
   );

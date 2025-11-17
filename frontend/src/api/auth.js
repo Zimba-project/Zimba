@@ -39,6 +39,16 @@ async function getRequest(path, method = 'GET', extraHeaders = "fuck this") {
 export const register = (data) => request('/auth/register', 'POST', data);
 export const login = (data) => request('/auth/login', 'POST', data);
 export const me = (token) => getRequest('/auth/me', "GET", token);
+export const deleteAccount = (data, token) => {
+    const opts = { method: 'POST', headers: { 'Content-Type': 'application/json' } };
+    if (data) opts.body = JSON.stringify(data);
+    if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+    return fetch(`${API_BASE}/auth/delete`, opts).then(async (res) => {
+        let json = {};
+        try { json = await res.json(); } catch (e) {}
+        return { ok: res.ok, status: res.status, body: json };
+    });
+};
 
 
 export default { register, login, me };
