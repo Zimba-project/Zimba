@@ -244,7 +244,6 @@ exports.requestPasswordReset = async (req, res) => {
     // create reset token
     const rToken = jwt.sign({ type: 'reset_password', userId: user.id }, JWT_SECRET, { expiresIn: '1h' });
 
-    // Prefer an HTTP(S) frontend URL (so email clients can open it). If FRONTEND_URL is a custom scheme (e.g. exp://),
     // fall back to BACKEND_URL which serves a simple HTML reset form.
     const isHttpFrontend = FRONTEND_URL && /^https?:\/\//i.test(FRONTEND_URL);
     const frontendResetLink = isHttpFrontend ? `${FRONTEND_URL.replace(/\/$/, '')}/reset-password?token=${rToken}` : null;
@@ -255,11 +254,8 @@ exports.requestPasswordReset = async (req, res) => {
       const html = `<p>Hi ${user.first_name || ''},</p>
         <p>We received a request to reset your password. Click the button below to reset it:</p>
         <p><a href="${primaryLink}" style="display:inline-block;padding:10px 16px;background:#ef4444;color:#fff;border-radius:6px;text-decoration:none">Reset password</a></p>
-        <p>If you didn't request a password reset, you can safely ignore this email.</p>
-        <p>If the button doesn't work, copy and paste one of these URLs into your browser (the first is preferred):</p>
-        <p>${frontendResetLink ? frontendResetLink : '<em>(no web frontend configured)</em>'}</p>
-        <p>${backendResetLink}</p>`;
-      const text = `Reset your password:\n\n${primaryLink}\n\nIf you didn't request this, ignore this message.`;
+        <p>If you didn't request a password reset, you can safely ignore this email.</p>`;
+      const text = `Reset your password: ${primaryLink}\n\nIf you didn't request this, ignore this message.`;
       await sendMail({ to: email, subject: 'Reset your Zimba password', html, text });
     } catch (e) {
       console.error('Error sending password reset email:', e);
