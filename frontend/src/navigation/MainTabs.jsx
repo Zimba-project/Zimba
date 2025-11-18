@@ -1,44 +1,114 @@
 import React from 'react';
+import { View, StyleSheet, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { View } from 'react-native';
-import { default as HeaderForStack } from './TopBar';
 
-//Tänne kaikki näytöt sitten / All screens go here: 
 import MainScreen from '../screens/MainScreen';
-
-
-// Placeholder-screenit (voi korvata oikeilla, kunha vaa näyttää jotain)
-function DiscussionScreen() { return <View style={{ flex: 1 }} />; }
-function PollsScreen() { return <View style={{ flex: 1 }} />; }
-
+import CreatePostScreen from '../screens/CreatePost';
+import Profile from '../screens/Profile';
 
 const Tab = createBottomTabNavigator();
 
-export default function MainTabs() {
-  const headerForRoute = (route, navigation, back) => {
-    // Use the centralized HeaderForStack from navigation/TopBar
-    return <HeaderForStack navigation={navigation} route={route} back={back} />;
-  };
-
+export default function AppNavigator() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
+      screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#111827',
-        tabBarIcon: ({ color, size }) => {
-          const name =
-            route.name === 'Home' ? 'home-outline' :
-              route.name === 'Discussion' ? 'chatbox-outline' :
-                route.name === 'Polls' ? 'stats-chart-outline' : '';
-          return <Ionicons name={name} size={size} color={color} />;
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: '#6366f1',
+        tabBarInactiveTintColor: '#9ca3af',
+      tabBarLabelStyle: {
+        fontSize: 12,
+        marginBottom: Platform.OS === 'ios' ? 0 : 5,
         },
-      })}
+     tabBarStyle: {
+        position: 'absolute',
+        height: Platform.OS === 'ios' ? 70 : 80,
+        paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+        paddingTop: 5,
+        borderTopWidth: 0,
+        elevation: 10,
+        backgroundColor: '#ffffff',
+        },
+      }}
     >
-      <Tab.Screen name="Home" component={MainScreen} />
-      <Tab.Screen name="Discussion" component={DiscussionScreen} />
-      <Tab.Screen name="Polls" component={PollsScreen} />
+
+      {/* Home */}
+      <Tab.Screen
+        name="Main"
+        component={MainScreen}
+        options={{
+          tabBarIcon: ({ focused, color, size }) => (
+            <View style={styles.iconContainer}>
+              <Ionicons
+                name={focused ? 'home' : 'home-outline'}
+                size={26}
+                color={color}
+              />
+            </View>
+          ),
+        }}
+      />
+
+      {/* New Post */}
+      <Tab.Screen
+        name="NewPost"
+        component={CreatePostScreen}
+        options={{
+          tabBarLabel: '',
+          tabBarIcon: ({ focused }) => (
+            <View style={[styles.addButton, { backgroundColor: focused ? '#362ddbff' : '#6366f1' }]}>
+              <Ionicons name="add" size={26} color="#fff" />
+            </View>
+          ),
+        }}
+      />
+
+      {/* Profile */}
+      <Tab.Screen
+        name="Profile"
+        component={Profile}
+        options={{
+          tabBarIcon: ({ focused, color, size }) => (
+            <View style={styles.iconContainer}>
+              <Ionicons
+                name={focused ? 'person' : 'person-outline'}
+                size={26}
+                color={color}
+              />
+            </View>
+          ),
+        }}
+      />
 
     </Tab.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  iconContainer: {
+    alignItems: 'center', 
+    justifyContent: 'center',
+    marginTop: 5,
+  },
+  label: {
+    fontSize: 12,
+    marginTop: 3,
+  },
+  addButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#6366f1',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 8,
+    elevation: 5,
+    borderWidth: 3,
+    borderColor: '#fff',
+    marginBottom: Platform.OS === 'ios' ? 20 : -15,
+  },
+});

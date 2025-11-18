@@ -1,10 +1,10 @@
 
 import { sessionStorage } from '../utils/Storage';
-const API_BASE = process.env.API_BASE;
+const EXPO_PUBLIC_API_BASE = process.env.EXPO_PUBLIC_API_BASE;
 async function request(path, method = 'GET', body) {
     const opts = { method, headers: { 'Content-Type': 'application/json' } };
     if (body) opts.body = JSON.stringify(body);
-    const res = await fetch(`${API_BASE}${path}`, opts);
+    const res = await fetch(`${EXPO_PUBLIC_API_BASE}${path}`, opts);
     let json = {};
     try {
         json = await res.json();
@@ -23,7 +23,7 @@ async function getRequest(path, method = 'GET', extraHeaders = "fuck this") {
         }
     };
 
-    const res = await fetch(`${API_BASE}${path}`, opts);
+    const res = await fetch(`${EXPO_PUBLIC_API_BASE}${path}`, opts);
     let json = {};
     try {
         json = await res.json();

@@ -1,45 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, FlatList, StyleSheet, Text, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import InfoBoard from '../components/MainPage/InfoBoard';
 import PollCard from '../components/Cards/PollCard';
 import DiscussionCard from '../components/Cards/DiscussionCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAllPosts } from '../api/postService';
+import { FilterBar } from '../components/MainPage/FilterBar';
+
+const FILTER_MAP = {Discussions: 'discussion', Polls: 'poll',};
 
 const MainScreen = ({ navigation, route }) => {
+    const [allPosts, setAllPosts] = useState([]);
     const [feed, setFeed] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState(null);
-    const user = route?.params?.user;
+    const [selectedFilter, setSelectedFilter] = useState('All');
 
-    const fetchPosts = async () => {
+    const fetchPosts = async (isRefresh = false) => {
         try {
-            setLoading(true);
+            if (isRefresh) setRefreshing(true);
+            else setLoading(true);
             setError(null);
-
-      const posts = await getAllPosts();
-      /*const polls = posts.filter(p => p.type === 'poll');
-      const discussions = posts.filter(p => p.type === 'discussion');
-
-      const mixed = [];
-      const max = Math.max(polls.length, discussions.length);
-      for (let i = 0; i < max; i++) {
-        if (polls[i]) mixed.push({ ...polls[i], _type: 'poll' });
-        if (discussions[i]) mixed.push({ ...discussions[i], _type: 'discussion' });
-      }*/
-
-      setFeed(posts);
-    } catch (err) {
-      console.error("Error fetching posts:", err.message);
-      setError("Unable to fetch posts. Check your network or server.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+            const posts = await getAllPosts();
+            setAllPosts(posts);        
+        } catch (err) {
+            console.error("Error fetching posts:", err.message);
+            setError("Unable to fetch posts. Check your network or server.");
+        } finally {
+            if (isRefresh) setRefreshing(false);
+            else setLoading(false);
+        }
+    };
+    
     useEffect(() => {
-        fetchPosts();
+    fetchPosts();
     }, []);
+
+   useEffect(() => {
+        if (!allPosts.length) return;
+        const filtered = selectedFilter === "All" ? allPosts : allPosts.filter((p) => p.type === FILTER_MAP[selectedFilter]);
+        setFeed(filtered);
+    }, [selectedFilter, allPosts]);
+
+    const handleRefresh = () => fetchPosts(true);
 
     if (loading) {
         return (
@@ -54,7 +58,7 @@ const MainScreen = ({ navigation, route }) => {
         return (
             <SafeAreaView style={styles.centered}>
                 <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity style={styles.retryButton} onPress={fetchPosts}>
+                <TouchableOpacity style={styles.retryButton} onPress={() => fetchPosts()}>
                     <Text style={styles.retryText}>Retry</Text>
                 </TouchableOpacity>
             </SafeAreaView>
@@ -65,25 +69,20 @@ const MainScreen = ({ navigation, route }) => {
         <SafeAreaView style={styles.container} edges={["bottom"]}>
             <FlatList
                 data={feed}
-                keyExtractor={(item, index) => `${item._type}-${item.id}-${index}`}
-                renderItem={({ item }) =>
-                    item._type === 'poll' ? (
-                        <PollCard
-                            {...item}
-                            onTakePoll={() => alert('Poll opened!')}
-                            share={item.share}
-                            onSave={item.onSave}
-                        />
-                    ) : (
-                        <DiscussionCard
-                            {...item}
-                            share={item.share}
-                            onSave={item.onSave}
-                        />
-                    )
-                }
+                keyExtractor={(item, index) => `${item.type}-${item.id}-${index}`}
+                renderItem={({ item }) => (
+                    <TouchableOpacity onPress={() => navigation.navigate("PostDetails", { postId: item.id })}>
+                        {item.type === "poll" ? (
+                        <PollCard {...item} />
+                            ) : (
+                        <DiscussionCard {...item} />
+                            )}
+                    </TouchableOpacity>
+                )}
+                
                 showsVerticalScrollIndicator={false}
                 ListHeaderComponent={() => (
+                    
                     <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                             <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>Upcoming in your area</Text>
@@ -96,9 +95,12 @@ const MainScreen = ({ navigation, route }) => {
                             items={infoItems}
                             onCardPress={(it) => alert(`Info: ${it.title}`)}
                         />
+                        <FilterBar selectedFilter={selectedFilter} setSelectedFilter={setSelectedFilter} />
                     </View>
                 )}
                 contentContainerStyle={{ paddingBottom: 24 }}
+                onRefresh={handleRefresh}           
+                refreshing={refreshing}            
             />
         </SafeAreaView>
     );

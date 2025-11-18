@@ -7,12 +7,14 @@ import {
     StyleSheet,
 } from 'react-native';
 import { Feather as Icon } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import StatsBar from './StatsBar';
 import CardHeader from './CardHeader';
 import CardContainer from './CardContainer';
 import { formatTime } from '../../utils/TimeFormatter';
 
 const PollCard = ({
+    id,
     topic = 'Poll',
     author_name,
     author_avatar,
@@ -23,47 +25,94 @@ const PollCard = ({
     comments,
     end_time,
     created_at,
-    onTakePoll = () => {},
     onShare = () => {},
     onSave = () => {},
 }) => {
+
+    const navigation = useNavigation();
+
+    const handlePress = () => {
+        navigation.navigate('Poll', {
+            postId: id,
+            postData: {
+                id,
+                topic,
+                author_name,
+                author_avatar,
+                image,
+                title,
+                description,
+                votes,
+                comments,
+                end_time,
+                created_at,
+            },
+        });
+    };
+
     return (
-        <CardContainer>
-            {/* HEADER */}
-            <CardHeader author={{ avatar: author_avatar, name: author_name, time: created_at }} topic={topic}/>
+        <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+            <CardContainer>
 
-            {/* IMAGE (title overlays image) */}
-            {image && (
-                <ImageBackground source={{ uri: image }} style={styles.image}>
-                    <View style={styles.overlay}>
-                        <Text style={styles.imageTitle}>{title}</Text>
+                <CardHeader
+                    author={{ avatar: author_avatar, name: author_name, time: created_at }}
+                    topic={topic}
+                />
+
+                {image && (
+                    <ImageBackground source={{ uri: image }} style={styles.image}>
+                        <View style={styles.overlay}>
+                            <Text style={styles.imageTitle}>{title}</Text>
+                        </View>
+                    </ImageBackground>
+                )}
+
+                <View style={styles.body}>
+                    {!image && <Text style={styles.title}>{title}</Text>}
+
+                    <Text style={styles.description} numberOfLines={3}>
+                        {description}
+                    </Text>
+
+                    {/* Poll button now navigates too */}
+                    <TouchableOpacity style={styles.pollButton} onPress={handlePress}>
+                        <Text style={styles.pollButtonText}>Take a Poll</Text>
+                    </TouchableOpacity>
+
+                    <View style={styles.endTime}>
+                        <Icon name="clock" size={14} color="#6b7280" />
+                        <Text style={styles.endTimeText}>
+                            Ends: {formatTime(end_time)}
+                        </Text>
                     </View>
-                </ImageBackground>
-            )}
 
-            {/* BODY */}
-            <View style={styles.body}>
-                {!image && <Text style={styles.title}>{title}</Text>}
-                <Text style={styles.description} numberOfLines={3} ellipsizeMode="tail">{description}</Text>
-
-                <TouchableOpacity style={styles.pollButton} onPress={onTakePoll}>
-                    <Text style={styles.pollButtonText}>Take a Poll</Text>
-                </TouchableOpacity>
-
-                <View style={styles.endTime}>
-                    <Icon name="clock" size={14} color="#6b7280" />
-                    <Text style={styles.endTimeText}>Ends: {formatTime(end_time)}</Text>
+                    <StatsBar
+                        votes={votes}
+                        comments={comments}
+                        share={onShare}
+                        onSave={onSave}
+                    />
                 </View>
 
-                <StatsBar votes={votes} comments={comments} share={onShare} onSave={onSave} />
-            </View>
-        </CardContainer>
+            </CardContainer>
+        </TouchableOpacity>
     );
 };
 
 const styles = StyleSheet.create({
-    image: { width: '100%', height: 180, borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: 'hidden' },
-    overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'flex-end', padding: 16 },
+    image: {
+        width: '100%',
+        height: 180,
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
+        overflow: 'hidden',
+    },
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        justifyContent: 'flex-end',
+        padding: 16,
+    },
     imageTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
     body: { padding: 16 },
     title: { fontSize: 18, fontWeight: '700', marginBottom: 8, color: '#111' },
@@ -75,7 +124,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 12,
     },
-    pollButtonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+    pollButtonText: {
+        color: '#fff',
+        fontWeight: '600',
+        fontSize: 16,
+    },
     endTime: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
     endTimeText: { marginLeft: 6, fontSize: 12, color: '#6b7280' },
 });

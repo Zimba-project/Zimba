@@ -9,6 +9,8 @@ import Register from './screens/Register';
 import Profile from './screens/Profile';
 import Discuss from './screens/Discuss';
 import Sidebar from './navigation/Sidebar';
+import Poll from './screens/Poll';
+import Search from './screens/Search';
 import { HeaderForStack } from './navigation/TopBar';
 
 // navigation ref so headers/components can dispatch drawer actions
@@ -28,10 +30,12 @@ export default function App() {
           <Stack.Screen name="Register" component={Register} />
           <Stack.Screen name="Profile" component={Profile} />
           <Stack.Screen name="Discuss" component={Discuss} />
+          <Stack.Screen name="Poll" component={Poll} />
+          <Stack.Screen name="Search" component={Search} />
         </Stack.Navigator>
       </NavigationContainer>
       <StatusBar style="auto" />
     </SafeAreaProvider>
-  );
+  );ZZ
 }
 

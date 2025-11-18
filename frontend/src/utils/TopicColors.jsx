@@ -11,7 +11,7 @@ export const getTopicColors = (topic) => {
         'matkailu': { bg: '#FFEDD5', text: '#9A3412' }, // orange
         'luonto ja kestävä kehitys': { bg: '#DCFCE7', text: '#166534' }, // greenish
         'osallistu': { bg: '#E0E7FF', text: '#3730A3' }, // indigo/blue
-        'tureimmat': { bg: '#F1F5F9', text: '#0F172A' }, // gray
+        'tuoreimmat': { bg: '#F1F5F9', text: '#0F172A' }, // gray
     };
 
     return colors[topic?.toLowerCase()] || { bg: '#F3F4F6', text: '#374151' }; // default gray
@@ -30,5 +30,5 @@ export const TOPIC_COLORS = {
     'matkailu': { bg: '#FFEDD5', text: '#9A3412' },
     'luonto ja kestävä kehitys': { bg: '#DCFCE7', text: '#166534' },
     'osallistu': { bg: '#E0E7FF', text: '#3730A3' },
-    'tureimmat': { bg: '#F1F5F9', text: '#0F172A' },
+    'tuoreimmat': { bg: '#F1F5F9', text: '#0F172A' },
 };
