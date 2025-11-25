@@ -1,36 +1,64 @@
-// Source - https://stackoverflow.com/a
-// Posted by firecraft gaming
-// Retrieved 2025-11-15, License - CC BY-SA 4.0
 
-class Storage {
-    constructor() {
-        this.data = new Map();
-    }
+import { Platform } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 
-    key(n) {
-        return [...this.data.keys()][n];
-    }
-    getItem(key) {
-        return this.data.get(key);
-    }
-    get length() {
-        return this.data.size;
-    }
+// For web fallback (localStorage or sessionStorage)
+class WebStorage {
+  constructor() {
+    this.storage = window.sessionStorage; // or localStorage if persistence needed
+  }
 
-    setItem(key, value) {
-        this.data.set(key, value);
-    }
-    removeItem(key) {
-        this.data.delete(key);
-    }
-    clear() {
-        this.data = new Map();
-    }
-    
+  key(n) {
+    return this.storage.key(n);
+  }
+  getItem(key) {
+    return this.storage.getItem(key);
+  }
+  get length() {
+    return this.storage.length;
+  }
+  setItem(key, value) {
+    this.storage.setItem(key, value);
+  }
+  removeItem(key) {
+    this.storage.removeItem(key);
+  }
+  clear() {
+    this.storage.clear();
+  }
 }
 
-// Create a single instance
-const sessionStorage = new Storage();
+// SecureStorage wrapper
+class SecureStorage {
+  async key(n) {
+    // SecureStore does not support key enumeration
+    throw new Error('Not supported in SecureStore');
+  }
 
+  async getItem(key) {
+    return await SecureStore.getItemAsync(key);
+  }
 
-export { Storage, sessionStorage };
+  get length() {
+    // SecureStore does not expose length
+    return null;
+  }
+
+  async setItem(key, value) {
+    await SecureStore.setItemAsync(key, value);
+  }
+
+  async removeItem(key) {
+    await SecureStore.deleteItemAsync(key);
+  }
+
+  async clear() {
+    // SecureStore does not support clear-all; you must track keys manually
+    throw new Error('Clear not supported in SecureStore');
+  }
+}
+
+// Export platform-specific instance
+const sessionStorage = Platform.OS === 'web' ? new WebStorage() : new SecureStorage();
+
+export { sessionStorage };

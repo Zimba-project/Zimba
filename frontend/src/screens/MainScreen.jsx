@@ -6,12 +6,13 @@ import DiscussionCard from '../components/Cards/DiscussionCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TopBar from '../components/TopBar';
 import { getAllPosts } from '../api/postService';
+import useCurrentUser from '../utils/GetUser';
 
 const MainScreen = ({ navigation, route }) => {
   const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null); 
-  const user = route?.params?.user;
+  const {user} = useCurrentUser(route)
 
   const fetchPosts = async () => {
     try {

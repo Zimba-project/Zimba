@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { me as info } from '../api/auth';
-import { sessionStorage } from '../utils/Storage';
 import {
   SafeAreaView,
   Text,
@@ -13,22 +11,22 @@ import {
   ScrollView,
   Pressable
 } from 'react-native';
+import useCurrentUser from '../utils/GetUser';
+
 
 const Profile = ({ navigation, route }) => {
-  const [user, setUser] = useState(null);
+  //const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', bio: '' });
   const [loading, setLoading] = useState(true);
-
+  const {user, setUser, loading: userLoading, getUserId } = useCurrentUser(route)
 
   useEffect(() => {
     const loadUser = async () => {
       try {
 
         // TODO: replace this with an API call
-        const res = await info(sessionStorage.getItem('authToken'));
-        console.log(res.body.user);
-        const passedUser = res?.body?.user;// //res.body.user;
+        const passedUser = user;// //res.body.user;
         const data =
           passedUser || {
             first_name: 'Jane Doe',
