@@ -4,10 +4,8 @@ import InfoBoard from '../components/MainPage/InfoBoard';
 import PollCard from '../components/Cards/PollCard';
 import DiscussionCard from '../components/Cards/DiscussionCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import TopBar from '../components/TopBar';
 import { getAllPosts } from '../api/postService';
 import { FilterBar } from '../components/MainPage/FilterBar';
-import useCurrentUser from '../utils/GetUser';
 
 const FILTER_MAP = {Discussions: 'discussion', Polls: 'poll',};
 
@@ -18,7 +16,6 @@ const MainScreen = ({ navigation, route }) => {
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState(null);
     const [selectedFilter, setSelectedFilter] = useState('All');
-    const {user} = useCurrentUser(route)
 
     const fetchPosts = async (isRefresh = false) => {
         try {
