@@ -59,7 +59,7 @@ exports.getAllPosts = async (req, res) => {
 
 // ---------- CREATE A NEW POST ----------
 exports.createPost = async (req, res) => {
-  const { type, topic, title, description, image, end_time, author_id } = req.body;
+  const { type, topic, title, description, image, end_time, author_id, options } = req.body;
   const authorId = parseInt(author_id, 10);
 
   if (!type || !topic || !authorId || !title || !description) {
@@ -81,9 +81,159 @@ exports.createPost = async (req, res) => {
       [postId, title, description, image, end_time]
     );
 
+    if (type === 'poll' && Array.isArray(options) && options.length >= 2) {
+      const optionQueries = options.map(opt => 
+        pgPool.query(
+          `INSERT INTO post_options (post_id, option_text) VALUES ($1, $2)`,
+          [postId, opt.text]
+        )
+      );
+      await Promise.all(optionQueries);
+    }
+
     res.status(201).json({ message: "Post created successfully", postId });
   } catch (err) {
     console.error("Error creating post:", err);
     res.status(500).json({ error: "Server error creating post", detail: err.message });
   }
+};
+
+
+// ---------- GET POLL BY ID ----------
+
+exports.getPollOptions = async (req, res) => {
+  const postIdParam = req.params.postId ?? req.params.id;
+  const postId = parseInt(postIdParam, 10);
+
+  try {
+    const optionsRes = await pgPool.query(
+      `SELECT id, option_text AS text, votes
+       FROM post_options
+       WHERE post_id = $1
+       ORDER BY id ASC`,
+      [postId]
+    );
+
+    if (!optionsRes.rows.length) {
+      return res.status(404).json({ error: "No options found for this poll" });
+    }
+
+    res.status(200).json({ options: optionsRes.rows });
+  } catch (err) {
+    console.error("Error fetching poll options:", err);
+    res.status(500).json({ error: "Server error fetching poll options", detail: err.message });
+  }
+};
+
+
+// ---------- VOTE ----------
+
+exports.votePoll = async (req, res) => {
+  const postIdParam = req.params.postId ?? req.params.id;
+  const postId = parseInt(postIdParam, 10);
+  const { user_id, option_id } = req.body || {};
+
+  if (!postId || Number.isNaN(postId)) {
+    return res.status(400).json({ error: 'Missing or invalid post id', details: { postIdParam } });
+  }
+  if (!user_id) {
+    return res.status(400).json({ error: 'Missing user_id in request body' });
+  }
+  if (!option_id) {
+    return res.status(400).json({ error: 'Missing option_id in request body' });
+  }
+
+  const userId = parseInt(user_id, 10);
+  const optionId = parseInt(option_id, 10);
+  if (Number.isNaN(userId) || Number.isNaN(optionId)) {
+    return res.status(400).json({ error: 'user_id and option_id must be integers' });
+  }
+
+  try {
+    const opt = await pgPool.query('SELECT id, post_id FROM post_options WHERE id = $1', [optionId]);
+    if (!opt.rows.length || opt.rows[0].post_id !== postId) {
+      return res.status(400).json({ error: 'Option not found or does not belong to post' });
+    }
+
+    const existing = await pgPool.query(
+      'SELECT 1 FROM post_votes WHERE post_id=$1 AND user_id=$2',
+      [postId, userId]
+    );
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ error: 'You have already voted!' });
+    }
+
+    await pgPool.query(
+      `INSERT INTO post_votes (post_id, option_id, user_id, created_at)
+       VALUES ($1, $2, $3, NOW())`,
+      [postId, optionId, userId]
+    );
+
+    await pgPool.query(
+      'UPDATE post_options SET votes = votes + 1 WHERE id = $1',
+      [optionId]
+    );
+
+    return res.status(200).json({ message: 'Vote recorded' });
+  } catch (err) {
+    console.error('Error voting:', err);
+    return res.status(500).json({ error: 'Server error recording vote', detail: err.message });
+  }
+};
+
+// ---------- GET COMMENTS FOR A POST ----------
+exports.getPostComments = async (req, res) => {
+    const postIdParam = req.params.postId ?? req.params.id;
+    const postId = parseInt(postIdParam, 10);
+
+    if (isNaN(postId)) {
+        return res.status(400).json({ error: "Invalid post ID" });
+    }
+
+    try {
+        const result = await pgPool.query(`
+            SELECT c.id, c.comment, c.created_at,
+            u.id AS user_id, u.first_name AS user_name, u.avatar AS user_avatar
+            FROM post_comments c
+            JOIN users u ON c.user_id = u.id
+            WHERE c.post_id = $1
+            ORDER BY c.created_at ASC
+        `, [postId]);
+
+        res.status(200).json({ comments: result.rows });
+    } catch (err) {
+        console.error("Error fetching comments:", err);
+        res.status(500).json({ error: "Server error fetching comments", detail: err.message });
+    }
+};
+// ---------- ADD A COMMENT TO A POST ----------
+exports.addPostComment = async (req, res) => {
+    const postIdParam = req.params.postId ?? req.params.id;
+    const postId = parseInt(postIdParam, 10);
+    const { user_id, comment } = req.body;
+
+    if (!postId) {
+      return res.status(400).json({ error: "Missing postId" });
+    }
+
+    if (!user_id) {
+      return res.status(400).json({ error: "Missing user_id / log in" });
+    }
+
+    if (!comment) {
+      return res.status(400).json({ error: "Missing comment" });
+    }
+
+    try {
+        const result = await pgPool.query(`
+            INSERT INTO post_comments (post_id, user_id, comment)
+            VALUES ($1, $2, $3)
+            RETURNING id, post_id, user_id, comment, created_at
+        `, [postId, user_id, comment]);
+
+        res.status(201).json({ comment: result.rows[0] });
+    } catch (err) {
+        console.error("Error adding comment:", err);
+        res.status(500).json({ error: "Server error adding comment", detail: err.message });
+    }
 };
