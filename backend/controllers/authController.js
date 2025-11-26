@@ -73,6 +73,7 @@ exports.register = async (req, res) => {
 // ---------- LOGIN ----------
 exports.login = async (req, res) => {
   try {
+    console.log(req.body)
     // allow identifier to be either email or phone
     // also accept legacy 'phone' key for compatibility
     let { identifier, password } = req.body;
@@ -206,3 +207,22 @@ exports.me = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+// -----------UPDATE ME --------------
+exports.updateMe = async (req, res) => {
+  console.log(req.body)
+  const { first_name, last_name, phone, birthdate, about} = req.body;
+
+    if (!first_name || !last_name || !phone )
+      return res.status(400).json({ message: 'Missing required fields.' });
+  try {
+    const userId = req.userId;
+    await pgPool.query(
+      'UPDATE users SET first_name = $1, last_name = $2, phone = $3, birthdate = $4, about = $5 WHERE id = $6',
+      [first_name, last_name, phone, birthdate, about, userId]
+    );
+    return res.status(200);
+  } catch (err) {
+    res.status(500).json({ message: 'server error' });
+  }
+}

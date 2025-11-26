@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { me as info } from '../api/auth';
+import { me as info, updateUser } from '../api/auth';
 import { sessionStorage } from '../utils/Storage';
 import {
   SafeAreaView,
@@ -26,6 +26,7 @@ const Profile = ({ navigation, route }) => {
       try {
 
         // TODO: replace this with an API call
+        
         const res = await info(sessionStorage.getItem('authToken'));
         console.log(res.body.user);
         const passedUser = res?.body?.user;// //res.body.user;
@@ -49,6 +50,8 @@ const Profile = ({ navigation, route }) => {
   const handleSave = async () => {
     setIsEditing(false);
     try {
+      console.log("sessionToken", sessionStorage.getItem('authToken'))
+      updateUser(sessionStorage.getItem('authToken'), form);
       // TODO: send data to backend with fetch/axios
       setUser(form);
       Alert.alert('Profile Updated', 'Your changes have been saved.', [
@@ -119,7 +122,7 @@ const Profile = ({ navigation, route }) => {
         </Pressable>
         <Text style={styles.topTitle}>Profile</Text>
         <View style={{ width: 40 }}> 
-          <Text style={styles.topTitle}>placeholder to balance layout </Text>
+          <Text style={styles.topTitle}>p</Text>{/**placeholder to balance layout */}
         </View>
       </View>
 
@@ -132,22 +135,33 @@ const Profile = ({ navigation, route }) => {
             <>
               <TextInput
                 style={styles.input}
-                value={form.name}
-                onChangeText={(text) => setForm({ ...form, name: text })}
-                placeholder="Name"
+                value={form.first_name}
+                onChangeText={(text) => setForm({ ...form, first_name: text })}
+                placeholder="First name"
+              />
+               <TextInput
+                style={styles.input}
+                value={form.last_name}
+                onChangeText={(text) => setForm({ ...form, last_name: text })}
+                placeholder="Last name"
               />
               <TextInput
                 style={styles.input}
-                value={form.email}
-                onChangeText={(text) => setForm({ ...form, email: text })}
-                placeholder="Email"
-                keyboardType="email-address"
+                value={form.phone}
+                onChangeText={(text) => setForm({ ...form, phone: text })}
+                placeholder="Phonenumber"
+              />
+               <TextInput
+                style={styles.input}
+                value={form.birthdate}
+                onChangeText={(text) => setForm({ ...form, birthdate: text })}
+                placeholder="Birthdate"
               />
               <TextInput
                 style={[styles.input, { height: 80 }]}
-                value={form.bio}
-                onChangeText={(text) => setForm({ ...form, bio: text })}
-                placeholder="Bio"
+                value={form.about}
+                onChangeText={(text) => setForm({ ...form, about: text })}
+                placeholder="About you"
                 multiline
               />
               <View style={styles.buttonRow}>
@@ -160,6 +174,7 @@ const Profile = ({ navigation, route }) => {
               <Text style={styles.title}>{user.first_name} {user.last_name}</Text>
               <Text style={styles.text}>{user.phone}</Text>
               <Text style={styles.text}>{user.about}</Text>
+              <Text style={styles.text}>{(new Date(user.birthdate)).toLocaleDateString('fi-FI')}</Text>
 
               <View style={styles.buttonRow}>
                 <Button title="Edit Profile" onPress={() => setIsEditing(true)} />
@@ -173,7 +188,7 @@ const Profile = ({ navigation, route }) => {
           <Text style={styles.featureText}>Empty Box 1</Text>
         </View>
         <View style={styles.featureBox}>
-          <Text style={styles.featureText}>Empty Box 2</Text>
+          <Text style={styles.featureText}>Empty Box</Text>
         </View>
 
         {/* Added: Logout button */}
