@@ -19,9 +19,11 @@ const PollScreen = () => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [submitted, setSubmitted] = useState(false);
 
+
   useEffect(() => {
     if (!postId) return;
     fetchOptions();
+    console.log("JSON:", user);
   }, [postId]);
 
   const fetchOptions = async () => {

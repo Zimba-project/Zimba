@@ -1,16 +1,4 @@
-const EXPO_PUBLIC_API_BASE = process.env.EXPO_PUBLIC_API_BASE
-async function request(path, method = 'GET', body) {
-    const opts = { method, headers: { 'Content-Type': 'application/json' } };
-    if (body) opts.body = JSON.stringify(body);
-    const res = await fetch(`${EXPO_PUBLIC_API_BASE}${path}`, opts);
-    let json = {};
-    try {
-        json = await res.json();
-    } catch (e) {
-        // Response has no JSON
-    }
-    return { ok: res.ok, status: res.status, body: json };
-}
+import { request } from './requestBase';
 
 export const getAllPosts = async () => {
     const res = await request('/posts');
