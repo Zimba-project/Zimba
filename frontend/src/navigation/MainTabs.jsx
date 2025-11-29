@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import MainScreen from '../screens/MainScreen';
 import CreatePostScreen from '../screens/CreatePost';
@@ -10,26 +11,26 @@ import Inbox from '../screens/Inbox';
 const Tab = createBottomTabNavigator();
 
 export default function AppNavigator() {
-
+  const insets = useSafeAreaInsets();
+  
   return (
     <Tab.Navigator
-      screenOptions={{
+        screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,
         tabBarActiveTintColor: '#6366f1',
         tabBarInactiveTintColor: '#9ca3af',
-      tabBarLabelStyle: {
-        fontSize: 12,
-        marginBottom: Platform.OS === 'ios' ? 0 : 5,
+        tabBarLabelStyle: {
+          fontSize: 12,
+          marginBottom: Platform.OS === 'ios' ? 0 : 5,
         },
-     tabBarStyle: {
-        position: 'absolute',
-        height: Platform.OS === 'ios' ? 70 : 80,
-        paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-        paddingTop: 5,
-        borderTopWidth: 0,
-        elevation: 10,
-        backgroundColor: '#ffffff',
+        tabBarStyle: {
+          height: Platform.OS === 'ios' ? 40 : 60,
+          paddingBottom: Platform.OS === 'ios' ? 20 : insets.bottom,
+          paddingTop: 5,
+          borderTopWidth: 0,
+          elevation: 10,
+          backgroundColor: '#ffffff',
         },
       }}
     >

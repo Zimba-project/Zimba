@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "",
+    "name": "Zimba",
     "slug": "zimbaApp",
     "version": "1.0.0",
+    "scheme": "zimbaapp",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -23,10 +24,16 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#2563eb"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.zimba.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8926e89a-40f5-44f7-a50a-e0379a9ad419"
+      }
     }
   }
 }

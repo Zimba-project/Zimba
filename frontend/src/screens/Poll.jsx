@@ -1,13 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import {SafeAreaView, ScrollView, View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator, Alert} from 'react-native';
+import {
+  SafeAreaView,
+  ScrollView,
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CardHeader from '../components/Cards/CardHeader';
 import StatsBar from '../components/Cards/StatsBar';
 import { getPollOptions, votePoll } from '../api/postService';
 import useCurrentUser from '../utils/GetUser';
+import { normalizeUrl, normalizeAvatarUrl } from '../utils/urlHelper';
 
-export default function PollScreen(){
+export default function PollScreen() {
   const route = useRoute();
   const insets = useSafeAreaInsets();
   const { postData } = route.params || {};
@@ -19,11 +30,10 @@ export default function PollScreen(){
   const [selectedOption, setSelectedOption] = useState(null);
   const [submitted, setSubmitted] = useState(false);
 
-
   useEffect(() => {
     if (!postId) return;
     fetchOptions();
-    console.log("JSON:", user);
+    console.log('User JSON:', user);
   }, [postId]);
 
   const fetchOptions = async () => {
@@ -32,7 +42,7 @@ export default function PollScreen(){
       const opts = await getPollOptions(postId);
       setOptions(opts);
     } catch (err) {
-      console.log("Failed to load options:", err);
+      console.log('Failed to load options:', err);
       Alert.alert('Error', err.message || 'Unable to load poll options.');
     } finally {
       setLoading(false);
@@ -47,7 +57,7 @@ export default function PollScreen(){
       setSubmitted(true);
       await fetchOptions(); // refresh votes
     } catch (err) {
-      console.log("Vote failed:", err);
+      console.log('Vote failed:', err);
       Alert.alert('Thank you', err.message || 'Unable to submit your vote.');
     }
   };
@@ -81,15 +91,19 @@ export default function PollScreen(){
     topic,
   } = postData;
 
+  // ✅ Use utils to normalize URLs
+  const imageUrl = normalizeUrl(image);
+  const avatarUrl = normalizeAvatarUrl(author_avatar);
+
   return (
     <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
         <CardHeader
-          author={{ avatar: author_avatar, name: author_name, time: created_at }}
+          author={{ avatar: avatarUrl, name: author_name, time: created_at }}
           topic={topic}
         />
 
-        {image && <Image source={{ uri: image }} style={styles.image} />}
+        {imageUrl && <Image source={{ uri: imageUrl }} style={styles.image} />}
 
         <View style={styles.body}>
           <Text style={styles.title}>{title}</Text>
@@ -97,7 +111,7 @@ export default function PollScreen(){
           <StatsBar comments={comments} views={views} />
 
           <View style={styles.optionsContainer}>
-            {options.map(opt => {
+            {options.map((opt) => {
               const isSelected = selectedOption === opt.id;
               return (
                 <TouchableOpacity
@@ -105,12 +119,17 @@ export default function PollScreen(){
                   style={[
                     styles.optionButton,
                     isSelected && styles.selectedOption,
-                    submitted && styles.disabledOption
+                    submitted && styles.disabledOption,
                   ]}
                   disabled={submitted}
                   onPress={() => setSelectedOption(opt.id)}
                 >
-                  <Text style={[styles.optionText, isSelected && styles.selectedOptionText]}>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      isSelected && styles.selectedOptionText,
+                    ]}
+                  >
                     {opt.text}
                   </Text>
                   <Text style={styles.voteCount}>{opt.votes} votes</Text>
@@ -122,7 +141,10 @@ export default function PollScreen(){
               <Text style={styles.thankYouText}>Thanks for voting!</Text>
             ) : (
               <TouchableOpacity
-                style={[styles.submitButton, !selectedOption && styles.disabledSubmit]}
+                style={[
+                  styles.submitButton,
+                  !selectedOption && styles.disabledSubmit,
+                ]}
                 disabled={!selectedOption}
                 onPress={handleSubmit}
               >
@@ -134,7 +156,7 @@ export default function PollScreen(){
       </ScrollView>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
@@ -169,5 +191,10 @@ const styles = StyleSheet.create({
   },
   disabledSubmit: { backgroundColor: '#a5b4fc' },
   submitText: { color: '#fff', fontWeight: '600', fontSize: 16 },
-  thankYouText: { marginTop: 12, fontSize: 16, fontWeight: '500', color: '#16a34a' },
+  thankYouText: {
+    marginTop: 12,
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#16a34a',
+  },
 });
