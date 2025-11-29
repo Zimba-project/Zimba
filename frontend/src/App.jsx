@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
+import 'react-native-gesture-handler';
 import MainScreen from './screens/MainScreen';
 import Login from './screens/Login';
 import Register from './screens/Register';
@@ -19,6 +19,11 @@ import Splash from './screens/SplashScreen';
 import { HeaderForStack } from './navigation/TopBar';
 import useInitialRoute from './utils/InitialRoute';
 
+import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
+import '@/global.css';
+import { useColorMode } from '@gluestack-style/react';
+
+// navigation ref so headers/components can dispatch drawer actions
 export const navigationRef = createNavigationContainerRef();
 const Stack = createNativeStackNavigator();
 
@@ -31,6 +36,7 @@ export default function App() {
   }
 
   return (
+  <GluestackUIProvider>
     <SafeAreaProvider>
       <NavigationContainer ref={navigationRef}>
         <Stack.Navigator
@@ -51,5 +57,6 @@ export default function App() {
       </NavigationContainer>
       <StatusBar style="auto" />
     </SafeAreaProvider>
+  </GluestackUIProvider>
   );
 }

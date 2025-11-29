@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MainScreen from '../screens/MainScreen';
 import CreatePostScreen from '../screens/CreatePost';
 import Inbox from '../screens/Inbox';
+import CustomTabBar from '../components/TabsBar/CustomTabBar';
 
 const Tab = createBottomTabNavigator();
 
@@ -33,6 +34,7 @@ export default function AppNavigator() {
           backgroundColor: '#ffffff',
         },
       }}
+      tabBar={(props) => <CustomTabBar {...props} />}
     >
 
       {/* Home */}
@@ -86,30 +88,3 @@ export default function AppNavigator() {
   );
 }
 
-const styles = StyleSheet.create({
-  iconContainer: {
-    alignItems: 'center', 
-    justifyContent: 'center',
-    marginTop: 5,
-  },
-  label: {
-    fontSize: 12,
-    marginTop: 3,
-  },
-  addButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#6366f1',
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 8,
-    elevation: 5,
-    borderWidth: 3,
-    borderColor: '#fff',
-    marginBottom: Platform.OS === 'ios' ? 20 : -15,
-  },
-});
