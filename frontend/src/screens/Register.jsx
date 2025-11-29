@@ -8,8 +8,8 @@ import { Feather as Icon } from '@expo/vector-icons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { register as registerApi } from '../api/auth';
-import GoogleLogo from '../assets/google.svg';
-import AppleLogo from '../assets/apple.svg';
+import GoogleLogo from '../../assets/google.svg';
+import AppleLogo from '../../assets/apple.svg';
 
 const COUNTRIES = [
   { name: 'Finland', dial_code: '+358', code: 'FI', flag: '🇫🇮' }, 

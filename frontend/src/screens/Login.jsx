@@ -10,8 +10,8 @@ import {
   Alert
 } from 'react-native';
 import Checkbox from 'expo-checkbox';
-import GoogleLogo from '../assets/google.svg';
-import AppleLogo from '../assets/apple.svg';
+import GoogleLogo from '../../assets/google.svg';
+import AppleLogo from '../../assets/apple.svg';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { login as loginApi } from '../api/auth';
 import { sessionStorage } from '../utils/Storage';

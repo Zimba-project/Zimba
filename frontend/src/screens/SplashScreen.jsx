@@ -15,7 +15,7 @@ export default function Splash({ onFinish }) {
 
   return (
     <View style={styles.container}>
-      <Image source={require('../assets/splash-icon.png')} style={styles.icon} />
+      <Image source={require('../../assets/splash-icon.png')} style={styles.icon} />
       <Text style={styles.text}>Zimba</Text>
       <ActivityIndicator size="large" color="#ffffff" style={{ marginTop: 20 }} />
     </View>

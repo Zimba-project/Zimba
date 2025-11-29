@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image, View, StyleSheet } from 'react-native';
-import avatar from '../../assets/avatar.jpg';
+import avatar from '../../../assets/avatar.jpg';
 
 const sizes = { sm: 32, md: 40, lg: 56 };
 

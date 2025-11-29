@@ -15,7 +15,7 @@ export default function Welcome() {
 
                 {/* Illustration */}
                 <Image
-                    source={require('../assets/welcome.png')} // Replace with your illustration
+                    source={require('../../assets/welcome.png')} // Replace with your illustration
                     style={styles.image}
                     resizeMode="contain"
                 />
