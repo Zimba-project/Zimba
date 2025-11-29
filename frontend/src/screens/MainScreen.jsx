@@ -19,7 +19,7 @@ export default function MainScreen ({ navigation, route }) {
 
     const fetchPosts = async (isRefresh = false) => {
         try {
-            if (isRefresh) setRefreshing(true);
+        /*    if (isRefresh) setRefreshing(true);
             else setLoading(true);
             setError(null);
             const posts = await getAllPosts();
@@ -27,7 +27,7 @@ export default function MainScreen ({ navigation, route }) {
         } catch (err) {
             console.error("Error fetching posts:", err.message);
             setError("Unable to fetch posts. Check your network or server.");
-        } finally {
+        */} finally {
             if (isRefresh) setRefreshing(false);
             else setLoading(false);
         }
