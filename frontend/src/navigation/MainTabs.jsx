@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import MainScreen from '../screens/MainScreen';
 import CreatePostScreen from '../screens/CreatePost';
-import Profile from '../screens/Profile';
+import Inbox from '../screens/Inbox';
 import CustomTabBar from '../components/TabsBar/CustomTabBar';
 
 const Tab = createBottomTabNavigator();
@@ -30,9 +30,9 @@ export default function AppNavigator() {
         options={{ tabBarLabel: 'Uusi' }}
       />
       <Tab.Screen
-        name="Profile"
-        component={Profile}
-        options={{ tabBarLabel: 'Profiili' }}
+        name="Chat"
+        component={Inbox}
+        options={{ tabBarLabel: 'Viestit' }}
       />
 
     </Tab.Navigator>

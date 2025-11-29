@@ -7,37 +7,37 @@ import { Icon } from '@/components/ui/icon';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
 import { useNavigation, useTheme } from '@react-navigation/native';
-import { HomeIcon, PlusSquare, User, } from 'lucide-react-native'; 
+import { HomeIcon, PlusSquare, MessageCircle, } from 'lucide-react-native';
 
 const CustomTabBar = ({ state, descriptors, navigation }) => {
   return (
-   
-    <HStack 
+
+    <HStack
       className={`
         absolute bottom-0 justify-around items-center w-full px-12 bg-white shadow-xl
         ${Platform.OS === 'ios' ? 'h-24 pb-6' : 'h-16'}
       `}
-      style={{ elevation: 15 }} 
+      style={{ elevation: 15 }}
     >
       {state.routes.map((route, index) => {
-        
-        
+
+
         const descriptor = descriptors[route.key];
         if (!descriptor) return null;
-          
+
         const isFocused = state.index === index;
-        
-        
+
+
         let IconComponent;
         if (route.name === 'Main') {
-            IconComponent = isFocused ? HomeIcon : HomeIcon; 
+          IconComponent = isFocused ? HomeIcon : HomeIcon;
         } else if (route.name === 'NewPost') {
-            IconComponent = PlusSquare; 
-        } else if (route.name === 'Profile') {
-            IconComponent = User; 
+          IconComponent = PlusSquare;
+        } else if (route.name === 'Chat') {
+          IconComponent = MessageCircle;
         } else {
-           
-            return null; 
+
+          return null;
         }
 
         const onPress = () => {
@@ -52,7 +52,7 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
           }
         };
 
-        
+
         const activeColor = 'text-black';
         const inactiveColor = 'text-gray-500';
 
@@ -61,15 +61,15 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
             key={route.key}
             onPress={onPress}
             style={{ flex: 1, alignItems: 'center' }}
-            className="pt-1" 
+            className="pt-1"
           >
             <VStack className="items-center justify-center">
               <Icon
                 as={IconComponent}
-                size="2xl" 
+                size="2xl"
                 className={isFocused ? activeColor : inactiveColor}
               />
-              
+
             </VStack>
           </Pressable>
         );

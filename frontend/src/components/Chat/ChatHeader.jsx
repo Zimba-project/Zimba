@@ -21,11 +21,11 @@ export default function ChatHeader({ navigation, chatWith, avatarUrl }) {
         <Image source={{ uri: avatarUrl }} style={styles.avatar} />
       ) : (
         <View style={styles.avatarPlaceholder}>
-            <Text style={styles.avatarText}>{getInitials(chatWith)}</Text>
+          <Text style={styles.avatarText}>{getInitials(chatWith)}</Text>
         </View>
       )}
 
-      <Text style={styles.name}>{chatWith}</Text>
+      <Text style={styles.name}>Chat</Text>
 
       <TouchableOpacity onPress={() => setMenuVisible(true)} style={styles.menuBtn}>
         <Ionicons name="ellipsis-vertical" size={22} color="#111" />
