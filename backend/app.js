@@ -4,6 +4,7 @@ const express = require('express');
 const registerTestRoute = require("./test/registerTest");
 const authRoutes = require("./routes/auth");
 const postRoutes = require("./routes/post");
+const upload = require('./middleware/upload');
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
@@ -23,6 +24,10 @@ app.use("/api/auth", authRoutes);
 
 // new post routes
 app.use("/api/posts", postRoutes);
+
+app.post('/api/upload', upload.single('file'), (req, res) => {
+    res.json({ url: `/uploads/${req.file.filename}` });
+});
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

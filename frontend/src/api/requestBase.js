@@ -1,6 +1,10 @@
-const EXPO_PUBLIC_API_BASE = process.env.EXPO_PUBLIC_API_BASE;
+const API_BASE = process.env.EXPO_PUBLIC_API_BASE;
 
 export const request = async (path, method = 'GET', body = null, token = null) => {
+  if (!API_BASE) {
+    throw new Error('API base URL is not defined. Check EXPO_PUBLIC_API_BASE in your .env file.');
+  }
+
   const headers = { 'Content-Type': 'application/json' };
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -11,7 +15,8 @@ export const request = async (path, method = 'GET', body = null, token = null) =
     opts.body = JSON.stringify(body);
   }
 
-  const res = await fetch(`${EXPO_PUBLIC_API_BASE}${path}`, opts);
+  const url = `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`;
+  const res = await fetch(url, opts);
 
   let json = {};
   try {

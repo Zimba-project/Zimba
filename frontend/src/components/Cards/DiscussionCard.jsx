@@ -4,6 +4,7 @@ import StatsBar from './StatsBar';
 import CardHeader from './CardHeader';
 import CardContainer from './CardContainer';
 import { useNavigation } from '@react-navigation/native';
+const API_BASE = process.env.EXPO_PUBLIC_API_BASE;
 
 const DiscussionCard = ({
     id,
@@ -49,11 +50,14 @@ const DiscussionCard = ({
 
                 {/* IMAGE (title overlays image) */}
                 {image && (
-                    <ImageBackground source={{ uri: image }} style={styles.image}>
-                        <View style={styles.overlay}>
-                            <Text style={styles.imageTitle}>{title}</Text>
-                        </View>
-                    </ImageBackground>
+                <ImageBackground
+                    source={{ uri: image.startsWith('http') ? image : `${API_BASE}${image}` }}
+                    style={styles.image}
+                >
+                    <View style={styles.overlay}>
+                    <Text style={styles.imageTitle}>{title}</Text>
+                    </View>
+                </ImageBackground>
                 )}
 
                 {/* BODY */}

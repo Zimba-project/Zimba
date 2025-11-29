@@ -12,6 +12,7 @@ import StatsBar from './StatsBar';
 import CardHeader from './CardHeader';
 import CardContainer from './CardContainer';
 import { formatTime } from '../../utils/TimeFormatter';
+const API_BASE = process.env.EXPO_PUBLIC_API_BASE;
 
 const PollCard = ({
     id,
@@ -60,11 +61,14 @@ const PollCard = ({
                 />
 
                 {image && (
-                    <ImageBackground source={{ uri: image }} style={styles.image}>
-                        <View style={styles.overlay}>
-                            <Text style={styles.imageTitle}>{title}</Text>
-                        </View>
-                    </ImageBackground>
+                <ImageBackground
+                    source={{ uri: image.startsWith('http') ? image : `${API_BASE}${image}` }}
+                    style={styles.image}
+                >
+                    <View style={styles.overlay}>
+                    <Text style={styles.imageTitle}>{title}</Text>
+                    </View>
+                </ImageBackground>
                 )}
 
                 <View style={styles.body}>

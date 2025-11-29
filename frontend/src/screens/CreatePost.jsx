@@ -41,7 +41,7 @@ export default function CreatePostScreen ({ navigation, route }) {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      quality: 0.8,
+      quality: 1,
     });
 
     if (!result.canceled) {
@@ -57,6 +57,26 @@ export default function CreatePostScreen ({ navigation, route }) {
 
   const removeOption = (id) => {
     setOptions(options.filter(o => o.id !== id));
+  };
+
+  const uploadImage = async (imageUri) => {
+  const data = new FormData();
+  data.append('image', {
+    uri: imageUri,
+    type: 'image/jpeg',
+    name: 'upload.jpg',
+  });
+
+  const res = await fetch(`${process.env.EXPO_PUBLIC_API_BASE}/upload`, {
+    method: 'POST',
+    body: data,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  const json = await res.json();
+  return json.url;
   };
 
   const handleSubmit = async () => {
@@ -79,13 +99,18 @@ export default function CreatePostScreen ({ navigation, route }) {
 
     try {
       setLoading(true);
+    
+      let imageUrl = null;
+      if (image) {
+        imageUrl = await uploadImage(image);
+      }
 
       const data = {
         type,
         topic,
         title,
         description,
-        image: image || null,
+        image: imageUrl,
         end_time: type === 'poll' && endTime ? endTime.toISOString() : null,
         author_id: userId,
         options: type === 'poll' ? options.map(o => ({ text: o.text })) : undefined,
