@@ -20,6 +20,7 @@ app.use("/api", registerTestRoute);
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

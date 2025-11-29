@@ -14,7 +14,7 @@ if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
 }
 
-export default function CreatePostScreen ({ navigation, route }) {
+export default function CreatePostScreen({ navigation, route }) {
   const [type, setType] = useState('discussion');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -49,34 +49,47 @@ export default function CreatePostScreen ({ navigation, route }) {
     }
   };
 
-  // Poll option functions
   const addOption = () => {
     const newId = options.length ? Math.max(...options.map(o => o.id)) + 1 : 1;
     setOptions([...options, { id: newId, text: '' }]);
   };
 
-  const removeOption = (id) => {
+  const removeOption = id => {
     setOptions(options.filter(o => o.id !== id));
   };
 
   const uploadImage = async (imageUri) => {
-  const data = new FormData();
-  data.append('image', {
-    uri: imageUri,
-    type: 'image/jpeg',
-    name: 'upload.jpg',
-  });
+    if (!imageUri) return null;
 
-  const res = await fetch(`${process.env.EXPO_PUBLIC_API_BASE}/upload`, {
-    method: 'POST',
-    body: data,
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+    try {
+      const filename = imageUri.split('/').pop();
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
 
-  const json = await res.json();
-  return json.url;
+      const formData = new FormData();
+      formData.append('file', { // 'file' matches your backend multer.single('file')
+        uri: imageUri,
+        type,
+        name: filename,
+      });
+
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE}/upload`, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Upload failed: ${response.status} ${text}`);
+      }
+
+      const json = await response.json();
+      return json.url; // Return the uploaded file URL
+    } catch (error) {
+      console.error('Image upload error:', error);
+      throw new Error(error.message || 'Failed to upload image');
+    }
   };
 
   const handleSubmit = async () => {
@@ -99,7 +112,7 @@ export default function CreatePostScreen ({ navigation, route }) {
 
     try {
       setLoading(true);
-    
+
       let imageUrl = null;
       if (image) {
         imageUrl = await uploadImage(image);
@@ -146,11 +159,7 @@ export default function CreatePostScreen ({ navigation, route }) {
         </Text>
       </TouchableOpacity>
 
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 100 }} keyboardShouldPersistTaps="handled">
         <View style={styles.form}>
           <Text style={styles.label}>Title</Text>
           <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Enter a title" />
@@ -159,13 +168,7 @@ export default function CreatePostScreen ({ navigation, route }) {
           <TextInput style={styles.input} value={topic} onChangeText={setTopic} placeholder="Enter topic/category" />
 
           <Text style={styles.label}>Description</Text>
-          <TextInput
-            style={[styles.input, styles.multiline]}
-            value={description}
-            onChangeText={setDescription}
-            placeholder="Write your post content..."
-            multiline
-          />
+          <TextInput style={[styles.input, styles.multiline]} value={description} onChangeText={setDescription} placeholder="Write your post content..." multiline />
 
           <Text style={styles.label}>Image (optional)</Text>
           {image ? (
@@ -184,28 +187,16 @@ export default function CreatePostScreen ({ navigation, route }) {
 
           {type === 'poll' && (
             <>
-              <EndTimePicker
-                endTime={endTime}
-                setEndTime={setEndTime}
-                clearEndTime={() => setEndTime(null)}
-              />
-
-              {/* Poll options */}
+              <EndTimePicker endTime={endTime} setEndTime={setEndTime} clearEndTime={() => setEndTime(null)} />
               <View style={{ marginTop: 16, marginBottom: 16 }}>
                 <Text style={styles.label}>Options</Text>
-
                 {options.map((opt, index) => (
                   <View key={opt.id} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                    <TextInput
-                      style={[styles.input, { flex: 1 }]}
-                      placeholder={`Option ${index + 1}`}
-                      value={opt.text}
-                      onChangeText={(text) => {
-                        const newOptions = [...options];
-                        newOptions[index].text = text;
-                        setOptions(newOptions);
-                      }}
-                    />
+                    <TextInput style={[styles.input, { flex: 1 }]} placeholder={`Option ${index + 1}`} value={opt.text} onChangeText={text => {
+                      const newOptions = [...options];
+                      newOptions[index].text = text;
+                      setOptions(newOptions);
+                    }} />
                     {options.length > 2 && (
                       <TouchableOpacity onPress={() => removeOption(opt.id)} style={{ marginLeft: 8 }}>
                         <Ionicons name="trash" size={20} color="#dc2626" />
@@ -213,7 +204,6 @@ export default function CreatePostScreen ({ navigation, route }) {
                     )}
                   </View>
                 ))}
-
                 <TouchableOpacity onPress={addOption} style={styles.addOptionButton}>
                   <Ionicons name="add-circle" size={20} color="#6366f1" />
                   <Text style={{ marginLeft: 6, color: '#6366f1', fontWeight: '500' }}>Add Option</Text>
@@ -222,114 +212,33 @@ export default function CreatePostScreen ({ navigation, route }) {
             </>
           )}
 
-          <TouchableOpacity
-            style={[styles.button, (loading || userLoading) && { opacity: 0.6 }]}
-            onPress={handleSubmit}
-            disabled={loading || userLoading}
-          >
-            {(loading || userLoading) ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <Ionicons name="send" size={20} color="#fff" />
-                <Text style={styles.buttonText}>Post</Text>
-              </>
-            )}
+          <TouchableOpacity style={[styles.button, (loading || userLoading) && { opacity: 0.6 }]} onPress={handleSubmit} disabled={loading || userLoading}>
+            {(loading || userLoading) ? <ActivityIndicator color="#fff" /> : <>
+              <Ionicons name="send" size={20} color="#fff" />
+              <Text style={styles.buttonText}>Post</Text>
+            </>}
           </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb', padding: 20 },
-  header: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1f2937',
-    textAlign: 'center',
-  },
-  toggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-    gap: 6,
-  },
-  toggleText: {
-    fontSize: 14,
-    color: '#6366f1',
-    fontWeight: '600',
-  },
+  header: { fontSize: 24, fontWeight: '700', color: '#1f2937', textAlign: 'center' },
+  toggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 20, gap: 6 },
+  toggleText: { fontSize: 14, color: '#6366f1', fontWeight: '600' },
   form: {},
-  label: {
-    fontWeight: '600',
-    fontSize: 16,
-    marginBottom: 6,
-    color: '#111',
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 15,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    marginBottom: 16,
-  },
-  multiline: {
-    height: 120,
-    textAlignVertical: 'top',
-  },
-  button: {
-    backgroundColor: '#6366f1',
-    paddingVertical: 14,
-    borderRadius: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  uploadButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#eef2ff',
-    borderRadius: 10,
-    marginBottom: 16,
-  },
-  uploadText: {
-    fontSize: 14,
-    color: '#4f46e5',
-    fontWeight: '500',
-  },
-  imageWrapper: {
-    position: 'relative',
-    marginBottom: 16,
-  },
-  preview: {
-    width: '100%',
-    height: 180,
-    borderRadius: 10,
-  },
-  removeOverlay: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(255,255,255,0.8)',
-    borderRadius: 12,
-  },
-  addOptionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-  },
+  label: { fontWeight: '600', fontSize: 16, marginBottom: 6, color: '#111' },
+  input: { backgroundColor: '#fff', borderRadius: 10, padding: 12, fontSize: 15, borderWidth: 1, borderColor: '#e5e7eb', marginBottom: 16 },
+  multiline: { height: 120, textAlignVertical: 'top' },
+  button: { backgroundColor: '#6366f1', paddingVertical: 14, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  uploadButton: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12, paddingHorizontal: 16, backgroundColor: '#eef2ff', borderRadius: 10, marginBottom: 16 },
+  uploadText: { fontSize: 14, color: '#4f46e5', fontWeight: '500' },
+  imageWrapper: { position: 'relative', marginBottom: 16 },
+  preview: { width: '100%', height: 180, borderRadius: 10 },
+  removeOverlay: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(255,255,255,0.8)', borderRadius: 12 },
+  addOptionButton: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
 });

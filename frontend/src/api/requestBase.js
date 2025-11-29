@@ -16,14 +16,23 @@ export const request = async (path, method = 'GET', body = null, token = null) =
   }
 
   const url = `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`;
-  const res = await fetch(url, opts);
 
-  let json = {};
+  let res;
   try {
-    json = await res.json();
-  } catch {
-    // No JSON body
+    res = await fetch(url, opts);
+  } catch (err) {
+    // Network error
+    return { ok: false, status: 0, body: { error: 'Network error', details: err.message } };
   }
 
-  return { ok: res.ok, status: res.status, body: json };
+  let data;
+  try {
+    data = await res.json();
+  } catch (err) {
+    // Response is not JSON (e.g., HTML error page)
+    const text = await res.text();
+    data = { error: 'Invalid JSON response', raw: text };
+  }
+
+  return { ok: res.ok, status: res.status, body: data };
 };
