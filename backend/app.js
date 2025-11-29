@@ -5,6 +5,7 @@ const registerTestRoute = require("./test/registerTest");
 const authRoutes = require("./routes/auth");
 const postRoutes = require("./routes/post");
 const uploadRoutes = require("./routes/upload");
+const path = require('path');
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
