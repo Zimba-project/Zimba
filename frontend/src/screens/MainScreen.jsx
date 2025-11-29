@@ -7,9 +7,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAllPosts } from '../api/postService';
 import { FilterBar } from '../components/MainPage/FilterBar';
 
-const FILTER_MAP = {Discussions: 'discussion', Polls: 'poll',};
+const FILTER_MAP = { Discussions: 'discussion', Polls: 'poll', };
 
-export default function MainScreen ({ navigation, route }) {
+export default function MainScreen({ navigation, route }) {
     const [allPosts, setAllPosts] = useState([]);
     const [feed, setFeed] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -19,25 +19,25 @@ export default function MainScreen ({ navigation, route }) {
 
     const fetchPosts = async (isRefresh = false) => {
         try {
-        /*    if (isRefresh) setRefreshing(true);
+            if (isRefresh) setRefreshing(true);
             else setLoading(true);
             setError(null);
             const posts = await getAllPosts();
-            setAllPosts(posts);        
+            setAllPosts(posts);
         } catch (err) {
             console.error("Error fetching posts:", err.message);
             setError("Unable to fetch posts. Check your network or server.");
-        */} finally {
+        } finally {
             if (isRefresh) setRefreshing(false);
             else setLoading(false);
         }
     };
-    
+
     useEffect(() => {
-    fetchPosts();
+        fetchPosts();
     }, []);
 
-   useEffect(() => {
+    useEffect(() => {
         if (!allPosts.length) return;
         const filtered = selectedFilter === "All" ? allPosts : allPosts.filter((p) => p.type === FILTER_MAP[selectedFilter]);
         setFeed(filtered);
@@ -73,16 +73,16 @@ export default function MainScreen ({ navigation, route }) {
                 renderItem={({ item }) => (
                     <TouchableOpacity onPress={() => navigation.navigate("PostDetails", { postId: item.id })}>
                         {item.type === "poll" ? (
-                        <PollCard {...item} />
-                            ) : (
-                        <DiscussionCard {...item} />
-                            )}
+                            <PollCard {...item} />
+                        ) : (
+                            <DiscussionCard {...item} />
+                        )}
                     </TouchableOpacity>
                 )}
-                
+
                 showsVerticalScrollIndicator={false}
                 ListHeaderComponent={() => (
-                    
+
                     <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                             <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>Upcoming in your area</Text>
@@ -99,8 +99,8 @@ export default function MainScreen ({ navigation, route }) {
                     </View>
                 )}
                 contentContainerStyle={{ paddingBottom: 24 }}
-                onRefresh={handleRefresh}           
-                refreshing={refreshing}            
+                onRefresh={handleRefresh}
+                refreshing={refreshing}
             />
         </SafeAreaView>
     );
