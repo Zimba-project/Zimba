@@ -14,7 +14,7 @@ if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
 }
 
-const CreatePostScreen = ({ navigation, route }) => {
+export default function CreatePostScreen ({ navigation, route }) {
   const [type, setType] = useState('discussion');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -216,8 +216,6 @@ const CreatePostScreen = ({ navigation, route }) => {
     </SafeAreaView>
   );
 };
-
-export default CreatePostScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb', padding: 20 },

@@ -7,7 +7,7 @@ import StatsBar from '../components/Cards/StatsBar';
 import useCurrentUser from '../utils/GetUser';
 import { getPostComments, addPostComment } from '../api/postService';
 
-const DiscussScreen = () => {
+export default function DiscussScreen () {
     const route = useRoute();
     const insets = useSafeAreaInsets();
     const { postData } = route.params || {};
@@ -172,5 +172,3 @@ const styles = StyleSheet.create({
     commentAuthor: { fontWeight: '700', marginBottom: 2 },
     commentText: { fontSize: 15, color: '#111' },
 });
-
-export default DiscussScreen;

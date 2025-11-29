@@ -10,7 +10,7 @@ export default function RightButton() {
 
   useEffect(() => {
     const unsub = navigation.addListener('focus', () => {
-      refreshUser();
+      //refreshUser();
     });
     return unsub;
   }, [navigation, refreshUser]);

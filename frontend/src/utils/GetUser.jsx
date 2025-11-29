@@ -4,7 +4,6 @@ import { me as getMe } from "../api/auth";
 import { sessionStorage } from "../utils/Storage";
 
 export default function useCurrentUser(route) {
-
   const initToken = sessionStorage.getItem("authToken");
   const decode = (t) => {
     try {
@@ -13,44 +12,47 @@ export default function useCurrentUser(route) {
       return null;
     }
   };
-  const initialUser = initToken ? decode(initToken) || {} : {};
+
+  const initialUser = initToken ? decode(initToken) : null;
 
   const [user, setUser] = useState(initialUser);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(initToken);
 
-  const loadUser = useCallback(async () => {
-    setLoading(true);
-    const t = sessionStorage.getItem("authToken");
-    setToken(t);
+const loadUser = useCallback(async () => {
+  setLoading(true);
 
-    if (!t) {
-      setUser({});
-      setLoading(false);
-      return;
-    }
+  const t = await sessionStorage.getItem('authToken'); // <- await here
+  setToken(t);
 
-    const decoded = decode(t);
-    if (!decoded || (decoded.exp && decoded.exp * 1000 < Date.now())) {
-      sessionStorage.removeItem("authToken");
-      setUser({});
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const res = await getMe(t);
-      const backendUser = res?.body?.user || res?.user || {};
-      setUser({ ...decoded, ...backendUser });
-    } catch {
-      setUser(decoded || {});
-    }
-
+  if (!t) {
+    setUser(null);
     setLoading(false);
-  }, []);
+    return;
+  }
+
+  const decoded = decode(t);
+  if (!decoded || (decoded.exp && decoded.exp * 1000 < Date.now())) {
+    await sessionStorage.removeItem('authToken');
+    setUser(null);
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const res = await getMe(t);
+    const backendUser = res?.body?.user || res?.user || {};
+    setUser({ ...decoded, ...backendUser });
+  } catch {
+    setUser(decoded || null);
+  }
+
+  setLoading(false);
+}, []);
 
   useEffect(() => {
     loadUser();
+    console.log('Current user token:', sessionStorage.getItem('authToken'));
   }, [route?.params?.user]);
 
   const refreshUser = () => loadUser();

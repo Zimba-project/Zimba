@@ -9,7 +9,7 @@ import { FilterBar } from '../components/MainPage/FilterBar';
 
 const FILTER_MAP = {Discussions: 'discussion', Polls: 'poll',};
 
-const MainScreen = ({ navigation, route }) => {
+export default function MainScreen ({ navigation, route }) {
     const [allPosts, setAllPosts] = useState([]);
     const [feed, setFeed] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -138,5 +138,3 @@ const styles = StyleSheet.create({
     retryButton: { backgroundColor: '#6366f1', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 },
     retryText: { color: '#fff', fontWeight: '600' },
 });
-
-export default MainScreen;

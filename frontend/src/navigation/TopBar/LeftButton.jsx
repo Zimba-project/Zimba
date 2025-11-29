@@ -2,6 +2,7 @@ import { TouchableOpacity } from 'react-native';
 import { Feather as Icon } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
 import { navigationRef } from '../../App';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function LeftButton({ navigation, showBack }) {
     const onPress = () => {
@@ -16,7 +17,7 @@ export default function LeftButton({ navigation, showBack }) {
 
     return (
         <TouchableOpacity onPress={onPress} style={{ padding: 4 }}>
-            <Icon name={showBack ? 'arrow-left' : 'menu'} size={24} color="#111827" />
+            <Ionicons name={showBack ? 'chevron-back' : 'menu'}size={24} color="#111827" />
         </TouchableOpacity>
     );
 }

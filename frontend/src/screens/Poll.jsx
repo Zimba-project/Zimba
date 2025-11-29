@@ -7,7 +7,7 @@ import StatsBar from '../components/Cards/StatsBar';
 import { getPollOptions, votePoll } from '../api/postService';
 import useCurrentUser from '../utils/GetUser';
 
-const PollScreen = () => {
+export default function PollScreen(){
   const route = useRoute();
   const insets = useSafeAreaInsets();
   const { postData } = route.params || {};
@@ -135,8 +135,6 @@ const PollScreen = () => {
     </SafeAreaView>
   );
 };
-
-export default PollScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },

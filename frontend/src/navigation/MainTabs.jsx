@@ -5,11 +5,12 @@ import { Ionicons } from '@expo/vector-icons';
 
 import MainScreen from '../screens/MainScreen';
 import CreatePostScreen from '../screens/CreatePost';
-import Profile from '../screens/Profile';
+import Inbox from '../screens/Inbox';
 
 const Tab = createBottomTabNavigator();
 
 export default function AppNavigator() {
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -64,15 +65,15 @@ export default function AppNavigator() {
         }}
       />
 
-      {/* Profile */}
+      {/* Inbox */}
       <Tab.Screen
-        name="Profile"
-        component={Profile}
+        name="Inbox"
+        component={Inbox}
         options={{
           tabBarIcon: ({ focused, color, size }) => (
-            <View style={styles.iconContainer}>
+              <View style={styles.iconContainer}>
               <Ionicons
-                name={focused ? 'person' : 'person-outline'}
+                name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
                 size={26}
                 color={color}
               />
@@ -80,7 +81,6 @@ export default function AppNavigator() {
           ),
         }}
       />
-
     </Tab.Navigator>
   );
 }
