@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, ScrollView, Alert, TouchableOpacity, Platform, Modal } from 'react-native';
 import { Feather as Icon } from '@expo/vector-icons';
@@ -83,66 +84,79 @@ const Register = ({ navigation }) => {
         }
     };
 
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+    const backgroundColor = isDark ? '#111827' : '#f3f4f6';
+    const cardColor = isDark ? '#1e293b' : '#fff';
+    const textColor = isDark ? '#fff' : '#111827';
+    const labelColor = isDark ? '#d1d5db' : '#6b7280';
+    const inputBg = isDark ? '#1e293b' : '#fff';
+    const inputText = isDark ? '#fff' : '#000';
+    const borderColor = isDark ? '#374151' : '#e5e7eb';
+    const accentColor = isDark ? '#2563eb' : '#2563eb';
+    const placeholderColor = isDark ? '#9ca3af' : '#666';
+
     return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView contentContainerStyle={styles.card} keyboardShouldPersistTaps="handled">
-                <Text style={styles.title}>Create account</Text>
+        <SafeAreaView style={[styles.container, { backgroundColor }]}> 
+            <ScrollView contentContainerStyle={[styles.card, { backgroundColor: cardColor, borderColor, shadowColor: isDark ? '#000' : '#000', shadowOpacity: isDark ? 0.2 : 0.04 }]}
+                keyboardShouldPersistTaps="handled">
+                <Text style={[styles.title, { color: textColor }]}>Create account</Text>
 
-                {error ? <Text style={styles.error}>{error}</Text> : null}
+                {error ? <Text style={[styles.error, { color: '#ef4444' }]}>{error}</Text> : null}
 
-                <Text style={styles.subtitle}>Personal info</Text>
+                <Text style={[styles.subtitle, { color: labelColor }]}>Personal info</Text>
                 <View style={styles.rowNames}>
                     <View style={{ flex: 1, marginRight: 8 }}>
-                        <Text style={styles.label}>First name</Text>
-                        <TextInput placeholder="First name" placeholderTextColor="#666" value={firstName} onChangeText={setFirstName} style={[styles.input, styles.inputSmall]} />
+                        <Text style={[styles.label, { color: labelColor }]}>First name</Text>
+                        <TextInput placeholder="First name" placeholderTextColor={placeholderColor} value={firstName} onChangeText={setFirstName} style={[styles.input, styles.inputSmall, { backgroundColor: inputBg, color: inputText, borderColor }]} />
                     </View>
                     <View style={{ flex: 1 }}>
-                        <Text style={styles.label}>Last name</Text>
-                        <TextInput placeholder="Last name" placeholderTextColor="#666" value={lastName} onChangeText={setLastName} style={[styles.input, styles.inputSmall]} />
+                        <Text style={[styles.label, { color: labelColor }]}>Last name</Text>
+                        <TextInput placeholder="Last name" placeholderTextColor={placeholderColor} value={lastName} onChangeText={setLastName} style={[styles.input, styles.inputSmall, { backgroundColor: inputBg, color: inputText, borderColor }]} />
                     </View>
                 </View>
-                <Text style={styles.label}>Email (required)</Text>
-                <TextInput placeholder="Email address" placeholderTextColor="#666" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={styles.input} />
+                <Text style={[styles.label, { color: labelColor }]}>Email (required)</Text>
+                <TextInput placeholder="Email address" placeholderTextColor={placeholderColor} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={[styles.input, { backgroundColor: inputBg, color: inputText, borderColor }]} />
 
-                <Text style={styles.label}>Phone</Text>
-                <View style={styles.phoneContainer}>
+                <Text style={[styles.label, { color: labelColor }]}>Phone</Text>
+                <View style={[styles.phoneContainer, { backgroundColor: inputBg, borderColor }]}> 
                     <TouchableOpacity style={styles.countryButton} onPress={() => setShowCountryPicker(true)}>
-                        <Text style={styles.countryText}>{country.flag} {country.dial_code}</Text>
+                        <Text style={[styles.countryText, { color: textColor }]}>{country.flag} {country.dial_code}</Text>
                     </TouchableOpacity>
                     <TextInput
                         placeholder="Phone number"
-                        placeholderTextColor="#666"
+                        placeholderTextColor={placeholderColor}
                         value={phone}
                         onChangeText={setPhone}
                         keyboardType="phone-pad"
-                        style={styles.phoneInput}
+                        style={[styles.phoneInput, { color: inputText }]}
                     />
                 </View>
                 {showCountryPicker && (
                     <Modal visible={showCountryPicker} transparent animationType="slide" onRequestClose={() => setShowCountryPicker(false)}>
                         <View style={styles.modalOverlay}>
-                            <View style={styles.countryModal}>
-                                <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8 }}>Select country</Text>
+                            <View style={[styles.countryModal, { backgroundColor: cardColor }]}> 
+                                <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: textColor }}>Select country</Text>
                                 <ScrollView style={{ maxHeight: 300 }}>
                                     {COUNTRIES.map((c) => (
                                         <TouchableOpacity key={c.code} style={styles.countryRow} onPress={() => { setCountry(c); setShowCountryPicker(false); }}>
-                                            <Text style={{ fontSize: 18 }}>{c.flag}  {c.name}</Text>
-                                            <Text style={{ color: '#374151' }}>{c.dial_code}</Text>
+                                            <Text style={{ fontSize: 18, color: textColor }}>{c.flag}  {c.name}</Text>
+                                            <Text style={{ color: labelColor }}>{c.dial_code}</Text>
                                         </TouchableOpacity>
                                     ))}
                                 </ScrollView>
-                                <Button title="Close" onPress={() => setShowCountryPicker(false)} />
+                                <Button title="Close" onPress={() => setShowCountryPicker(false)} color={accentColor} />
                             </View>
                         </View>
                     </Modal>
                 )}
                 {/* Birthdate picker (open native picker when tapped) */}
-                <Text style={styles.label}>Birthdate</Text>
-                <TouchableOpacity onPress={() => setShowDatePicker(true)} activeOpacity={0.8} style={[styles.input, styles.dateRow]}>
-                    <Text style={birthdate ? styles.dateText : styles.placeholderText}>
+                <Text style={[styles.label, { color: labelColor }]}>Birthdate</Text>
+                <TouchableOpacity onPress={() => setShowDatePicker(true)} activeOpacity={0.8} style={[styles.input, styles.dateRow, { backgroundColor: inputBg, color: inputText, borderColor }]}> 
+                    <Text style={birthdate ? [styles.dateText, { color: textColor }] : [styles.placeholderText, { color: placeholderColor }]}> 
                         {birthdate ? displayDate(birthdate) : 'Birthdate (YYYY-MM-DD)'}
                     </Text>
-                    <Icon name="calendar" size={18} color="#6b7280" />
+                    <Icon name="calendar" size={18} color={labelColor} />
                 </TouchableOpacity>
 
                 {/* Native picker: Android shows modal, iOS can render inline spinner inside a styled box */}
@@ -154,20 +168,20 @@ const Register = ({ navigation }) => {
                         onRequestClose={() => setShowDatePicker(false)}
                     >
                         <View style={styles.modalOverlay}>
-                            <View style={styles.modalContent}>
+                            <View style={[styles.modalContent, { backgroundColor: cardColor }]}> 
                                 <DateTimePicker
                                     value={birthdate || new Date(2000, 0, 1)}
                                     mode="date"
                                     display="spinner"
                                     maximumDate={new Date()}
-                                    textColor="#111827"
+                                    textColor={textColor}
                                     onChange={(event, selectedDate) => {
                                         if (selectedDate) setBirthdate(selectedDate);
                                     }}
                                 />
                                 <View style={styles.pickerActions}>
-                                    <Button title="Done" onPress={() => setShowDatePicker(false)} />
-                                    <Button title="Clear" onPress={() => { setBirthdate(null); setShowDatePicker(false); }} />
+                                    <Button title="Done" onPress={() => setShowDatePicker(false)} color={accentColor} />
+                                    <Button title="Clear" onPress={() => { setBirthdate(null); setShowDatePicker(false); }} color={accentColor} />
                                 </View>
                             </View>
                         </View>
@@ -187,27 +201,27 @@ const Register = ({ navigation }) => {
                         }}
                     />
                 )}
-                <Text style={styles.label}>About (optional)</Text>
-                <TextInput placeholder="About (optional)" placeholderTextColor="#666" value={about} onChangeText={setAbout} style={[styles.input, { height: 80 }]} multiline />
+                <Text style={[styles.label, { color: labelColor }]}>About (optional)</Text>
+                <TextInput placeholder="About (optional)" placeholderTextColor={placeholderColor} value={about} onChangeText={setAbout} style={[styles.input, { height: 80, backgroundColor: inputBg, color: inputText, borderColor }]} multiline />
 
-                <Text style={styles.label}>Password</Text>
-                <TextInput placeholder="Password" placeholderTextColor="#666" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
+                <Text style={[styles.label, { color: labelColor }]}>Password</Text>
+                <TextInput placeholder="Password" placeholderTextColor={placeholderColor} value={password} onChangeText={setPassword} secureTextEntry style={[styles.input, { backgroundColor: inputBg, color: inputText, borderColor }]} />
 
-                <Text style={styles.label}>Confirm password</Text>
-                <TextInput placeholder="Confirm password" placeholderTextColor="#666" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry style={styles.input} />
+                <Text style={[styles.label, { color: labelColor }]}>Confirm password</Text>
+                <TextInput placeholder="Confirm password" placeholderTextColor={placeholderColor} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry style={[styles.input, { backgroundColor: inputBg, color: inputText, borderColor }]} />
 
                 {loading ? (
-                    <ActivityIndicator />
+                    <ActivityIndicator color={accentColor} />
                 ) : (
-                    <TouchableOpacity style={styles.registerButton} onPress={handleRegister} activeOpacity={0.85}>
-                        <Text style={styles.registerText}>Create account</Text>
+                    <TouchableOpacity style={[styles.registerButton, { backgroundColor: accentColor }]} onPress={handleRegister} activeOpacity={0.85}>
+                        <Text style={[styles.registerText, { color: '#fff' }]}>Create account</Text>
                     </TouchableOpacity>
                 )}
 
                 <View style={styles.loginRow}>
-                    <Text style={{ color: '#6b7280' }}>Already have an account?</Text>
+                    <Text style={{ color: labelColor }}>Already have an account?</Text>
                     <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                        <Text style={styles.link}> Sign in</Text>
+                        <Text style={[styles.link, { color: accentColor }]}> Sign in</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>

@@ -9,6 +9,7 @@ import { searchPosts } from '../api/postService';
 import DiscussionCard from '../components/Cards/DiscussionCard';
 import PollCard from '../components/Cards/PollCard';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 
 const suggestionList = [
   'asuminen ja rakentaminen',
@@ -31,6 +32,12 @@ export default function SearchScreen() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef(null);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+const backgroundColor = isDark ? '#111827' : '#ffffff';
+const textColor = isDark ? '#fff' : '#000';
+const accentColor = isDark ? '#fff' : '#000';
 
   const doSearch = async (q) => {
     if (!q) return;
@@ -64,13 +71,13 @@ export default function SearchScreen() {
 
   const renderSuggestions = () => (
     <ScrollView style={styles.suggestionContainer}>
-      <Text style={styles.sectionTitle}>You may like</Text>
+      <Text style={[styles.sectionTitle, { color: textColor }]}>You may like</Text>
       {suggestionList.map((item, index) => (
         <TouchableOpacity key={index} onPress={() => setQuery(item)}>
-          <Text style={styles.suggestionText}>
+          <Text style={[styles.suggestionText, { color: textColor }]}> 
             {item.includes(query) ? (
               <>
-                <Text style={styles.highlight}>{query}</Text>
+                <Text style={[styles.highlight, { color: accentColor }]}>{query}</Text>
                 {item.replace(query, '')}
               </>
             ) : item}
@@ -81,19 +88,20 @@ export default function SearchScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.searchRow}>
-        <Ionicons name="search" size={18} color="#6b7280" style={{ marginLeft: 8 }} />
+    <SafeAreaView style={[styles.container, { backgroundColor }]}> 
+      <View style={[styles.searchRow, { backgroundColor: isDark ? '#1e293b' : '#fff' }]}> 
+        <Ionicons name="search" size={18} color={isDark ? '#fff' : '#000'} style={{ marginLeft: 8 }} />
         <TextInput
           placeholder="Search posts, topics, authors..."
           value={query}
           onChangeText={setQuery}
-          style={styles.input}
+          style={[styles.input, { color: textColor }]}
+          placeholderTextColor={isDark ? '#fff' : '#000'}
           returnKeyType="search"
         />
         {query.length > 0 && (
           <TouchableOpacity onPress={() => setQuery('')} style={styles.clearBtn}>
-            <Ionicons name="close" size={16} color="#999" />
+            <Ionicons name="close" size={16} color={isDark ? '#fff' : '#000'} />
           </TouchableOpacity>
         )}
       </View>
@@ -102,11 +110,11 @@ export default function SearchScreen() {
         renderSuggestions()
       ) : loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#6366f1" />
+          <ActivityIndicator size="large" color={accentColor} />
         </View>
       ) : results.length === 0 ? (
         <View style={styles.center}>
-          <Text style={styles.emptyText}>No results for “{query}”.</Text>
+          <Text style={[styles.emptyText, { color: accentColor }]}>No results for “{query}”.</Text>
         </View>
       ) : (
         <FlatList
@@ -121,12 +129,11 @@ export default function SearchScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
+  container: { flex: 1 },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
     margin: 12,
-    backgroundColor: '#fff',
     borderRadius: 10,
     paddingHorizontal: 6,
     height: 44,
@@ -135,9 +142,9 @@ const styles = StyleSheet.create({
   input: { flex: 1, paddingHorizontal: 8, fontSize: 15 },
   clearBtn: { paddingHorizontal: 8 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyText: { color: '#6b7280' },
+  emptyText: {},
   suggestionContainer: { paddingHorizontal: 16 },
-  sectionTitle: { color: '#000000ff', marginVertical: 12, fontWeight: 'bold' },
-  suggestionText: { color: '#111827', paddingVertical: 8 },
-  highlight: { color: '#000000ff', fontWeight: 'bold' },
+  sectionTitle: { marginVertical: 12, fontWeight: 'bold' },
+  suggestionText: { paddingVertical: 8 },
+  highlight: { fontWeight: 'bold' },
 });

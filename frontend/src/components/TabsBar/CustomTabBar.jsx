@@ -6,38 +6,37 @@ import { Text } from '@/components/ui/text';
 import { Icon } from '@/components/ui/icon';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
-import { useNavigation, useTheme } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { HomeIcon, PlusSquare, User, } from 'lucide-react-native'; 
 
 const CustomTabBar = ({ state, descriptors, navigation }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const backgroundColor = isDark ? '#111827' : '#ffffff';
+  const activeColor = isDark ? '#fff' : '#000';
+  const inactiveColor = isDark ? '#a1a1aa' : '#6b7280';
+
   return (
-   
-    <HStack 
-      className={`
-        absolute bottom-0 justify-around items-center w-full px-12 bg-white shadow-xl
-        ${Platform.OS === 'ios' ? 'h-24 pb-6' : 'h-16'}
-      `}
-      style={{ elevation: 15 }} 
+    <HStack
+      className={`absolute bottom-0 justify-around items-center w-full px-12 shadow-xl ${Platform.OS === 'ios' ? 'h-24 pb-6' : 'h-16'}`}
+      style={{ elevation: 15, backgroundColor }}
     >
       {state.routes.map((route, index) => {
-        
-        
         const descriptor = descriptors[route.key];
         if (!descriptor) return null;
-          
+
         const isFocused = state.index === index;
-        
-        
+
         let IconComponent;
         if (route.name === 'Main') {
-            IconComponent = isFocused ? HomeIcon : HomeIcon; 
+          IconComponent = HomeIcon;
         } else if (route.name === 'NewPost') {
-            IconComponent = PlusSquare; 
+          IconComponent = PlusSquare;
         } else if (route.name === 'Profile') {
-            IconComponent = User; 
+          IconComponent = User;
         } else {
-           
-            return null; 
+          return null;
         }
 
         const onPress = () => {
@@ -46,30 +45,24 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
             target: route.key,
             canPreventDefault: true,
           });
-
           if (!isFocused && !event.defaultPrevented) {
             navigation.navigate(route.name);
           }
         };
-
-        
-        const activeColor = 'text-black';
-        const inactiveColor = 'text-gray-500';
 
         return (
           <Pressable
             key={route.key}
             onPress={onPress}
             style={{ flex: 1, alignItems: 'center' }}
-            className="pt-1" 
+            className="pt-1"
           >
             <VStack className="items-center justify-center">
               <Icon
                 as={IconComponent}
-                size="2xl" 
-                className={isFocused ? activeColor : inactiveColor}
+                size="2xl"
+                color={isFocused ? activeColor : inactiveColor}
               />
-              
             </VStack>
           </Pressable>
         );

@@ -13,22 +13,35 @@ import {
   ScrollView,
   Pressable
 } from 'react-native';
+import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 
 const Profile = ({ navigation, route }) => {
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', bio: '' });
   const [loading, setLoading] = useState(true);
-
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const backgroundColor = isDark ? '#111827' : '#f9fafb';
+  const cardColor = isDark ? '#1e293b' : '#fff';
+  const borderColor = isDark ? '#374151' : '#e5e7eb';
+  const textColor = isDark ? '#fff' : '#111827';
+  const subTextColor = isDark ? '#d1d5db' : '#374151';
+  const inputBg = isDark ? '#1e293b' : '#f9fafb';
+  const inputText = isDark ? '#fff' : '#111827';
+  const featureBoxColor = isDark ? '#1e293b' : '#fff';
+  const featureTextColor = isDark ? '#d1d5db' : '#6b7280';
+  const topBarBg = isDark ? '#1e293b' : '#fff';
+  const topBarText = isDark ? '#fff' : '#111827';
+  const backTextColor = isDark ? '#a5b4fc' : '#6366f1';
 
   useEffect(() => {
     const loadUser = async () => {
       try {
-
-        // TODO: replace this with an API call
+        // ...existing code...
         const res = await info(sessionStorage.getItem('authToken'));
         console.log(res.body.user);
-        const passedUser = res?.body?.user;// //res.body.user;
+        const passedUser = res?.body?.user;
         const data =
           passedUser || {
             first_name: 'Jane Doe',
@@ -104,22 +117,22 @@ const Profile = ({ navigation, route }) => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.center}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <SafeAreaView style={[styles.center, { backgroundColor }]}> 
+        <ActivityIndicator size="large" color={backTextColor} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor }]}> 
       {/* Simple top bar */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, { backgroundColor: topBarBg, borderBottomColor: borderColor }]}> 
         <Pressable onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>← Back</Text>
+          <Text style={[styles.backText, { color: backTextColor }]}>← Back</Text>
         </Pressable>
-        <Text style={styles.topTitle}>Profile</Text>
+        <Text style={[styles.topTitle, { color: topBarText }]}>Profile</Text>
         <View style={{ width: 40 }}> 
-          <Text style={styles.topTitle}>placeholder to balance layout </Text>
+          <Text style={[styles.topTitle, { color: topBarText }]}> </Text>
         </View>
       </View>
 
@@ -127,28 +140,31 @@ const Profile = ({ navigation, route }) => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.profileCard}>
+        <View style={[styles.profileCard, { backgroundColor: cardColor, borderColor }]}> 
           {isEditing ? (
             <>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: inputBg, color: inputText, borderColor }]}
                 value={form.name}
                 onChangeText={(text) => setForm({ ...form, name: text })}
                 placeholder="Name"
+                placeholderTextColor={subTextColor}
               />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: inputBg, color: inputText, borderColor }]}
                 value={form.email}
                 onChangeText={(text) => setForm({ ...form, email: text })}
                 placeholder="Email"
                 keyboardType="email-address"
+                placeholderTextColor={subTextColor}
               />
               <TextInput
-                style={[styles.input, { height: 80 }]}
+                style={[styles.input, { height: 80, backgroundColor: inputBg, color: inputText, borderColor }]}
                 value={form.bio}
                 onChangeText={(text) => setForm({ ...form, bio: text })}
                 placeholder="Bio"
                 multiline
+                placeholderTextColor={subTextColor}
               />
               <View style={styles.buttonRow}>
                 <Button title="Cancel" onPress={() => setIsEditing(false)} />
@@ -157,9 +173,9 @@ const Profile = ({ navigation, route }) => {
             </>
           ) : (
             <>
-              <Text style={styles.title}>{user.first_name} {user.last_name}</Text>
-              <Text style={styles.text}>{user.phone}</Text>
-              <Text style={styles.text}>{user.about}</Text>
+              <Text style={[styles.title, { color: textColor }]}>{user.first_name} {user.last_name}</Text>
+              <Text style={[styles.text, { color: subTextColor }]}>{user.phone}</Text>
+              <Text style={[styles.text, { color: subTextColor }]}>{user.about}</Text>
 
               <View style={styles.buttonRow}>
                 <Button title="Edit Profile" onPress={() => setIsEditing(true)} />
@@ -169,16 +185,16 @@ const Profile = ({ navigation, route }) => {
         </View>
 
         {/* empty boxes for future features for example polls the user has voted on */}
-        <View style={styles.featureBox}>
-          <Text style={styles.featureText}>Empty Box 1</Text>
+        <View style={[styles.featureBox, { backgroundColor: featureBoxColor, borderColor }]}> 
+          <Text style={[styles.featureText, { color: featureTextColor }]}>Empty Box 1</Text>
         </View>
-        <View style={styles.featureBox}>
-          <Text style={styles.featureText}>Empty Box 2</Text>
+        <View style={[styles.featureBox, { backgroundColor: featureBoxColor, borderColor }]}> 
+          <Text style={[styles.featureText, { color: featureTextColor }]}>Empty Box 2</Text>
         </View>
 
         {/* Added: Logout button */}
         <View style={{ marginTop: 20 }}>
-          <Button title="Log Out" color="#6366f1" onPress={handleLogout} />
+          <Button title="Log Out" color={backTextColor} onPress={handleLogout} />
         </View>
 
         <View style={{ marginTop: 10 }}>

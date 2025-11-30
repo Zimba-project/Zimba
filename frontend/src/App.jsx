@@ -1,3 +1,4 @@
+import React from 'react'; // Tämän tuonnin lisääminen on usein hyvä tapa uusissa React-komponenteissa
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
@@ -13,18 +14,20 @@ import Poll from './screens/Poll';
 import Search from './screens/Search';
 import { HeaderForStack } from './navigation/TopBar';
 
+import { config } from '@/components/ui/gluestack-ui-provider/config'; 
+import { ThemeProvider, useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 import '@/global.css';
-import { useColorMode } from '@gluestack-style/react';
 
-// navigation ref so headers/components can dispatch drawer actions
+
 export const navigationRef = createNavigationContainerRef();
-
 const Stack = createNativeStackNavigator();
 
-export default function App() {
+const RootApp = () => {
+  const { theme } = useTheme();
+
   return (
-    <GluestackUIProvider>
+    <GluestackUIProvider config={config} colorMode={theme}> 
       <SafeAreaProvider>
         <NavigationContainer ref={navigationRef}>
           <Stack.Navigator
@@ -43,5 +46,13 @@ export default function App() {
       </SafeAreaProvider>
     </GluestackUIProvider>
   );
-}
+};
 
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <RootApp />
+    </ThemeProvider>
+  );
+}
