@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, Text, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import InfoBoard from '../components/MainPage/InfoBoard';
 import PollCard from '../components/Cards/PollCard';
 import DiscussionCard from '../components/Cards/DiscussionCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAllPosts } from '../api/postService';
 import { FilterBar } from '../components/MainPage/FilterBar';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
 
 const FILTER_MAP = { Discussions: 'discussion', Polls: 'poll', };
 
@@ -47,26 +49,26 @@ export default function MainScreen({ navigation, route }) {
 
     if (loading) {
         return (
-            <SafeAreaView style={styles.centered}>
-                <ActivityIndicator size="large" color="#6366f1" />
-                <Text style={styles.loadingText}>Loading posts...</Text>
+            <SafeAreaView style={styles.centered} className="bg-background-0">
+                <ActivityIndicator size="large" className="text-primary-500" />
+                <Text size="md" className="text-typography-700 mt-2">Loading posts...</Text>
             </SafeAreaView>
         );
     }
 
     if (error) {
         return (
-            <SafeAreaView style={styles.centered}>
-                <Text style={styles.errorText}>{error}</Text>
+            <SafeAreaView style={styles.centered} className="bg-background-0">
+                <Text size="md" className="text-error-600 text-center mb-3 px-4">{error}</Text>
                 <TouchableOpacity style={styles.retryButton} onPress={() => fetchPosts()}>
-                    <Text style={styles.retryText}>Retry</Text>
+                    <Text className="text-typography-0 font-semibold">Retry</Text>
                 </TouchableOpacity>
             </SafeAreaView>
         );
     }
 
     return (
-        <SafeAreaView style={styles.container} edges={["bottom"]}>
+        <SafeAreaView style={styles.container} className="bg-background-0" edges={["bottom"]}>
             <FlatList
                 data={feed}
                 keyExtractor={(item, index) => `${item.type}-${item.id}-${index}`}
@@ -82,21 +84,20 @@ export default function MainScreen({ navigation, route }) {
 
                 showsVerticalScrollIndicator={false}
                 ListHeaderComponent={() => (
-
-                    <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                            <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>Upcoming in your area</Text>
+                    <Box style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+                        <Box style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <Text size="xl" className="text-typography-900 font-bold">Upcoming in your area</Text>
                             <TouchableOpacity onPress={() => alert('Show all upcoming changes')}>
-                                <Text style={{ color: '#6366f1', fontWeight: '600' }}>See all</Text>
+                                <Text size="md" className="text-primary-500 font-semibold">See all</Text>
                             </TouchableOpacity>
-                        </View>
+                        </Box>
 
                         <InfoBoard
                             items={infoItems}
                             onCardPress={(it) => alert(`Info: ${it.title}`)}
                         />
                         <FilterBar selectedFilter={selectedFilter} setSelectedFilter={setSelectedFilter} />
-                    </View>
+                    </Box>
                 )}
                 contentContainerStyle={{ paddingBottom: 24 }}
                 onRefresh={handleRefresh}
@@ -131,10 +132,7 @@ const infoItems = [
 ];
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f9fafb' },
-    centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb' },
-    loadingText: { marginTop: 8, fontSize: 16, color: '#555' },
-    errorText: { color: '#b91c1c', fontSize: 16, textAlign: 'center', marginBottom: 12, paddingHorizontal: 16 },
+    container: { flex: 1 },
+    centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     retryButton: { backgroundColor: '#6366f1', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 },
-    retryText: { color: '#fff', fontWeight: '600' },
 });

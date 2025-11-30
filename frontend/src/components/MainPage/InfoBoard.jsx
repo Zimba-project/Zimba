@@ -1,23 +1,32 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Dimensions, Platform } from 'react-native';
+import { FlatList, Image, TouchableOpacity, StyleSheet, Dimensions, Platform } from 'react-native';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
 
 const { width } = Dimensions.get('window');
 const SIDE_PADDING = 24;
 const CARD_WIDTH = Math.min(340, Math.round(width * 0.78));
 
-const InfoCard = ({ item, onPress }) => (
+const getCardBgColor = (index) => {
+    const colors = ['bg-primary-50 dark:bg-primary-200', 'bg-background-50 dark:bg-secondary-200'];
+    return colors[index % colors.length];
+};
+
+const InfoCard = ({ item, onPress, index }) => (
     <TouchableOpacity
-        style={[styles.card, { backgroundColor: item.background || '#fff' }]}
+        style={styles.card}
         onPress={() => onPress && onPress(item)}
         activeOpacity={0.9}
     >
-        {item.image ? (
-            <Image source={{ uri: item.image }} style={styles.image} resizeMode="cover" />
-        ) : null}
-        <View style={styles.cardBody}>
-            <Text style={styles.cardTitle} numberOfLines={2} ellipsizeMode="tail">{item.title}</Text>
-            {item.subtitle ? <Text style={styles.cardSubtitle} numberOfLines={3} ellipsizeMode="tail">{item.subtitle}</Text> : null}
-        </View>
+        <Box className={`${getCardBgColor(index)} rounded-xl overflow-hidden`} style={styles.cardContainer}>
+            {item.image ? (
+                <Image source={{ uri: item.image }} style={styles.image} resizeMode="cover" />
+            ) : null}
+            <Box style={styles.cardBody}>
+                <Text size="md" className="text-typography-900 font-bold mb-1.5" numberOfLines={2} ellipsizeMode="tail">{item.title}</Text>
+                <Text size="sm" className="text-typography-700" numberOfLines={3} ellipsizeMode="tail">{item.subtitle || ''}</Text>
+            </Box>
+        </Box>
     </TouchableOpacity>
 );
 
@@ -32,7 +41,7 @@ const InfoBoard = ({ items = [], style, onCardPress }) => {
     };
 
     return (
-        <View style={[styles.container, style]}>
+        <Box style={[styles.container, style]}>
             <FlatList
                 ref={listRef}
                 data={items}
@@ -44,16 +53,16 @@ const InfoBoard = ({ items = [], style, onCardPress }) => {
                 decelerationRate="fast"
                 contentContainerStyle={styles.listContent}
                 onMomentumScrollEnd={onMomentumScrollEnd}
-                renderItem={({ item }) => <InfoCard item={item} onPress={onCardPress} />}
-                ItemSeparatorComponent={() => <View style={{ width: 16 }} />}
+                renderItem={({ item, index }) => <InfoCard item={item} onPress={onCardPress} index={index} />}
+                ItemSeparatorComponent={() => <Box style={{ width: 16 }} />}
             />
 
-            <View style={styles.dots}>
+            <Box style={styles.dots}>
                 {items.map((_, i) => (
-                    <View key={i} style={[styles.dot, i === index ? styles.dotActive : null]} />
+                    <Box key={i} className={i === index ? 'bg-primary-500' : 'bg-outline-200'} style={[styles.dot, i === index ? styles.dotActive : null]} />
                 ))}
-            </View>
-        </View>
+            </Box>
+        </Box>
     );
 };
 
@@ -62,21 +71,18 @@ const styles = StyleSheet.create({
     listContent: { paddingHorizontal: SIDE_PADDING },
     card: {
         width: CARD_WIDTH,
-        borderRadius: 12,
-        overflow: 'hidden',
-        backgroundColor: '#fff',
+        height: 240,
         ...Platform.select({
-            ios: { shadowColor: '#000', shadowOpacity: 0.08, shadowOffset: { width: 0, height: 6 }, shadowRadius: 12 },
+            ios: { shadowOpacity: 0.08, shadowOffset: { width: 0, height: 6 }, shadowRadius: 12 },
             android: { elevation: 3 },
         }),
     },
+    cardContainer: { height: 240 },
     image: { width: '100%', height: 140 },
-    cardBody: { padding: 12 },
-    cardTitle: { fontSize: 16, fontWeight: '700', color: '#111', marginBottom: 6 },
-    cardSubtitle: { fontSize: 13, color: '#374151' },
+    cardBody: { padding: 12, height: 100 },
     dots: { flexDirection: 'row', justifyContent: 'center', marginTop: 10 },
-    dot: { width: 8, height: 8, borderRadius: 8, backgroundColor: '#e5e7eb', marginHorizontal: 6 },
-    dotActive: { backgroundColor: '#6366f1', width: 18, borderRadius: 6 },
+    dot: { width: 8, height: 8, borderRadius: 8, marginHorizontal: 6 },
+    dotActive: { width: 18, borderRadius: 6 },
 });
 
 export default InfoBoard;
