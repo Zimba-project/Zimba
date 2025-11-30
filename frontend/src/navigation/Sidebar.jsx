@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
 import { List, Languages, Moon, ChevronUp, ChevronDown } from 'lucide-react-native';
 import MainTabs from './MainTabs';
@@ -15,8 +15,8 @@ import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 
 
 // Placeholder-screenit (Pitää korvata oikeilla sitte)
-function LanguageScreen() { return <View style={{ flex: 1 }} />; }
-function DarkmodeScreen() { return <View style={{ flex: 1 }} />; }
+function LanguageScreen() { return <Box className="flex-1" />; }
+function DarkmodeScreen() { return <Box className="flex-1" />; }
 
 // Custom drawer content — renders standard links plus a collapsible Topics section
 function CustomDrawerContent(props) {
@@ -73,7 +73,7 @@ function CustomDrawerContent(props) {
           </Box>
         </TouchableOpacity>
 
-        <View style={styles.separator} className="bg-background-200 dark:bg-background-800" />
+        <Box style={styles.separator} className="bg-background-200 dark:bg-background-800" />
 
         {/* Color mode switch */}
         <Box

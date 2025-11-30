@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react';
-import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { Search } from 'lucide-react-native';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Icon } from '@/components/ui/icon';
 import useCurrentUser from '../../utils/GetUser';
 
 export default function RightButton() {
@@ -41,29 +44,29 @@ export default function RightButton() {
   const initials = getInitials();
 
   // while loading show an empty placeholder to keep layout stable
-  if (loading) return <View style={styles.placeholder} />;
+  if (loading) return <Box style={styles.placeholder} />;
 
   return (
-    <View style={styles.container}>
+    <Box style={styles.container}>
       {/* Search button - keeps search ability */}
       <TouchableOpacity
         style={styles.searchBtn}
         onPress={() => navigation.navigate('Search')}
         accessibilityLabel="Search"
       >
-        <Ionicons name="search" size={20} color="#374151" />
+        <Icon as={Search} size="lg" className="text-typography-700" />
       </TouchableOpacity>
 
       {initials ? (
-        <TouchableOpacity style={styles.avatar} onPress={() => navigation.navigate('Profile')}>
-          <Text style={styles.initials}>{initials}</Text>
+        <TouchableOpacity style={styles.avatar} className="bg-primary-600" onPress={() => navigation.navigate('Profile')}>
+          <Text style={styles.initials} className="text-typography-0">{initials}</Text>
         </TouchableOpacity>
       ) : (
         <TouchableOpacity style={styles.loginBtn} onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.loginText}>Login</Text>
+          <Text style={styles.loginText} className="text-primary-600">Login</Text>
         </TouchableOpacity>
       )}
-    </View>
+    </Box>
   );
 }
 
@@ -72,14 +75,13 @@ const styles = StyleSheet.create({
   placeholder: { width: 96, height: 40, marginRight: 8 },
   searchBtn: { paddingHorizontal: 10, paddingVertical: 6, marginRight: 6 },
   loginBtn: { paddingHorizontal: 10, paddingVertical: 6, marginRight: 6 },
-  loginText: { color: '#6366f1', fontWeight: '600' },
+  loginText: { fontWeight: '600' },
   avatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#6366f1',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  initials: { color: '#fff', fontWeight: '700' },
+  initials: { fontWeight: '700' },
 });
