@@ -85,7 +85,7 @@ export default function RegisterScreen() {
           <Box className="flex-row w-full mb-4">
             <Box className="flex-1 mr-2 border border-outline-200 rounded-lg bg-background-50">
               <TextInput
-                className="px-3 py-3 text-typography-900"
+                className="px-4 py-4 text-typography-900"
                 placeholder="First name"
                 placeholderTextColor="#9ca3af"
                 value={firstName}
@@ -94,7 +94,7 @@ export default function RegisterScreen() {
             </Box>
             <Box className="flex-1 border border-outline-200 rounded-lg bg-background-50">
               <TextInput
-                className="px-3 py-3 text-typography-900"
+                className="px-4 py-4 text-typography-900"
                 placeholder="Last name"
                 placeholderTextColor="#9ca3af"
                 value={lastName}
@@ -105,7 +105,7 @@ export default function RegisterScreen() {
 
           <Box className="border border-outline-200 rounded-lg mb-4 bg-background-50">
             <TextInput
-              className="px-3 py-3 text-typography-900"
+              className="px-4 py-4 text-typography-900"
               placeholder="Email address"
               placeholderTextColor="#9ca3af"
               keyboardType="email-address"
@@ -124,7 +124,7 @@ export default function RegisterScreen() {
               <Text className="text-typography-900">{country.flag} {country.dial_code}</Text>
             </Pressable>
             <TextInput
-              className="flex-1 px-3 py-3 text-typography-900"
+              className="flex-1 px-4 py-4 text-typography-900"
               placeholder="Phone number"
               placeholderTextColor="#9ca3af"
               keyboardType="phone-pad"
@@ -159,7 +159,7 @@ export default function RegisterScreen() {
           {/* Birthdate */}
           <Pressable
             style={styles.dateRow}
-            className="border border-outline-200 rounded-lg mb-4 bg-background-50 px-3 py-3"
+            className="border border-outline-200 rounded-lg mb-4 bg-background-50 px-4 py-4"
             onPress={() => setShowDatePicker(true)}
           >
             <Text className={birthdate ? "text-typography-900" : "text-typography-500"}>
@@ -185,7 +185,7 @@ export default function RegisterScreen() {
           <Text className="text-base text-typography-900 font-semibold mb-3">Security</Text>
           <Box className="border border-outline-200 rounded-lg mb-4 bg-background-50">
             <TextInput
-              className="px-3 py-3 text-typography-900"
+              className="px-4 py-4 text-typography-900"
               placeholder="Password"
               placeholderTextColor="#9ca3af"
               secureTextEntry
@@ -195,7 +195,7 @@ export default function RegisterScreen() {
           </Box>
           <Box className="border border-outline-200 rounded-lg mb-4 bg-background-50">
             <TextInput
-              className="px-3 py-3 text-typography-900"
+              className="px-4 py-4 text-typography-900"
               placeholder="Confirm password"
               placeholderTextColor="#9ca3af"
               secureTextEntry

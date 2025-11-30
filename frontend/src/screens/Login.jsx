@@ -86,7 +86,7 @@ export default function LoginScreen() {
         <Text className="text-sm text-typography-700 mb-1.5">Mobile Number</Text>
         <Box className="border border-outline-200 rounded-lg mb-4 bg-background-50">
           <TextInput
-            className="px-3 py-3 text-typography-900"
+            className="px-4 py-4 text-typography-900"
             placeholder="Enter mobile number"
             placeholderTextColor="#9ca3af"
             keyboardType="phone-pad"
@@ -99,7 +99,7 @@ export default function LoginScreen() {
         <Text className="text-sm text-typography-700 mb-1.5">Password</Text>
         <Box className="border border-outline-200 rounded-lg mb-4 bg-background-50">
           <TextInput
-            className="px-3 py-3 text-typography-900"
+            className="px-4 py-4 text-typography-900"
             placeholder="Enter password"
             placeholderTextColor="#9ca3af"
             secureTextEntry

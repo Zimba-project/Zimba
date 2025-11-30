@@ -1,20 +1,26 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Alert, LayoutAnimation, Platform, UIManager, Image, ScrollView
+  TextInput, StyleSheet,
+  ActivityIndicator, Alert, LayoutAnimation, Platform, UIManager, Image
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
+import { ScrollView } from '@/components/ui/scroll-view';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { createPost } from '../api/postService';
 import { EndTimePicker } from '../utils/EndTimePicker';
 import useCurrentUser from '../utils/GetUser';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
 }
 
-export default function CreatePostScreen({ navigation, route }) {
+export default function CreatePostScreen() {
+  const navigation = useNavigation();
+  const route = useRoute();
   const [type, setType] = useState('discussion');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -149,94 +155,132 @@ export default function CreatePostScreen({ navigation, route }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Create a {type === 'poll' ? 'Poll' : 'Discussion'}</Text>
+    <Box className="flex-1 bg-background-0" style={styles.container}>
+      <Text className="text-2xl text-typography-900 font-bold text-center mb-3">
+        Create a {type === 'poll' ? 'Poll' : 'Discussion'}
+      </Text>
 
-      <TouchableOpacity style={styles.toggle} onPress={handleTypeToggle}>
+      <Pressable style={styles.toggle} onPress={handleTypeToggle}>
         <Ionicons name={type === 'poll' ? 'chatbox' : 'stats-chart'} size={20} color="#6366f1" />
-        <Text style={styles.toggleText}>
+        <Text className="text-sm text-primary-600 font-semibold ml-1.5">
           Switch to {type === 'poll' ? 'Discussion' : 'Poll'}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 100 }} keyboardShouldPersistTaps="handled">
-        <View style={styles.form}>
-          <Text style={styles.label}>Title</Text>
-          <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Enter a title" />
+        <Box style={styles.form}>
+          <Text className="text-base text-typography-900 font-semibold mb-1.5">Title</Text>
+          <Box className="border border-outline-200 rounded-lg mb-4 bg-background-50">
+            <TextInput
+              className="px-4 py-4 text-typography-900"
+              value={title}
+              onChangeText={setTitle}
+              placeholder="Enter a title"
+              placeholderTextColor="#9ca3af"
+            />
+          </Box>
 
-          <Text style={styles.label}>Topic</Text>
-          <TextInput style={styles.input} value={topic} onChangeText={setTopic} placeholder="Enter topic/category" />
+          <Text className="text-base text-typography-900 font-semibold mb-1.5">Topic</Text>
+          <Box className="border border-outline-200 rounded-lg mb-4 bg-background-50">
+            <TextInput
+              className="px-4 py-4 text-typography-900"
+              value={topic}
+              onChangeText={setTopic}
+              placeholder="Enter topic/category"
+              placeholderTextColor="#9ca3af"
+            />
+          </Box>
 
-          <Text style={styles.label}>Description</Text>
-          <TextInput style={[styles.input, styles.multiline]} value={description} onChangeText={setDescription} placeholder="Write your post content..." multiline />
+          <Text className="text-base text-typography-900 font-semibold mb-1.5">Description</Text>
+          <Box className="border border-outline-200 rounded-lg mb-4 bg-background-50">
+            <TextInput
+              className="px-4 py-4 text-typography-900"
+              style={{ height: 120, textAlignVertical: 'top' }}
+              value={description}
+              onChangeText={setDescription}
+              placeholder="Write your post content..."
+              placeholderTextColor="#9ca3af"
+              multiline
+            />
+          </Box>
 
-          <Text style={styles.label}>Image (optional)</Text>
+          <Text className="text-base text-typography-900 font-semibold mb-1.5">Image (optional)</Text>
           {image ? (
-            <View style={styles.imageWrapper}>
+            <Box style={styles.imageWrapper}>
               <Image source={{ uri: image }} style={styles.preview} />
-              <TouchableOpacity style={styles.removeOverlay} onPress={() => setImage('')}>
+              <Pressable style={styles.removeOverlay} onPress={() => setImage('')}>
                 <Ionicons name="close-circle" size={18} color="#dc2626" />
-              </TouchableOpacity>
-            </View>
+              </Pressable>
+            </Box>
           ) : (
-            <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
+            <Pressable style={styles.uploadButton} className="bg-primary-50" onPress={pickImage}>
               <Ionicons name="image" size={20} color="#6366f1" />
-              <Text style={styles.uploadText}>Upload from device</Text>
-            </TouchableOpacity>
+              <Text className="text-sm text-primary-600 font-medium ml-2">Upload from device</Text>
+            </Pressable>
           )}
 
           {type === 'poll' && (
             <>
               <EndTimePicker endTime={endTime} setEndTime={setEndTime} clearEndTime={() => setEndTime(null)} />
-              <View style={{ marginTop: 16, marginBottom: 16 }}>
-                <Text style={styles.label}>Options</Text>
+              <Box style={{ marginTop: 16, marginBottom: 16 }}>
+                <Text className="text-base text-typography-900 font-semibold mb-1.5">Options</Text>
                 {options.map((opt, index) => (
-                  <View key={opt.id} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                    <TextInput style={[styles.input, { flex: 1 }]} placeholder={`Option ${index + 1}`} value={opt.text} onChangeText={text => {
-                      const newOptions = [...options];
-                      newOptions[index].text = text;
-                      setOptions(newOptions);
-                    }} />
+                  <Box key={opt.id} className="flex-row items-center mb-2">
+                    <Box className="flex-1 border border-outline-200 rounded-lg bg-background-50">
+                      <TextInput
+                        className="px-4 py-4 text-typography-900"
+                        placeholder={`Option ${index + 1}`}
+                        placeholderTextColor="#9ca3af"
+                        value={opt.text}
+                        onChangeText={text => {
+                          const newOptions = [...options];
+                          newOptions[index].text = text;
+                          setOptions(newOptions);
+                        }}
+                      />
+                    </Box>
                     {options.length > 2 && (
-                      <TouchableOpacity onPress={() => removeOption(opt.id)} style={{ marginLeft: 8 }}>
+                      <Pressable onPress={() => removeOption(opt.id)} style={{ marginLeft: 8 }}>
                         <Ionicons name="trash" size={20} color="#dc2626" />
-                      </TouchableOpacity>
+                      </Pressable>
                     )}
-                  </View>
+                  </Box>
                 ))}
-                <TouchableOpacity onPress={addOption} style={styles.addOptionButton}>
+                <Pressable onPress={addOption} style={styles.addOptionButton}>
                   <Ionicons name="add-circle" size={20} color="#6366f1" />
-                  <Text style={{ marginLeft: 6, color: '#6366f1', fontWeight: '500' }}>Add Option</Text>
-                </TouchableOpacity>
-              </View>
+                  <Text className="text-primary-600 font-medium ml-1.5">Add Option</Text>
+                </Pressable>
+              </Box>
             </>
           )}
 
-          <TouchableOpacity style={[styles.button, (loading || userLoading) && { opacity: 0.6 }]} onPress={handleSubmit} disabled={loading || userLoading}>
-            {(loading || userLoading) ? <ActivityIndicator color="#fff" /> : <>
-              <Ionicons name="send" size={20} color="#fff" />
-              <Text style={styles.buttonText}>Post</Text>
-            </>}
-          </TouchableOpacity>
-        </View>
+          <Pressable
+            style={[styles.button, (loading || userLoading) && { opacity: 0.6 }]}
+            className="bg-primary-600"
+            onPress={handleSubmit}
+            disabled={loading || userLoading}
+          >
+            {(loading || userLoading) ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="send" size={20} color="#fff" />
+                <Text className="text-typography-0 font-semibold text-base ml-2">Post</Text>
+              </>
+            )}
+          </Pressable>
+        </Box>
       </ScrollView>
-    </SafeAreaView>
+    </Box>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb', padding: 20 },
-  header: { fontSize: 24, fontWeight: '700', color: '#1f2937', textAlign: 'center' },
-  toggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 20, gap: 6 },
-  toggleText: { fontSize: 14, color: '#6366f1', fontWeight: '600' },
+  container: { padding: 20, paddingTop: 12 },
+  toggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
   form: {},
-  label: { fontWeight: '600', fontSize: 16, marginBottom: 6, color: '#111' },
-  input: { backgroundColor: '#fff', borderRadius: 10, padding: 12, fontSize: 15, borderWidth: 1, borderColor: '#e5e7eb', marginBottom: 16 },
-  multiline: { height: 120, textAlignVertical: 'top' },
-  button: { backgroundColor: '#6366f1', paddingVertical: 14, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
-  uploadButton: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12, paddingHorizontal: 16, backgroundColor: '#eef2ff', borderRadius: 10, marginBottom: 16 },
-  uploadText: { fontSize: 14, color: '#4f46e5', fontWeight: '500' },
+  button: { paddingVertical: 14, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  uploadButton: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 10, marginBottom: 16 },
   imageWrapper: { position: 'relative', marginBottom: 16 },
   preview: { width: '100%', height: 180, borderRadius: 10 },
   removeOverlay: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(255,255,255,0.8)', borderRadius: 12 },
