@@ -5,15 +5,18 @@ import { Pressable } from '@/components/ui/pressable';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const CustomTabBar = ({ state, descriptors, navigation }) => {
+  const insets = useSafeAreaInsets();
+
   return (
     <HStack
-      className={`
-        absolute bottom-0 justify-around items-center w-full px-12 bg-white shadow-xl
-        ${Platform.OS === 'ios' ? 'h-24 pb-6' : 'h-16'}
-      `}
-      style={{ elevation: 15 }}
+      className="absolute bottom-0 justify-around items-center w-full px-12 bg-white shadow-xl"
+      style={{
+        paddingBottom: insets.bottom,
+        height: Platform.OS === 'ios' ? 24 + insets.bottom : 45 + insets.bottom,
+      }}
     >
       {state.routes.map((route, index) => {
         const isFocused = state.index === index;

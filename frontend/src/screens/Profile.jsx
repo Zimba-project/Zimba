@@ -72,7 +72,7 @@ export default function ProfileScreen({ navigation, route }){
           setUser(null);
           navigation.reset({
             index: 0,
-            routes: [{ name: 'Login' }],
+            routes: [{ name: 'Welcome' }],
           });
         },
       },
