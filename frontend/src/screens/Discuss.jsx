@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
-  Image,
-  StyleSheet,
   TextInput,
-  TouchableOpacity,
+  StyleSheet,
+  Image,
   FlatList,
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
+import { ScrollView } from '@/components/ui/scroll-view';
 import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CardHeader from '../components/Cards/CardHeader';
@@ -80,9 +79,9 @@ export default function DiscussScreen() {
 
   if (!postData) {
     return (
-      <SafeAreaView style={[styles.center, { paddingTop: insets.top }]}>
-        <Text>No discuss data available</Text>
-      </SafeAreaView>
+      <Box className="flex-1 bg-background-0 justify-center items-center">
+        <Text className="text-typography-900">No discuss data available</Text>
+      </Box>
     );
   }
 
@@ -102,7 +101,7 @@ export default function DiscussScreen() {
   const avatarUrl = normalizeAvatarUrl(author_avatar);
 
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
+    <Box className="flex-1 bg-background-0">
       <ScrollView>
         <CardHeader
           author={{ avatar: avatarUrl, name: author_name, time: created_at }}
@@ -111,91 +110,74 @@ export default function DiscussScreen() {
 
         {imageUrl && <Image source={{ uri: imageUrl }} style={styles.image} />}
 
-        <View style={styles.body}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.description}>{description}</Text>
+        <Box style={styles.body}>
+          <Text className="text-2xl text-typography-900 font-bold mb-3">{title}</Text>
+          <Text className="text-base text-typography-700 mb-3" style={{ lineHeight: 22 }}>{description}</Text>
           <StatsBar comments={commentsList.length} views={views} />
 
           {/* Add Comment */}
-          <View style={styles.commentInputContainer}>
-            <TextInput
-              style={styles.commentInput}
-              placeholder="Write a comment..."
-              value={commentText}
-              onChangeText={setCommentText}
-            />
-            <TouchableOpacity
+          <Box style={styles.commentInputContainer} className="border-t border-outline-200">
+            <Box className="flex-1 border border-outline-200 rounded-lg bg-background-50 mr-2">
+              <TextInput
+                className="px-4 py-2 text-typography-900"
+                placeholder="Write a comment..."
+                placeholderTextColor="#9ca3af"
+                value={commentText}
+                onChangeText={setCommentText}
+              />
+            </Box>
+            <Pressable
               style={styles.commentButton}
+              className="bg-primary-600"
               onPress={handleAddComment}
               disabled={posting}
             >
-              <Text style={styles.commentButtonText}>
+              <Text className="text-typography-0 font-semibold">
                 {posting ? 'Posting...' : 'Post'}
               </Text>
-            </TouchableOpacity>
-          </View>
+            </Pressable>
+          </Box>
 
           {/* Comments */}
           {loading ? (
-            <ActivityIndicator style={{ marginTop: 20 }} color="#6366f1" />
+            <ActivityIndicator style={{ marginTop: 20 }} />
           ) : (
             <FlatList
               data={commentsList}
               keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }) => (
-                <View style={styles.commentContainer}>
-                  <Text style={styles.commentAuthor}>
+                <Box style={styles.commentContainer} className="border-b border-background-100">
+                  <Text className="text-typography-900 font-bold mb-0.5">
                     {item.author_name || 'Unknown'}
                   </Text>
-                  <Text style={styles.commentText}>{item.text}</Text>
-                </View>
+                  <Text className="text-base text-typography-900">{item.text}</Text>
+                </Box>
               )}
               scrollEnabled={false}
               contentContainerStyle={{ marginTop: 16 }}
             />
           )}
-        </View>
+        </Box>
       </ScrollView>
-    </SafeAreaView>
+    </Box>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   image: { width: '100%', height: 250 },
   body: { padding: 16 },
-  title: { fontSize: 22, fontWeight: '700', marginBottom: 12, color: '#111' },
-  description: { fontSize: 16, color: '#555', lineHeight: 22 },
   commentInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
     paddingTop: 12,
   },
-  commentInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginRight: 8,
-  },
   commentButton: {
-    backgroundColor: '#6366f1',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 8,
   },
-  commentButtonText: { color: '#fff', fontWeight: '600' },
   commentContainer: {
     paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
-  commentAuthor: { fontWeight: '700', marginBottom: 2 },
-  commentText: { fontSize: 15, color: '#111' },
 });

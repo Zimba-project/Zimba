@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
-  Image,
   StyleSheet,
-  TouchableOpacity,
+  Image,
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
+import { ScrollView } from '@/components/ui/scroll-view';
 import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CardHeader from '../components/Cards/CardHeader';
@@ -64,18 +63,18 @@ export default function PollScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.center, { paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" color="#6366f1" />
-        <Text style={{ marginTop: 12 }}>Loading...</Text>
-      </SafeAreaView>
+      <Box className="flex-1 bg-background-0 justify-center items-center">
+        <ActivityIndicator size="large" />
+        <Text className="text-typography-900 mt-3">Loading...</Text>
+      </Box>
     );
   }
 
   if (!postData) {
     return (
-      <SafeAreaView style={[styles.center, { paddingTop: insets.top }]}>
-        <Text>No poll data available</Text>
-      </SafeAreaView>
+      <Box className="flex-1 bg-background-0 justify-center items-center">
+        <Text className="text-typography-900">No poll data available</Text>
+      </Box>
     );
   }
 
@@ -96,7 +95,7 @@ export default function PollScreen() {
   const avatarUrl = normalizeAvatarUrl(author_avatar);
 
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
+    <Box className="flex-1 bg-background-0">
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
         <CardHeader
           author={{ avatar: avatarUrl, name: author_name, time: created_at }}
@@ -105,96 +104,74 @@ export default function PollScreen() {
 
         {imageUrl && <Image source={{ uri: imageUrl }} style={styles.image} />}
 
-        <View style={styles.body}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.description}>{description}</Text>
+        <Box style={styles.body}>
+          <Text className="text-2xl text-typography-900 font-bold mb-3">{title}</Text>
+          <Text className="text-base text-typography-700 mb-3" style={{ lineHeight: 22 }}>{description}</Text>
           <StatsBar comments={comments} views={views} />
 
-          <View style={styles.optionsContainer}>
+          <Box style={styles.optionsContainer}>
             {options.map((opt) => {
               const isSelected = selectedOption === opt.id;
               return (
-                <TouchableOpacity
+                <Pressable
                   key={opt.id}
                   style={[
                     styles.optionButton,
-                    isSelected && styles.selectedOption,
                     submitted && styles.disabledOption,
                   ]}
+                  className={isSelected ? "bg-primary-600 border-primary-700" : "bg-background-100 border-outline-200"}
                   disabled={submitted}
                   onPress={() => setSelectedOption(opt.id)}
                 >
-                  <Text
-                    style={[
-                      styles.optionText,
-                      isSelected && styles.selectedOptionText,
-                    ]}
-                  >
+                  <Text className={isSelected ? "text-base text-typography-0 font-semibold" : "text-base text-typography-900"}>
                     {opt.text}
                   </Text>
-                  <Text style={styles.voteCount}>{opt.votes} votes</Text>
-                </TouchableOpacity>
+                  <Text className={isSelected ? "text-typography-0 font-semibold" : "text-primary-600 font-semibold"}>{opt.votes} votes</Text>
+                </Pressable>
               );
             })}
 
             {submitted ? (
-              <Text style={styles.thankYouText}>Thanks for voting!</Text>
+              <Text className="text-base text-success-600 font-medium mt-3">Thanks for voting!</Text>
             ) : (
-              <TouchableOpacity
+              <Pressable
                 style={[
                   styles.submitButton,
                   !selectedOption && styles.disabledSubmit,
                 ]}
+                className="bg-primary-600"
                 disabled={!selectedOption}
                 onPress={handleSubmit}
               >
-                <Text style={styles.submitText}>Submit Vote</Text>
-              </TouchableOpacity>
+                <Text className="text-typography-0 font-semibold text-base">Submit Vote</Text>
+              </Pressable>
             )}
-          </View>
-        </View>
+          </Box>
+        </Box>
       </ScrollView>
-    </SafeAreaView>
+    </Box>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   image: { width: '100%', height: 250 },
   body: { padding: 16 },
-  title: { fontSize: 22, fontWeight: '700', marginBottom: 12, color: '#111' },
-  description: { fontSize: 16, color: '#555', lineHeight: 22 },
   optionsContainer: { marginTop: 20 },
   optionButton: {
     padding: 12,
     marginVertical: 6,
-    backgroundColor: '#f3f4f6',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#d1d5db',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  selectedOption: { backgroundColor: '#6366f1', borderColor: '#4f46e5' },
   disabledOption: { opacity: 0.7 },
-  optionText: { fontSize: 16, color: '#111' },
-  selectedOptionText: { color: '#fff', fontWeight: '600' },
-  voteCount: { fontWeight: '600', color: '#4f46e5' },
   submitButton: {
-    backgroundColor: '#6366f1',
     paddingVertical: 12,
     borderRadius: 8,
     marginTop: 12,
     alignItems: 'center',
   },
-  disabledSubmit: { backgroundColor: '#a5b4fc' },
-  submitText: { color: '#fff', fontWeight: '600', fontSize: 16 },
-  thankYouText: {
-    marginTop: 12,
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#16a34a',
-  },
+  disabledSubmit: { opacity: 0.5 },
 });
