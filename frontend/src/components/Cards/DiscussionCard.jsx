@@ -1,15 +1,15 @@
 import React from 'react';
 import {
-  View,
-  Text,
   ImageBackground,
   StyleSheet,
-  TouchableOpacity,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
 import StatsBar from './StatsBar';
 import CardHeader from './CardHeader';
 import CardContainer from './CardContainer';
-import { useNavigation } from '@react-navigation/native';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_BASE.replace(/\/api$/, '');
 
@@ -24,37 +24,37 @@ const DiscussionCard = ({
   comments,
   views,
   created_at,
-  onShare = () => {},
-  onSave = () => {},
+  onShare = () => { },
+  onSave = () => { },
 }) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
     const postData = {
-        id,
-        topic,
-        author_name,
-        author_avatar,
-        image,
-        title,
-        description,
-        comments,
-        views,
-        created_at,
-      };
-        console.log('DiscussionCard postData:', postData);
-        navigation.navigate('Discuss', {
-        postId: id, 
-        postData
+      id,
+      topic,
+      author_name,
+      author_avatar,
+      image,
+      title,
+      description,
+      comments,
+      views,
+      created_at,
+    };
+    console.log('DiscussionCard postData:', postData);
+    navigation.navigate('Discuss', {
+      postId: id,
+      postData
     });
   };
 
-  const imageUrl = image? image.startsWith('http')? image: `${API_BASE}${image}`: null;
+  const imageUrl = image ? image.startsWith('http') ? image : `${API_BASE}${image}` : null;
 
-  const avatarUrl = author_avatar ? author_avatar.startsWith('http')? author_avatar:`${API_BASE}${author_avatar}`: null;
+  const avatarUrl = author_avatar ? author_avatar.startsWith('http') ? author_avatar : `${API_BASE}${author_avatar}` : null;
 
   return (
-    <TouchableOpacity onPress={handlePress}>
+    <Pressable onPress={handlePress}>
       <CardContainer>
         {/* HEADER */}
         <CardHeader
@@ -65,16 +65,16 @@ const DiscussionCard = ({
         {/* IMAGE (title overlays image) */}
         {imageUrl && (
           <ImageBackground source={{ uri: imageUrl }} style={styles.image}>
-            <View style={styles.overlay}>
-              <Text style={styles.imageTitle}>{title}</Text>
-            </View>
+            <Box style={styles.overlay}>
+              <Text size="lg" className="text-typography-950 font-bold">{title}</Text>
+            </Box>
           </ImageBackground>
         )}
 
         {/* BODY */}
-        <View style={styles.body}>
-          {!imageUrl && <Text style={styles.title}>{title}</Text>}
-          <Text style={styles.preview} numberOfLines={3} ellipsizeMode="tail">
+        <Box style={styles.body}>
+          {!imageUrl && <Text size="lg" className="text-typography-900 font-bold mb-2">{title}</Text>}
+          <Text size="sm" className="text-typography-700 mb-3" numberOfLines={3} ellipsizeMode="tail">
             {description}
           </Text>
           <StatsBar
@@ -83,9 +83,9 @@ const DiscussionCard = ({
             share={onShare}
             onSave={onSave}
           />
-        </View>
+        </Box>
       </CardContainer>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
@@ -103,10 +103,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     padding: 16,
   },
-  imageTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
   body: { padding: 16 },
-  title: { fontSize: 18, fontWeight: '700', marginBottom: 8, color: '#111' },
-  preview: { fontSize: 14, color: '#555', marginBottom: 12 },
 });
 
 export default DiscussionCard;
