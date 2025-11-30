@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert
+  Alert,
+  TextInput,
+  Image
 } from 'react-native';
 import Checkbox from 'expo-checkbox';
-import GoogleLogo from '../../assets/google.svg';
-import AppleLogo from '../../assets/apple.svg';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
 import { login as loginApi } from '../api/auth';
 import { sessionStorage } from '../utils/Storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const GoogleIcon = require('../../assets/google.png');
+const AppleIcon = require('../../assets/apple.png');
 
 export default function LoginScreen() {
   const navigation = useNavigation();
@@ -75,128 +76,96 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Login Account</Text>
+    <Box className="flex-1 bg-background-0">
+      <Box style={styles.container}>
+        <Text className="text-3xl text-typography-900 font-bold mb-3">Login Account</Text>
 
-      {error ? <Text style={{ color: 'red', marginBottom: 10 }}>{error}</Text> : null}
+        {error ? <Text className="text-sm text-error-500 mb-2.5">{error}</Text> : null}
 
-      {/* Phone */}
-      <Text style={styles.label}>Mobile Number</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter mobile number"
-        placeholderTextColor="#666"
-        keyboardType="phone-pad"
-        value={phone}
-        onChangeText={setPhone}
-      />
+        {/* Phone */}
+        <Text className="text-sm text-typography-700 mb-1.5">Mobile Number</Text>
+        <Box className="border border-outline-200 rounded-lg mb-4 bg-background-50">
+          <TextInput
+            className="px-3 py-3 text-typography-900"
+            placeholder="Enter mobile number"
+            placeholderTextColor="#9ca3af"
+            keyboardType="phone-pad"
+            value={phone}
+            onChangeText={setPhone}
+          />
+        </Box>
 
-      {/* Password */}
-      <Text style={styles.label}>Password</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter password"
-        placeholderTextColor="#666"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+        {/* Password */}
+        <Text className="text-sm text-typography-700 mb-1.5">Password</Text>
+        <Box className="border border-outline-200 rounded-lg mb-4 bg-background-50">
+          <TextInput
+            className="px-3 py-3 text-typography-900"
+            placeholder="Enter password"
+            placeholderTextColor="#9ca3af"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+        </Box>
 
-      {/* Keep me logged in */}
-      <View style={styles.checkboxContainer}>
-        <Checkbox
-          value={keepLoggedIn}
-          onValueChange={setKeepLoggedIn}
-          color={keepLoggedIn ? '#2563eb' : undefined}
-        />
-        <Text style={styles.checkboxLabel}>Keep me logged in</Text>
-      </View>
+        {/* Keep me logged in */}
+        <Box className="flex-row items-center mb-3">
+          <Checkbox
+            value={keepLoggedIn}
+            onValueChange={setKeepLoggedIn}
+            color={keepLoggedIn ? '#818cf8' : undefined}
+          />
+          <Text className="text-sm text-typography-700 ml-2">Keep me logged in</Text>
+        </Box>
 
-      {/* Login Button */}
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.loginText}>Login</Text>
-        )}
-      </TouchableOpacity>
+        {/* Login Button */}
+        <Pressable onPress={handleLogin}>
+          <Box className="bg-primary-500 py-3.5 rounded-lg items-center mb-6">
+            {loading ? (
+              <ActivityIndicator />
+            ) : (
+              <Text className="text-base text-typography-0 font-bold">Login</Text>
+            )}
+          </Box>
+        </Pressable>
 
-      {/* Social Login */}
-      <Text style={styles.orText}>or sign in with</Text>
-      <View style={styles.socialContainer}>
-        <TouchableOpacity
-          style={styles.socialButton}
-          onPress={() => Alert.alert('Not implemented')}
-        >
-          <GoogleLogo width={22} height={22} />
-          <Text style={styles.socialText}>Continue with Google</Text>
-        </TouchableOpacity>
+        {/* Social Login */}
+        <Text className="text-sm text-center text-typography-600 mb-4">or sign in with</Text>
+        <Box className="mb-3">
+          <Pressable onPress={() => Alert.alert('Not implemented')}>
+            <Box className="flex-row items-center border border-outline-200 rounded-lg py-3 px-4 bg-background-0 mb-3">
+              <Image source={GoogleIcon} style={{ width: 20, height: 20 }} />
+              <Text className="text-sm text-typography-700 ml-2">Continue with Google</Text>
+            </Box>
+          </Pressable>
 
-        <TouchableOpacity
-          style={styles.socialButton}
-          onPress={() => Alert.alert('Not implemented')}
-        >
-          <AppleLogo width={22} height={22} />
-          <Text style={styles.socialText}>Continue with Apple</Text>
-        </TouchableOpacity>
-      </View>
+          <Pressable onPress={() => Alert.alert('Not implemented')}>
+            <Box className="flex-row items-center border border-outline-200 rounded-lg py-3 px-4 bg-background-0 mb-3">
+              <Image source={AppleIcon} style={{ width: 20, height: 20 }} />
+              <Text className="text-sm text-typography-700 ml-2">Continue with Apple</Text>
+            </Box>
+          </Pressable>
+        </Box>
 
-      {/* Sign Up */}
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.signupText}>
-          Don’t have an account?{' '}
-          <Text style={styles.signupLink}>Sign Up</Text>
-        </Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+        {/* Sign Up */}
+        <Pressable onPress={() => navigation.navigate('Register')}>
+          <Text className="text-sm text-center text-typography-600 mt-8">
+            Don't have an account?{' '}
+            <Text className="text-primary-500 font-semibold">Sign Up</Text>
+          </Text>
+        </Pressable>
+      </Box>
+    </Box>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, backgroundColor: '#ffffff' },
-  title: { fontSize: 28, fontWeight: '700', color: '#1f2937', marginBottom: 12 },
-  label: { fontSize: 14, color: '#374151', marginBottom: 6 },
+  container: { flex: 1, paddingHorizontal: 24, paddingTop: 12, paddingBottom: 24 },
   input: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
-    fontSize: 14,
-    backgroundColor: '#f9fafb'
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12
-  },
-  checkboxLabel: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: '#374151'
-  },
-  loginButton: {
-    backgroundColor: '#2563eb',
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 24
-  },
-  loginText: { color: '#ffffff', fontSize: 16, fontWeight: '700' },
-  orText: { textAlign: 'center', color: '#6b7280', marginBottom: 16 },
-  socialContainer: { gap: 12 },
-  socialButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#ffffff',
-    marginBottom: 12
-  },
-  socialText: { fontSize: 14, color: '#374151', marginLeft: 8 },
-  signupText: { textAlign: 'center', fontSize: 14, color: '#6b7280', marginTop: 32 },
-  signupLink: { color: '#2563eb', fontWeight: '600' }
+    fontSize: 14
+  }
 });

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Search } from 'lucide-react-native';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
@@ -10,7 +10,13 @@ import useCurrentUser from '../../utils/GetUser';
 
 export default function RightButton() {
   const navigation = useNavigation();
+  const route = useRoute();
   const { user, loading, refreshUser } = useCurrentUser();
+
+  // Don't show right button on Login and Register screens
+  if (route.name === 'Login' || route.name === 'Register') {
+    return null;
+  }
 
   useEffect(() => {
     const unsub = navigation.addListener('focus', () => {

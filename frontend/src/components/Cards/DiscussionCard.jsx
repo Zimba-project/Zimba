@@ -66,7 +66,7 @@ const DiscussionCard = ({
         {imageUrl && (
           <ImageBackground source={{ uri: imageUrl }} style={styles.image}>
             <Box style={styles.overlay}>
-              <Text size="lg" className="text-typography-950 font-bold">{title}</Text>
+              <Text size="lg" className="font-bold" style={{ color: 'rgb(255, 255, 255)' }}>{title}</Text>
             </Box>
           </ImageBackground>
         )}

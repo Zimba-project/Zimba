@@ -55,8 +55,8 @@ function InnerApp() {
           >
             <Stack.Screen name="Welcome" component={Welcome} options={{ headerShown: false }} />
             <Stack.Screen name="Main" component={Sidebar} options={{ title: 'ZIMBA', headerBackVisible: false }} />
-            <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
-            <Stack.Screen name="Register" component={Register} options={{ headerShown: false }} />
+            <Stack.Screen name="Login" component={Login} options={{ title: 'Login' }} />
+            <Stack.Screen name="Register" component={Register} options={{ title: 'Register' }} />
             <Stack.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
             <Stack.Screen name="Discuss" component={Discuss} />
             <Stack.Screen name="Poll" component={Poll} />

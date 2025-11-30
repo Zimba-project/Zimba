@@ -1,18 +1,26 @@
 import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  View, Text, TextInput, StyleSheet, ActivityIndicator,
-  ScrollView, Alert, TouchableOpacity, Modal
+  StyleSheet,
+  TextInput,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Modal
 } from 'react-native';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
+import { ScrollView } from '@/components/ui/scroll-view';
 import { Feather as Icon } from '@expo/vector-icons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { register as registerApi } from '../api/auth';
-import GoogleLogo from '../../assets/google.svg';
-import AppleLogo from '../../assets/apple.svg';
+import { useNavigation } from '@react-navigation/native';
+
+const GoogleIcon = require('../../assets/google.png');
+const AppleIcon = require('../../assets/apple.png');
 
 const COUNTRIES = [
-  { name: 'Finland', dial_code: '+358', code: 'FI', flag: '🇫🇮' }, 
+  { name: 'Finland', dial_code: '+358', code: 'FI', flag: '🇫🇮' },
   { name: 'United States', dial_code: '+1', code: 'US', flag: '🇺🇸' },
   { name: 'United Kingdom', dial_code: '+44', code: 'GB', flag: '🇬🇧' },
   { name: 'Sweden', dial_code: '+46', code: 'SE', flag: '🇸🇪' },
@@ -21,7 +29,8 @@ const COUNTRIES = [
   { name: 'Norway', dial_code: '+47', code: 'NO', flag: '🇳🇴' },
 ];
 
-export default function RegisterScreen({ navigation }) {
+export default function RegisterScreen() {
+  const navigation = useNavigation();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
@@ -66,123 +75,184 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.card}>
-        <Text style={styles.title}>Create Account</Text>
-        {error && <Text style={styles.error}>{error}</Text>}
+    <Box className="flex-1 bg-background-0">
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Box style={styles.container}>
+          <Text className="text-3xl text-typography-900 font-bold mb-3">Create Account</Text>
+          {error && <Text className="text-sm text-error-500 mb-2.5">{error}</Text>}
 
-        <Text style={styles.sectionTitle}>Personal Info</Text>
-        <View style={styles.row}>
-          <TextInput style={[styles.input, { flex: 1, marginRight: 8 }]} placeholder="First name" value={firstName} onChangeText={setFirstName} />
-          <TextInput style={[styles.input, { flex: 1 }]} placeholder="Last name" value={lastName} onChangeText={setLastName} />
-        </View>
-        <TextInput style={styles.input} placeholder="Email address" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
+          <Text className="text-base text-typography-900 font-semibold mb-3">Personal Info</Text>
+          <Box className="flex-row w-full mb-4">
+            <Box className="flex-1 mr-2 border border-outline-200 rounded-lg bg-background-50">
+              <TextInput
+                className="px-3 py-3 text-typography-900"
+                placeholder="First name"
+                placeholderTextColor="#9ca3af"
+                value={firstName}
+                onChangeText={setFirstName}
+              />
+            </Box>
+            <Box className="flex-1 border border-outline-200 rounded-lg bg-background-50">
+              <TextInput
+                className="px-3 py-3 text-typography-900"
+                placeholder="Last name"
+                placeholderTextColor="#9ca3af"
+                value={lastName}
+                onChangeText={setLastName}
+              />
+            </Box>
+          </Box>
 
-        {/* Phone */}
-        <View style={styles.phoneContainer}>
-          <TouchableOpacity style={styles.countryButton} onPress={() => setShowCountryPicker(true)}>
-            <Text style={styles.countryText}>{country.flag} {country.dial_code}</Text>
-          </TouchableOpacity>
-          <TextInput style={styles.phoneInput} placeholder="Phone number" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
-        </View>
+          <Box className="border border-outline-200 rounded-lg mb-4 bg-background-50">
+            <TextInput
+              className="px-3 py-3 text-typography-900"
+              placeholder="Email address"
+              placeholderTextColor="#9ca3af"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
+          </Box>
 
-        {/* Country Picker Modal */}
-        {showCountryPicker && (
-          <Modal visible={showCountryPicker} transparent animationType="slide" onRequestClose={() => setShowCountryPicker(false)}>
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 12 }}>Select Country</Text>
-                {COUNTRIES.map(c => (
-                  <TouchableOpacity
-                    key={c.code}
-                    style={{ paddingVertical: 10 }}
-                    onPress={() => { setCountry(c); setShowCountryPicker(false); }}
-                  >
-                    <Text style={{ fontSize: 16 }}>{c.flag} {c.name} ({c.dial_code})</Text>
-                  </TouchableOpacity>
-                ))}
-                <TouchableOpacity onPress={() => setShowCountryPicker(false)}>
-                  <Text style={{ color: '#2563eb', marginTop: 12, textAlign: 'center' }}>Close</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Modal>
-        )}
+          {/* Phone */}
+          <Box className="flex-row items-center w-full mb-4 border border-outline-200 rounded-lg bg-background-50">
+            <Pressable
+              style={styles.countryButton}
+              onPress={() => setShowCountryPicker(true)}
+            >
+              <Text className="text-typography-900">{country.flag} {country.dial_code}</Text>
+            </Pressable>
+            <TextInput
+              className="flex-1 px-3 py-3 text-typography-900"
+              placeholder="Phone number"
+              placeholderTextColor="#9ca3af"
+              keyboardType="phone-pad"
+              value={phone}
+              onChangeText={setPhone}
+            />
+          </Box>
 
-        {/* Birthdate */}
-        <TouchableOpacity style={[styles.input, styles.dateRow]} onPress={() => setShowDatePicker(true)}>
-          <Text style={birthdate ? styles.dateText : styles.placeholderText}>
-            {birthdate ? birthdate.toLocaleDateString() : 'Birthdate (YYYY-MM-DD)'}
-          </Text>
-          <Icon name="calendar" size={18} color="#6b7280" />
-        </TouchableOpacity>
+          {/* Country Picker Modal */}
+          {showCountryPicker && (
+            <Modal visible={showCountryPicker} transparent animationType="slide" onRequestClose={() => setShowCountryPicker(false)}>
+              <Box style={styles.modalOverlay}>
+                <Box style={styles.modalContent} className="bg-background-0">
+                  <Text className="text-lg text-typography-900 font-semibold mb-3">Select Country</Text>
+                  {COUNTRIES.map(c => (
+                    <Pressable
+                      key={c.code}
+                      style={{ paddingVertical: 10 }}
+                      onPress={() => { setCountry(c); setShowCountryPicker(false); }}
+                    >
+                      <Text className="text-base text-typography-900">{c.flag} {c.name} ({c.dial_code})</Text>
+                    </Pressable>
+                  ))}
+                  <Pressable onPress={() => setShowCountryPicker(false)}>
+                    <Text className="text-primary-600 mt-3 text-center">Close</Text>
+                  </Pressable>
+                </Box>
+              </Box>
+            </Modal>
+          )}
 
-        {/* Date Picker */}
-        {showDatePicker && (
-          <DateTimePicker
-            value={birthdate || new Date(2000, 0, 1)}
-            mode="date"
-            display="default"
-            maximumDate={new Date()}
-            onChange={(event, selectedDate) => {
-              setShowDatePicker(false);
-              if (selectedDate) setBirthdate(selectedDate);
-            }}
-          />
-        )}
+          {/* Birthdate */}
+          <Pressable
+            style={styles.dateRow}
+            className="border border-outline-200 rounded-lg mb-4 bg-background-50 px-3 py-3"
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text className={birthdate ? "text-typography-900" : "text-typography-500"}>
+              {birthdate ? birthdate.toLocaleDateString() : 'Birthdate (YYYY-MM-DD)'}
+            </Text>
+            <Icon name="calendar" size={18} color="#6b7280" />
+          </Pressable>
 
-        <Text style={styles.sectionTitle}>Security</Text>
-        <TextInput style={styles.input} placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
-        <TextInput style={styles.input} placeholder="Confirm password" secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} />
+          {/* Date Picker */}
+          {showDatePicker && (
+            <DateTimePicker
+              value={birthdate || new Date(2000, 0, 1)}
+              mode="date"
+              display="default"
+              maximumDate={new Date()}
+              onChange={(event, selectedDate) => {
+                setShowDatePicker(false);
+                if (selectedDate) setBirthdate(selectedDate);
+              }}
+            />
+          )}
 
-        {loading ? (
-          <ActivityIndicator />
-        ) : (
-          <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-            <Text style={styles.registerText}>Sign Up</Text>
-          </TouchableOpacity>
-        )}
+          <Text className="text-base text-typography-900 font-semibold mb-3">Security</Text>
+          <Box className="border border-outline-200 rounded-lg mb-4 bg-background-50">
+            <TextInput
+              className="px-3 py-3 text-typography-900"
+              placeholder="Password"
+              placeholderTextColor="#9ca3af"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+          </Box>
+          <Box className="border border-outline-200 rounded-lg mb-4 bg-background-50">
+            <TextInput
+              className="px-3 py-3 text-typography-900"
+              placeholder="Confirm password"
+              placeholderTextColor="#9ca3af"
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
+          </Box>
 
-        <Text style={styles.orText}>or sign up with</Text>
-        <View style={styles.socialContainer}>
-        <TouchableOpacity style={styles.socialButton}>
-            <GoogleLogo width={22} height={22} />
-            <Text style={styles.socialText}>Google</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.socialButton}>
-            <AppleLogo width={22} height={22} />
-            <Text style={styles.socialText}>Apple</Text>
-        </TouchableOpacity>
-        </View>
+          {loading ? (
+            <Box className="items-center mb-6">
+              <ActivityIndicator />
+            </Box>
+          ) : (
+            <Pressable onPress={handleRegister}>
+              <Box className="w-full bg-primary-600 py-3.5 rounded-lg items-center mb-6">
+                <Text className="text-typography-0 text-base font-bold">Sign Up</Text>
+              </Box>
+            </Pressable>
+          )}
 
-        <View style={styles.loginRow}>
-          <Text style={{ color: '#6b7280' }}>Already have an account?</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.link}> Login</Text>
-          </TouchableOpacity>
-        </View>
+          <Text className="text-center text-typography-700 mb-4">or sign up with</Text>
+
+          <Box className="flex-row mb-4">
+            <Pressable onPress={() => Alert.alert('Not implemented')} style={{ flex: 1, marginHorizontal: 4 }}>
+              <Box className="flex-row items-center justify-center border border-outline-200 rounded-lg py-2.5 px-2.5 bg-background-0">
+                <Image source={GoogleIcon} style={{ width: 22, height: 22 }} />
+                <Text className="text-sm text-typography-700 ml-1.5">Google</Text>
+              </Box>
+            </Pressable>
+
+            <Pressable onPress={() => Alert.alert('Not implemented')} style={{ flex: 1, marginHorizontal: 4 }}>
+              <Box className="flex-row items-center justify-center border border-outline-200 rounded-lg py-2.5 px-2.5 bg-background-0">
+                <Image source={AppleIcon} style={{ width: 22, height: 22 }} />
+                <Text className="text-sm text-typography-700 ml-1.5">Apple</Text>
+              </Box>
+            </Pressable>
+          </Box>
+
+          <Box className="flex-row mt-3 items-center justify-center">
+            <Text className="text-typography-700">Already have an account?</Text>
+            <Pressable onPress={() => navigation.navigate('Login')}>
+              <Text className="text-primary-600 font-semibold ml-1"> Login</Text>
+            </Pressable>
+          </Box>
+        </Box>
       </ScrollView>
-    </SafeAreaView>
+    </Box>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffffff' },
-  card: { padding: 24, width: '100%', backgroundColor: '#fff', borderRadius: 12, marginVertical: 16, alignSelf: 'stretch' },
-  title: { fontSize: 28, fontWeight: '700', color: '#111827', marginBottom: 12, textAlign: 'center' },
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#374151', marginBottom: 12, alignSelf: 'flex-start' },
-  error: { color: 'red', marginBottom: 12 },
-  row: { flexDirection: 'row', width: '100%' },
-  input: { backgroundColor: '#fff', width: '100%', borderWidth: 1, borderColor: '#e5e7eb', paddingHorizontal: 12, paddingVertical: 10, marginBottom: 16, borderRadius: 8, fontSize: 14 },
-  phoneContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 8,
-    backgroundColor: '#fff',
+  scrollContent: { flexGrow: 1 },
+  container: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 24,
   },
   countryButton: {
     paddingHorizontal: 12,
@@ -193,47 +263,11 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: '#e5e7eb',
   },
-  countryText: { color: '#111827' },
-  phoneInput: { flex: 1, height: 44, paddingHorizontal: 12 },
-  dateRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  dateText: { color: '#111827' },
-  placeholderText: { color: '#666' },
-  registerButton: {
-    width: '100%',
-    backgroundColor: '#2563eb',
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  registerText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  orText: { textAlign: 'center', color: '#6b7280', marginBottom: 16 },
-  socialContainer: {
+  dateRow: {
     flexDirection: 'row',
-    marginBottom: 16,
-  },
-  socialButton: {
-    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    backgroundColor: '#ffffff',
-    flex: 1,                  
-    marginHorizontal: 4,        
   },
-  icon: { marginRight: 6 },
-  socialText: { fontSize: 14, color: '#374151', marginLeft: 6 },
-  loginRow: {
-    flexDirection: 'row',
-    marginTop: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  link: { color: '#2563eb', fontWeight: '600' },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',
@@ -241,7 +275,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#fff',
     padding: 16,
     borderRadius: 12,
     width: '90%',
