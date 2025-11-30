@@ -33,6 +33,9 @@ const Switch = React.forwardRef<
       ref={ref}
       {...props}
       className={switchStyle({ size, class: className })}
+      trackColor={{ false: '#d1d5db', true: '#6366f1' }}
+      thumbColor="#ffffff"
+      ios_backgroundColor="#d1d5db"
     />
   );
 });
