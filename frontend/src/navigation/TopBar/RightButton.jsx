@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Search } from 'lucide-react-native';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
 import { Icon } from '@/components/ui/icon';
+import { Pressable } from '@/components/ui/pressable';
 import useCurrentUser from '../../utils/GetUser';
 
 export default function RightButton() {
@@ -49,22 +50,24 @@ export default function RightButton() {
   return (
     <Box style={styles.container}>
       {/* Search button - keeps search ability */}
-      <TouchableOpacity
+      <Pressable
         style={styles.searchBtn}
         onPress={() => navigation.navigate('Search')}
         accessibilityLabel="Search"
       >
         <Icon as={Search} size="lg" className="text-typography-700" />
-      </TouchableOpacity>
+      </Pressable>
 
       {initials ? (
-        <TouchableOpacity style={styles.avatar} className="bg-primary-600" onPress={() => navigation.navigate('Profile')}>
-          <Text style={styles.initials} className="text-typography-0">{initials}</Text>
-        </TouchableOpacity>
+        <Pressable onPress={() => navigation.navigate('Profile')}>
+          <Box style={styles.avatar} className="bg-primary-600">
+            <Text className="text-typography-0 font-bold">{initials}</Text>
+          </Box>
+        </Pressable>
       ) : (
-        <TouchableOpacity style={styles.loginBtn} onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.loginText} className="text-primary-600">Login</Text>
-        </TouchableOpacity>
+        <Pressable style={styles.loginBtn} onPress={() => navigation.navigate('Login')}>
+          <Text className="text-primary-600 font-semibold">Login</Text>
+        </Pressable>
       )}
     </Box>
   );
@@ -75,7 +78,6 @@ const styles = StyleSheet.create({
   placeholder: { width: 96, height: 40, marginRight: 8 },
   searchBtn: { paddingHorizontal: 10, paddingVertical: 6, marginRight: 6 },
   loginBtn: { paddingHorizontal: 10, paddingVertical: 6, marginRight: 6 },
-  loginText: { fontWeight: '600' },
   avatar: {
     width: 40,
     height: 40,
@@ -83,5 +85,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  initials: { fontWeight: '700' },
 });
