@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
-import { Ionicons } from '@expo/vector-icons';
+import { List, Languages, Moon, ChevronUp, ChevronDown } from 'lucide-react-native';
 import MainTabs from './MainTabs';
 import { TOPIC_COLORS } from '../utils/TopicColors';
 
 import { Button, ButtonText } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
-
+import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { Box } from '@/components/ui/box';
 import { Switch } from '@/components/ui/switch';
@@ -26,28 +26,25 @@ function CustomDrawerContent(props) {
   const { theme, setTheme } = useTheme();
 
   return (
-    <DrawerContentScrollView {...props} contentContainerStyle={styles.content}>
-
-      {/* Topics collapsible */}
-      <Box style={styles.drawerItem}>
-
-        <TouchableOpacity style={styles.drawerRow} activeOpacity={0.7} onPress={() => setTopicsOpen(s => !s)}>
-          <Box style={styles.drawerRow}>
-            <Ionicons name="list-outline" size={20} color="#374151" />
-            {/* Gluestack Text käytössä */}
-            <Text style={styles.drawerLabel}>Topics</Text>
+    <Box className="flex-1 bg-background-0 dark:bg-background-900">
+      <DrawerContentScrollView
+        {...props}
+        contentContainerStyle={{ padding: 0 }}
+        style={{ flex: 1 }}
+        className="bg-transparent"
+      >
+        <TouchableOpacity activeOpacity={0.7} onPress={() => setTopicsOpen(s => !s)}>
+          <Box style={styles.drawerItem} flexDirection="row" justifyContent="space-between" alignItems="center">
+            <Box flexDirection="row" alignItems="center" style={{ gap: 16 }}>
+              <Icon as={List} size="xl" className="text-typography-900" />
+              <Text className="text-typography-900">Topics</Text>
+            </Box>
+            <Icon as={topicsOpen ? ChevronUp : ChevronDown} size="lg" className="text-typography-500" />
           </Box>
-          <Ionicons name={topicsOpen ? 'chevron-up' : 'chevron-down'} size={18} color="#6b7280" />
         </TouchableOpacity>
 
         {topicsOpen && (
-          <Box style={styles.topicsList}
-            p="$3"
-            mt="$1"
-            bg="$white"
-            rounded="md"
-            shadow="1"
-          >
+          <Box style={styles.topicsList} className="bg-background-100 dark:bg-background-900">
             {topics.map((t) => (
               <TouchableOpacity
                 key={t}
@@ -59,46 +56,44 @@ function CustomDrawerContent(props) {
                 }}
               >
                 <Box style={styles.topicInnerRowContent}>
-                  <Text style={styles.topicLabel} numberOfLines={1}>{t}</Text>
+                  <Text style={styles.topicLabel} className="text-typography-700" numberOfLines={1}>{t}</Text>
                 </Box>
               </TouchableOpacity>
             ))}
           </Box>
         )}
-      </Box>
-      <Box style={styles.separator} />
 
-      {/* Language link */}
-      <TouchableOpacity style={styles.drawerItem} activeOpacity={0.7} onPress={() => navigation.navigate('Language')}>
-        <View style={styles.drawerRow}>
-          <Ionicons name="language-outline" size={20} color="#374151" />
-          <Text style={styles.drawerLabel}>Language</Text>
-        </View>
-      </TouchableOpacity>
-      <View style={styles.separator} />
+        <Box style={styles.separator} className="bg-background-200 dark:bg-background-800" />
 
+        {/* Language link */}
+        <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('Language')}>
+          <Box style={[styles.drawerItem, { gap: 16 }]} flexDirection="row" alignItems="center">
+            <Icon as={Languages} size="xl" className="text-typography-900" />
+            <Text className="text-typography-900">Language</Text>
+          </Box>
+        </TouchableOpacity>
 
-      {/* Dark mode link */}
-      <Box
-        flexDirection="row"
-        justifyContent="space-between"
-        alignItems="center"
-        p="$3"
-      >
-        <Box flexDirection="row" alignItems="center">
-          <Ionicons name="moon-outline" size={20} color="#374151" />
-          <Text style={styles.drawerLabel}>Dark mode</Text>
+        <View style={styles.separator} className="bg-background-200 dark:bg-background-800" />
+
+        {/* Color mode switch */}
+        <Box
+          style={styles.drawerItem}
+          flexDirection="row"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Box flexDirection="row" alignItems="center" style={{ gap: 16 }}>
+            <Icon as={Moon} size="xl" className="text-typography-900" />
+            <Text className="text-typography-900">Dark mode</Text>
+          </Box>
+          <Switch
+            size="md"
+            value={theme === 'dark'}
+            onValueChange={(val) => setTheme(val ? 'dark' : 'light')}
+          />
         </Box>
-
-
-        <Switch
-          size="md"
-          value={theme === 'dark'}
-          onValueChange={(val) => setTheme(val ? 'dark' : 'light')}
-        />
-      </Box>
-
-    </DrawerContentScrollView>
+      </DrawerContentScrollView>
+    </Box>
   );
 }
 
@@ -133,7 +128,7 @@ export default function Sidebar({ route, navigation }) {
   return (
     <Drawer.Navigator
       drawerContent={(props) => <CustomDrawerContent {...props} />}
-      screenOptions={{ headerShown: false, drawerActiveTintColor: '#111827' }}
+      screenOptions={{ headerShown: false }}
     >
       <Drawer.Screen
         name="Home"
@@ -150,19 +145,17 @@ export default function Sidebar({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  content: { padding: 16 },
-
-  heading: { fontSize: 18, fontWeight: '700', marginBottom: 12, color: '#1f2937' },
-
+  container: { flex: 1 },
+  content: { padding: 0 },
+  heading: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
   drawerItem: { paddingVertical: 12, paddingHorizontal: 4, borderRadius: 8 },
   drawerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  drawerLabel: { marginLeft: 8, fontSize: 16, color: '#1f2937', fontWeight: '500' },
-  topicsList: { marginTop: 8, paddingLeft: 12, backgroundColor: '#ffffff', borderRadius: 6, paddingVertical: 4, elevation: 1 },
+  drawerLabel: { fontSize: 16, fontWeight: '500' },
+  topicsList: { marginTop: 8, paddingLeft: 12, borderRadius: 6, paddingVertical: 4, elevation: 1 },
   topicInnerRow: { marginBottom: 0, borderBottomWidth: 0 },
   topicInnerRowContent: { paddingVertical: 10, paddingHorizontal: 6, paddingLeft: 12 },
-  topicLabel: { fontSize: 14, color: '#4b5563', paddingVertical: 0, lineHeight: 20 },
-  separator: { height: 1, backgroundColor: '#e5e7eb', marginVertical: 10 },
+  topicLabel: { fontSize: 14, paddingVertical: 0, lineHeight: 20 },
+  separator: { height: 1, marginVertical: 10 },
   topicRowContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   topicRow: { flex: 1 },
   chevButton: { padding: 6 },
