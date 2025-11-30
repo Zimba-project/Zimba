@@ -19,6 +19,8 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Simple alias that auto-switches via CSS variables set by Gluestack provider
+        primary: 'rgb(var(--color-primary)/<alpha-value>)',
         primary: {
           0: 'rgb(var(--color-primary-0)/<alpha-value>)',
           50: 'rgb(var(--color-primary-50)/<alpha-value>)',

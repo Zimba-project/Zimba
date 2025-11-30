@@ -5,8 +5,8 @@ import { NavigationContainer, createNavigationContainerRef } from '@react-naviga
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
+import { ThemeProvider, useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import '@/global.css';
-import { useColorMode } from '@gluestack-style/react';
 
 import MainScreen from './screens/MainScreen';
 import Login from './screens/Login';
@@ -35,7 +35,18 @@ export default function App() {
   }
 
   return (
-    <GluestackUIProvider>
+    <ThemeProvider>
+      <InnerApp />
+    </ThemeProvider>
+  );
+}
+
+function InnerApp() {
+  const initialRoute = useInitialRoute();
+  const { theme } = useTheme();
+
+  return (
+    <GluestackUIProvider mode={theme}>
       <SafeAreaProvider>
         <NavigationContainer ref={navigationRef}>
           <Stack.Navigator

@@ -11,7 +11,7 @@ import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { Box } from '@/components/ui/box';
 import { Switch } from '@/components/ui/switch';
-import { useColorMode, useColorModeValue } from '@gluestack-ui/themed';
+import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 
 
 // Placeholder-screenit (Pitää korvata oikeilla sitte)
@@ -23,14 +23,14 @@ function CustomDrawerContent(props) {
   const { navigation } = props;
   const topics = Object.keys(TOPIC_COLORS || {});
   const [topicsOpen, setTopicsOpen] = React.useState(false);
-  const { colorMode, toggleColorMode } = useColorMode();
+  const { theme, setTheme } = useTheme();
 
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={styles.content}>
 
       {/* Topics collapsible */}
       <Box style={styles.drawerItem}>
-        
+
         <TouchableOpacity style={styles.drawerRow} activeOpacity={0.7} onPress={() => setTopicsOpen(s => !s)}>
           <Box style={styles.drawerRow}>
             <Ionicons name="list-outline" size={20} color="#374151" />
@@ -48,7 +48,7 @@ function CustomDrawerContent(props) {
             rounded="md"
             shadow="1"
           >
-            {topics.map((t) => ( 
+            {topics.map((t) => (
               <TouchableOpacity
                 key={t}
                 style={styles.topicInnerRow}
@@ -93,17 +93,10 @@ function CustomDrawerContent(props) {
 
         <Switch
           size="md"
-          isChecked={colorMode === 'dark'}
-          onToggle={toggleColorMode}
-        
+          value={theme === 'dark'}
+          onValueChange={(val) => setTheme(val ? 'dark' : 'light')}
         />
       </Box>
-
-      {/* TestButton, only shows console log */}
-      <Button style={{ marginTop: 20 }} onPress={() => console.log('Gluestack Button Pressed')}>
-        <ButtonText>Example Button</ButtonText>
-      </Button>
-     
 
     </DrawerContentScrollView>
   );
@@ -157,16 +150,16 @@ export default function Sidebar({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' }, 
+  container: { flex: 1, backgroundColor: '#f9fafb' },
   content: { padding: 16 },
 
   heading: { fontSize: 18, fontWeight: '700', marginBottom: 12, color: '#1f2937' },
 
-  drawerItem: { paddingVertical: 12, paddingHorizontal: 4, borderRadius: 8 }, 
+  drawerItem: { paddingVertical: 12, paddingHorizontal: 4, borderRadius: 8 },
   drawerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   drawerLabel: { marginLeft: 8, fontSize: 16, color: '#1f2937', fontWeight: '500' },
-  topicsList: { marginTop: 8, paddingLeft: 12, backgroundColor: '#ffffff', borderRadius: 6, paddingVertical: 4, elevation: 1 }, 
-  topicInnerRow: { marginBottom: 0, borderBottomWidth: 0 }, 
+  topicsList: { marginTop: 8, paddingLeft: 12, backgroundColor: '#ffffff', borderRadius: 6, paddingVertical: 4, elevation: 1 },
+  topicInnerRow: { marginBottom: 0, borderBottomWidth: 0 },
   topicInnerRowContent: { paddingVertical: 10, paddingHorizontal: 6, paddingLeft: 12 },
   topicLabel: { fontSize: 14, color: '#4b5563', paddingVertical: 0, lineHeight: 20 },
   separator: { height: 1, backgroundColor: '#e5e7eb', marginVertical: 10 },

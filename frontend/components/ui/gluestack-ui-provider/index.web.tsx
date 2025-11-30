@@ -4,6 +4,7 @@ import { config } from './config';
 import { OverlayProvider } from '@gluestack-ui/core/overlay/creator';
 import { ToastProvider } from '@gluestack-ui/core/toast/creator';
 import { setFlushStyles } from '@gluestack-ui/utils/nativewind-utils';
+import { GluestackUIProvider as StyledProvider } from '@gluestack-ui/themed';
 import { script } from './script';
 
 export type ModeType = 'light' | 'dark' | 'system';
@@ -88,9 +89,11 @@ export function GluestackUIProvider({
           __html: `(${script.toString()})('${mode}')`,
         }}
       />
-      <OverlayProvider>
-        <ToastProvider>{props.children}</ToastProvider>
-      </OverlayProvider>
+      <StyledProvider colorMode={mode}>
+        <OverlayProvider>
+          <ToastProvider>{props.children}</ToastProvider>
+        </OverlayProvider>
+      </StyledProvider>
     </>
   );
 }

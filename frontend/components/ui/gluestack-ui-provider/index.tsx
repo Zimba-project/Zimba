@@ -15,24 +15,29 @@ export function GluestackUIProvider({
   children?: React.ReactNode;
   style?: ViewProps['style'];
 }) {
-  const { colorScheme, setColorScheme } = useColorScheme();
+  const { setColorScheme } = useColorScheme();
 
   useEffect(() => {
     setColorScheme(mode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
+  // Use mode prop directly to apply config variables
+  const activeMode = mode === 'system' ? 'light' : mode;
+
   return (
     <View
       style={[
-        config[colorScheme!],
+        config[activeMode],
         { flex: 1, height: '100%', width: '100%' },
         props.style,
       ]}
     >
-      <OverlayProvider>
-        <ToastProvider>{props.children}</ToastProvider>
-      </OverlayProvider>
+      <StyledProvider colorMode={mode}>
+        <OverlayProvider>
+          <ToastProvider>{props.children}</ToastProvider>
+        </OverlayProvider>
+      </StyledProvider>
     </View>
   );
 }

@@ -14,7 +14,7 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
 
     <HStack
       className={`
-        absolute bottom-0 justify-around items-center w-full px-12 bg-white shadow-xl
+        absolute bottom-0 justify-around items-center w-full px-12 shadow-xl bg-background-0
         ${Platform.OS === 'ios' ? 'h-24 pb-6' : 'h-16'}
       `}
       style={{ elevation: 15 }}
@@ -53,8 +53,8 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
         };
 
 
-        const activeColor = 'text-black';
-        const inactiveColor = 'text-gray-500';
+        const activeColor = 'text-typography-900';
+        const inactiveColor = 'text-typography-500';
 
         return (
           <Pressable

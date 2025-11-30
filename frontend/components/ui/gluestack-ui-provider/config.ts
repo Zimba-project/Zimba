@@ -3,6 +3,8 @@ import { vars } from 'nativewind';
 
 export const config = {
   light: vars({
+    // Primary alias for simple usage
+    '--color-primary': '51 51 51',
     '--color-primary-0': '179 179 179',
     '--color-primary-50': '153 153 153',
     '--color-primary-100': '128 128 128',
@@ -155,6 +157,8 @@ export const config = {
     '--color-indicator-error': '185 28 28',
   }),
   dark: vars({
+    // Primary alias for simple usage
+    '--color-primary': '240 240 240',
     '--color-primary-0': '166 166 166',
     '--color-primary-50': '175 175 175',
     '--color-primary-100': '186 186 186',
