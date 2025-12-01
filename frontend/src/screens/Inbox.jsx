@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { getInitials } from '../utils/GetInitials';
 import useCurrentUser from '../utils/GetUser';
 
@@ -10,7 +14,8 @@ const dummyConversations = [
   { id: '3', name: 'Charlie Clark', lastMessage: 'Let’s catch up tomorrow!' },
 ];
 
-export default function InboxScreen({ navigation }) {
+export default function InboxScreen() {
+  const navigation = useNavigation();
   const [conversations, setConversations] = useState([]);
   const [inboxLoading, setInboxLoading] = useState(true);   // ⬅️ NEW
   const { user, loading: userLoading } = useCurrentUser();
@@ -18,7 +23,7 @@ export default function InboxScreen({ navigation }) {
   useEffect(() => {
     // simulate fetch delay
     const timer = setTimeout(() => {
-      setConversations(dummyConversations); 
+      setConversations(dummyConversations);
       setInboxLoading(false);              // ⬅️ loading finished
     }, 1000);
 
@@ -26,84 +31,80 @@ export default function InboxScreen({ navigation }) {
   }, []);
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity
+    <Pressable
       style={styles.row}
+      className="border-b border-outline-200"
       onPress={() => navigation.navigate('Chat', { chatWith: item.name })}
     >
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{getInitials(item.name)}</Text>
-      </View>
+      <Box style={styles.avatar} className="bg-primary-600">
+        <Text className="text-typography-0 font-bold">{getInitials(item.name)}</Text>
+      </Box>
 
-      <View style={styles.messageContent}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.lastMessage} numberOfLines={1}>
+      <Box style={styles.messageContent}>
+        <Text className="text-base text-typography-900 font-semibold">{item.name}</Text>
+        <Text className="text-typography-700 mt-0.5" numberOfLines={1}>
           {item.lastMessage}
         </Text>
-      </View>
+      </Box>
 
       <Ionicons name="chevron-forward" size={20} color="#6b7280" />
-    </TouchableOpacity>
+    </Pressable>
   );
 
   // User loading
   if (userLoading) {
     return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#6366f1" />
-      </View>
+      <Box className="flex-1 bg-background-0 justify-center items-center">
+        <ActivityIndicator size="large" />
+      </Box>
     );
   }
 
   // No user logged in
   if (!user) {
     return (
-      <View style={styles.empty}>
-        <Text style={styles.emptyText}>You need to be logged in to see your messages.</Text>
-      </View>
+      <Box className="flex-1 bg-background-0 justify-center items-center p-5">
+        <Text className="text-base text-typography-700 text-center mb-2.5">
+          You need to be logged in to see your messages.
+        </Text>
+      </Box>
     );
   }
 
   // Conversations loading
   if (inboxLoading) {
     return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#6366f1" />
-        <Text style={{ marginTop: 10, color: '#6b7280' }}>Loading your inbox...</Text>
-      </View>
+      <Box className="flex-1 bg-background-0 justify-center items-center">
+        <ActivityIndicator size="large" />
+        <Text className="text-typography-700 mt-2.5">Loading your inbox...</Text>
+      </Box>
     );
   }
 
   // If loaded but empty
   if (conversations.length === 0) {
     return (
-      <View style={styles.empty}>
-        <Text style={styles.emptyText}>No messages yet</Text>
-      </View>
+      <Box className="flex-1 bg-background-0 justify-center items-center p-5">
+        <Text className="text-base text-typography-700 text-center mb-2.5">No messages yet</Text>
+      </Box>
     );
   }
 
   // Loaded + has conversations
   return (
-    <View style={styles.container}>
+    <Box className="flex-1 bg-background-0">
       <FlatList
         data={conversations}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={{ paddingBottom: 20 }}
       />
-    </View>
+    </Box>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  row: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
-  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#6366f1', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  avatarText: { color: '#fff', fontWeight: '700' },
+  row: { flexDirection: 'row', alignItems: 'center', padding: 16 },
+  avatar: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   messageContent: { flex: 1 },
-  name: { fontWeight: '600', fontSize: 16, color: '#111827' },
-  lastMessage: { color: '#6b7280', marginTop: 2 },
-  empty: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  emptyText: { color: '#6b7280', fontSize: 16, textAlign: 'center', marginBottom: 10 },
 });

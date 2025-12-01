@@ -33,7 +33,7 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
           IconComponent = isFocused ? HomeIcon : HomeIcon;
         } else if (route.name === 'NewPost') {
           IconComponent = PlusSquare;
-        } else if (route.name === 'Chat') {
+        } else if (route.name === 'MessagesTab') {
           IconComponent = MessageCircle;
         } else {
 

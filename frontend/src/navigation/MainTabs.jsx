@@ -30,7 +30,7 @@ export default function AppNavigator() {
         options={{ tabBarLabel: 'Uusi' }}
       />
       <Tab.Screen
-        name="Chat"
+        name="MessagesTab"
         component={Inbox}
         options={{ tabBarLabel: 'Viestit' }}
       />

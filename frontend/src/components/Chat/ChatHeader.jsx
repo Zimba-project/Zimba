@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Modal, Pressable } from 'react-native';
+import { Image, StyleSheet, Modal, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable as GluestackPressable } from '@/components/ui/pressable';
 import { Ionicons } from '@expo/vector-icons';
 import { getInitials } from '../../utils/GetInitials';
 
 export default function ChatHeader({ navigation, chatWith, avatarUrl }) {
   const [menuVisible, setMenuVisible] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const handleMenuOption = (option) => {
     setMenuVisible(false);
@@ -12,24 +17,30 @@ export default function ChatHeader({ navigation, chatWith, avatarUrl }) {
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+    <Box
+      style={[
+        styles.container,
+        { paddingTop: insets.top, height: 56 + insets.top },
+      ]}
+      className="bg-background-0 border-b border-outline-200"
+    >
+      <GluestackPressable onPress={() => navigation.goBack()} style={styles.backBtn}>
         <Ionicons name="chevron-back" size={28} color="#111" />
-      </TouchableOpacity>
+      </GluestackPressable>
 
       {avatarUrl ? (
         <Image source={{ uri: avatarUrl }} style={styles.avatar} />
       ) : (
-        <View style={styles.avatarPlaceholder}>
-          <Text style={styles.avatarText}>{getInitials(chatWith)}</Text>
-        </View>
+        <Box style={styles.avatarPlaceholder} className="bg-primary-600">
+          <Text className="text-typography-0 font-bold">{getInitials(chatWith)}</Text>
+        </Box>
       )}
 
-      <Text style={styles.name}>Chat</Text>
+      <Text className="text-base text-typography-900 font-semibold ml-2 flex-1">Chat</Text>
 
-      <TouchableOpacity onPress={() => setMenuVisible(true)} style={styles.menuBtn}>
+      <GluestackPressable onPress={() => setMenuVisible(true)} style={styles.menuBtn}>
         <Ionicons name="ellipsis-vertical" size={22} color="#111" />
-      </TouchableOpacity>
+      </GluestackPressable>
 
       <Modal
         transparent
@@ -38,28 +49,23 @@ export default function ChatHeader({ navigation, chatWith, avatarUrl }) {
         onRequestClose={() => setMenuVisible(false)}
       >
         <Pressable style={styles.overlay} onPress={() => setMenuVisible(false)}>
-          <View style={styles.menu}>
+          <Box style={styles.menu} className="bg-background-0">
             {['Mute Notifications', 'Report', 'Block User'].map((opt) => (
-              <TouchableOpacity key={opt} style={styles.menuItem} onPress={() => handleMenuOption(opt)}>
-                <Text style={styles.menuText}>{opt}</Text>
-              </TouchableOpacity>
+              <GluestackPressable key={opt} style={styles.menuItem} onPress={() => handleMenuOption(opt)}>
+                <Text className="text-sm text-typography-900">{opt}</Text>
+              </GluestackPressable>
             ))}
-          </View>
+          </Box>
         </Pressable>
       </Modal>
-    </View>
+    </Box>
   );
 }
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 80, // increased height to accommodate extra padding
     paddingHorizontal: 10,
-    paddingTop: 20, // <- added top padding
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   backBtn: { padding: 4 },
   avatar: { width: 36, height: 36, borderRadius: 18, marginLeft: 8 },
@@ -68,23 +74,18 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 18,
     marginLeft: 8,
-    backgroundColor: '#6366f1',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  avatarText: { color: '#fff', fontWeight: '700' },
-  name: { fontWeight: '600', fontSize: 16, marginLeft: 8, flex: 1 },
   menuBtn: { padding: 6 },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.2)' },
   menu: {
     position: 'absolute',
-    top: 70, // adjusted to match new container height
+    top: 70,
     right: 10,
-    backgroundColor: '#fff',
     borderRadius: 8,
     paddingVertical: 4,
     elevation: 5,
   },
   menuItem: { paddingHorizontal: 12, paddingVertical: 10 },
-  menuText: { fontSize: 14, color: '#111' },
 });
