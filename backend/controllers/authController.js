@@ -52,11 +52,7 @@ exports.register = async (req, res) => {
     const user = userResult.rows[0];
 
     // Create verification token
-    const vToken = jwt.sign(
-      { type: "verify_email", userId: user.id },
-      JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+    const vToken = jwt.sign({ type: 'verify_email', userId: user.id }, JWT_SECRET, { expiresIn: '1d' });
 
     const verifyUrl = `${BACKEND_URL}/api/auth/verify-email?token=${vToken}`;
 
@@ -69,8 +65,6 @@ exports.register = async (req, res) => {
           <p>Hello ${firstName},</p>
           <p>Click below to verify your email:</p>
           <a href="${verifyUrl}">Verify Email</a>
-          <p>Or copy this link:</p>
-          <p>${verifyUrl}</p>
         `
       });
     } catch (e) {
