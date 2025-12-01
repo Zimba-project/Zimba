@@ -1,7 +1,7 @@
 const pgPool = require('../database/pg_connection');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const sendEmail = require('../lib/mailer');
+const sendMail = require('../lib/mailer');
 
 // ENV
 const SALT_ROUNDS = parseInt(process.env.BCRYPT_SALT_ROUNDS || "12");
@@ -62,7 +62,7 @@ exports.register = async (req, res) => {
 
     // Send verification email
     try {
-      await sendEmail({
+      await sendMail({
         to: email,
         subject: "Verify your Zimba account",
         html: `
