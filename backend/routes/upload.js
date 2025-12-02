@@ -27,6 +27,22 @@ const upload = multer({
   }
 });
 
+// POST /api/upload 
+router.post('/', upload.single('file'), async (req, res) => { 
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    const ext = path.extname(req.file.originalname) || '.jpg';
+    const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+    const filepath = path.join(uploadFolder, filename);
+    fs.writeFileSync(filepath, req.file.buffer);
+    const url = `/uploads/${filename}`;
+    res.json({ url });
+  } catch (err) {
+    console.error('Upload error:', err);
+    res.status(500).json({ error: 'Failed to upload file' });
+  }
+});
+
 // POST /api/upload/avatar
 router.post('/avatar', authMiddleware, upload.single('file'), async (req, res) => {
   try {
