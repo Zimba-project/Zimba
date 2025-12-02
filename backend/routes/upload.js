@@ -32,9 +32,9 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
     const url = `/uploads/${req.file.filename}`;
-    const userId = req.user.id; 
-    const query = 'UPDATE users SET avatar = ? WHERE id = ?';
-    
+    const userId = req.userId;
+
+    const query = 'UPDATE users SET avatar = $1 WHERE id = $2';
     await pgPool.query(query, [url, userId]);
 
     res.json({ url });
@@ -43,5 +43,6 @@ router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
     res.status(500).json({ error: 'Failed to upload image' });
   }
 });
+
 
 module.exports = router;
