@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, Text, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, FlatList, StyleSheet, Text, TouchableOpacity, ActivityIndicator, StatusBar } from 'react-native';
 import InfoBoard from '../components/MainPage/InfoBoard';
 import PollCard from '../components/Cards/PollCard';
 import DiscussionCard from '../components/Cards/DiscussionCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAllPosts } from '../api/postService';
 import { FilterBar } from '../components/MainPage/FilterBar';
+import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
+import { getTheme } from '../utils/theme';
 
-const FILTER_MAP = {Discussions: 'discussion', Polls: 'poll',};
+const FILTER_MAP = { Discussions: 'discussion', Polls: 'poll' };
 
-export default function MainScreen ({ navigation, route }) {
+export default function MainScreen({ navigation, route }) {
+    const { theme } = useTheme();
+    const t = getTheme(theme);
+
     const [allPosts, setAllPosts] = useState([]);
     const [feed, setFeed] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -23,7 +28,7 @@ export default function MainScreen ({ navigation, route }) {
             else setLoading(true);
             setError(null);
             const posts = await getAllPosts();
-            setAllPosts(posts);        
+            setAllPosts(posts);
         } catch (err) {
             console.error("Error fetching posts:", err.message);
             setError("Unable to fetch posts. Check your network or server.");
@@ -32,12 +37,12 @@ export default function MainScreen ({ navigation, route }) {
             else setLoading(false);
         }
     };
-    
+
     useEffect(() => {
-    fetchPosts();
+        fetchPosts();
     }, []);
 
-   useEffect(() => {
+    useEffect(() => {
         if (!allPosts.length) return;
         const filtered = selectedFilter === "All" ? allPosts : allPosts.filter((p) => p.type === FILTER_MAP[selectedFilter]);
         setFeed(filtered);
@@ -47,18 +52,18 @@ export default function MainScreen ({ navigation, route }) {
 
     if (loading) {
         return (
-            <SafeAreaView style={styles.centered}>
-                <ActivityIndicator size="large" color="#6366f1" />
-                <Text style={styles.loadingText}>Loading posts...</Text>
+            <SafeAreaView style={[styles.centered, { backgroundColor: t.background }]}>
+                <ActivityIndicator size="large" color={t.accent} />
+                <Text style={[styles.loadingText, { color: t.secondaryText }]}>Loading posts...</Text>
             </SafeAreaView>
         );
     }
 
     if (error) {
         return (
-            <SafeAreaView style={styles.centered}>
-                <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity style={styles.retryButton} onPress={() => fetchPosts()}>
+            <SafeAreaView style={[styles.centered, { backgroundColor: t.background }]}>
+                <Text style={[styles.errorText, { color: t.error }]}>{error}</Text>
+                <TouchableOpacity style={[styles.retryButton, { backgroundColor: t.accent }]} onPress={() => fetchPosts()}>
                     <Text style={styles.retryText}>Retry</Text>
                 </TouchableOpacity>
             </SafeAreaView>
@@ -66,45 +71,43 @@ export default function MainScreen ({ navigation, route }) {
     }
 
     return (
-        <SafeAreaView style={styles.container} edges={["bottom"]}>
-            <FlatList
-                data={feed}
-                keyExtractor={(item, index) => `${item.type}-${item.id}-${index}`}
-                renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => navigation.navigate("PostDetails", { postId: item.id })}>
-                        {item.type === "poll" ? (
-                        <PollCard {...item} />
+            <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={["left", "right"]}>
+                <FlatList
+                    data={feed}
+                    keyExtractor={(item, index) => `${item.type}-${item.id}-${index}`}
+                    renderItem={({ item }) => (
+                        <TouchableOpacity onPress={() => navigation.navigate("PostDetails", { postId: item.id })}>
+                            {item.type === "poll" ? (
+                                <PollCard {...item} theme={theme} />
                             ) : (
-                        <DiscussionCard {...item} />
+                                <DiscussionCard {...item} theme={theme} />
                             )}
-                    </TouchableOpacity>
-                )}
-                
-                showsVerticalScrollIndicator={false}
-                ListHeaderComponent={() => (
-                    
-                    <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                            <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>Upcoming in your area</Text>
-                            <TouchableOpacity onPress={() => alert('Show all upcoming changes')}>
-                                <Text style={{ color: '#6366f1', fontWeight: '600' }}>See all</Text>
-                            </TouchableOpacity>
-                        </View>
+                        </TouchableOpacity>
+                    )}
+                    showsVerticalScrollIndicator={false}
+                    ListHeaderComponent={() => (
+                        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                <Text style={{ fontSize: 18, fontWeight: '700', color: t.text }}>Upcoming in your area</Text>
+                                <TouchableOpacity onPress={() => alert('Show all upcoming changes')}>
+                                    <Text style={{ color: t.accent, fontWeight: '600' }}>See all</Text>
+                                </TouchableOpacity>
+                            </View>
 
-                        <InfoBoard
-                            items={infoItems}
-                            onCardPress={(it) => alert(`Info: ${it.title}`)}
-                        />
-                        <FilterBar selectedFilter={selectedFilter} setSelectedFilter={setSelectedFilter} />
-                    </View>
-                )}
-                contentContainerStyle={{ paddingBottom: 24 }}
-                onRefresh={handleRefresh}           
-                refreshing={refreshing}            
-            />
-        </SafeAreaView>
+                            <InfoBoard
+                                items={infoItems}
+                                onCardPress={(it) => alert(`Info: ${it.title}`)}
+                                theme={theme}
+                            />
+                            <FilterBar selectedFilter={selectedFilter} setSelectedFilter={setSelectedFilter} theme={theme} />
+                        </View>
+                    )}
+                    onRefresh={handleRefresh}
+                    refreshing={refreshing}
+                />
+            </SafeAreaView>
     );
-};
+}
 
 const infoItems = [
     {
@@ -112,29 +115,29 @@ const infoItems = [
         title: 'Traffic arrangements in downtown (wk 45)',
         subtitle: 'Road and cable works in the city center — expect detours and temporary closures.',
         image: 'https://unsplash.com/photos/HCDmcskE_Zk/download?force=true&w=800',
-        background: '#fffaf0',
+      
     },
     {
         id: 'i2',
         title: 'City park renovation begins',
         subtitle: 'Park renovation starts next month: walking paths will be adjusted and the playground renewed.',
         image: 'https://unsplash.com/photos/GjnpGl9KYL4/download?force=true&w=800',
-        background: '#f9fafb',
+     
     },
     {
         id: 'i3',
         title: 'Public transport timetable changes',
         subtitle: 'New bus schedules take effect on Monday — check routes in the app.',
         image: 'https://unsplash.com/photos/CI3UhW7AaZE/download?force=true&w=800',
-        background: '#fff7ed',
+      
     },
 ];
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f9fafb' },
-    centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb' },
-    loadingText: { marginTop: 8, fontSize: 16, color: '#555' },
-    errorText: { color: '#b91c1c', fontSize: 16, textAlign: 'center', marginBottom: 12, paddingHorizontal: 16 },
-    retryButton: { backgroundColor: '#6366f1', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 },
+    container: { flex: 1 },
+    centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    loadingText: { marginTop: 8, fontSize: 16 },
+    errorText: { fontSize: 16, textAlign: 'center', marginBottom: 12, paddingHorizontal: 16 },
+    retryButton: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 },
     retryText: { color: '#fff', fontWeight: '600' },
 });

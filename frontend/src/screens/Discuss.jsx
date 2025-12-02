@@ -19,6 +19,8 @@ import StatsBar from '../components/Cards/StatsBar';
 import useCurrentUser from '../utils/GetUser';
 import { getPostComments, addPostComment } from '../api/postService';
 import { normalizeUrl, normalizeAvatarUrl } from '../utils/urlHelper';
+import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
+import { getTheme } from '../utils/theme';
 
 export default function DiscussScreen() {
   const route = useRoute();
@@ -32,6 +34,9 @@ export default function DiscussScreen() {
   const [commentText, setCommentText] = useState('');
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
+
+  const { theme } = useTheme();
+  const t = getTheme(theme);
 
   useEffect(() => {
     if (postId) fetchComments();
@@ -80,8 +85,8 @@ export default function DiscussScreen() {
 
   if (!postData) {
     return (
-      <SafeAreaView style={[styles.center, { paddingTop: insets.top }]}>
-        <Text>No discuss data available</Text>
+      <SafeAreaView style={[styles.center, { paddingTop: insets.top, backgroundColor: t.background }]}>
+        <Text style={{ color: t.text }}>No discuss data available</Text>
       </SafeAreaView>
     );
   }
@@ -97,12 +102,11 @@ export default function DiscussScreen() {
     topic,
   } = postData;
 
-
   const imageUrl = normalizeUrl(image);
   const avatarUrl = normalizeAvatarUrl(author_avatar);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
       <ScrollView>
         <CardHeader
           author={{ avatar: avatarUrl, name: author_name, time: created_at }}
@@ -112,20 +116,24 @@ export default function DiscussScreen() {
         {imageUrl && <Image source={{ uri: imageUrl }} style={styles.image} />}
 
         <View style={styles.body}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.description}>{description}</Text>
+          <Text style={[styles.title, { color: t.text }]}>{title}</Text>
+          <Text style={[styles.description, { color: t.secondaryText }]}>{description}</Text>
           <StatsBar comments={commentsList.length} views={views} />
 
           {/* Add Comment */}
-          <View style={styles.commentInputContainer}>
+          <View style={[styles.commentInputContainer, { borderTopColor: t.inputBorder }]}>
             <TextInput
-              style={styles.commentInput}
+              style={[
+                styles.commentInput,
+                { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text },
+              ]}
               placeholder="Write a comment..."
+              placeholderTextColor={t.placeholder}
               value={commentText}
               onChangeText={setCommentText}
             />
             <TouchableOpacity
-              style={styles.commentButton}
+              style={[styles.commentButton, { backgroundColor: t.accent }]}
               onPress={handleAddComment}
               disabled={posting}
             >
@@ -137,17 +145,17 @@ export default function DiscussScreen() {
 
           {/* Comments */}
           {loading ? (
-            <ActivityIndicator style={{ marginTop: 20 }} color="#6366f1" />
+            <ActivityIndicator style={{ marginTop: 20 }} color={t.accent} />
           ) : (
             <FlatList
               data={commentsList}
               keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }) => (
-                <View style={styles.commentContainer}>
-                  <Text style={styles.commentAuthor}>
+                <View style={[styles.commentContainer, { borderBottomColor: t.inputBorder }]}>
+                  <Text style={[styles.commentAuthor, { color: t.text }]}>
                     {item.author_name || 'Unknown'}
                   </Text>
-                  <Text style={styles.commentText}>{item.text}</Text>
+                  <Text style={[styles.commentText, { color: t.secondaryText }]}>{item.text}</Text>
                 </View>
               )}
               scrollEnabled={false}
@@ -161,31 +169,32 @@ export default function DiscussScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   image: { width: '100%', height: 250 },
-  body: { padding: 16 },
-  title: { fontSize: 22, fontWeight: '700', marginBottom: 12, color: '#111' },
-  description: { fontSize: 16, color: '#555', lineHeight: 22 },
+  title: { fontSize: 22, fontWeight: '700', marginBottom: 12 },
+  body: {
+  paddingHorizontal: 16,
+  paddingBottom: 16,
+  marginBottom: 40,
+  },
+  description: { fontSize: 16, lineHeight: 22 },
   commentInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 20,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
     paddingTop: 12,
   },
   commentInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#d1d5db',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginRight: 8,
   },
   commentButton: {
-    backgroundColor: '#6366f1',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -194,8 +203,7 @@ const styles = StyleSheet.create({
   commentContainer: {
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   commentAuthor: { fontWeight: '700', marginBottom: 2 },
-  commentText: { fontSize: 15, color: '#111' },
+  commentText: { fontSize: 15 },
 });

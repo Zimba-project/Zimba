@@ -3,10 +3,15 @@ import { View, TouchableOpacity, Text, Keyboard, Platform, StyleSheet } from 're
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
+import { getTheme } from '../utils/theme';
 
 export const EndTimePicker = ({ endTime, setEndTime }) => {
   const [showPicker, setShowPicker] = useState(false);
-  const [pickerMode, setPickerMode] = useState('date');
+  const [pickerMode, setPickerMode] = useState('date'); // ✅ no type annotation
+
+  const { theme } = useTheme();
+  const t = getTheme(theme);
 
   const handlePress = () => {
     Keyboard.dismiss();
@@ -60,14 +65,20 @@ export const EndTimePicker = ({ endTime, setEndTime }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>End Time</Text>
-      <TouchableOpacity style={styles.timeBox} onPress={handlePress}>
-        <Text style={styles.timeText}>
+      <Text style={[styles.label, { color: t.text }]}>End Time</Text>
+      <TouchableOpacity
+        style={[
+          styles.timeBox,
+          { backgroundColor: t.cardBackground, borderColor: t.secondaryText },
+        ]}
+        onPress={handlePress}
+      >
+        <Text style={[styles.timeText, { color: t.text }]}>
           {endTime ? format(endTime, 'PPPp') : 'Select date and time'}
         </Text>
         {endTime && (
           <TouchableOpacity onPress={() => setEndTime(null)} style={styles.clearIcon}>
-            <Ionicons name="close-circle" size={18} color="#dc2626" />
+            <Ionicons name="close-circle" size={18} color={t.error || '#dc2626'} />
           </TouchableOpacity>
         )}
       </TouchableOpacity>
@@ -78,6 +89,7 @@ export const EndTimePicker = ({ endTime, setEndTime }) => {
           mode={pickerMode}
           display="default"
           onChange={handleChange}
+          themeVariant={theme === 'dark' ? 'dark' : 'light'}
         />
       )}
     </View>
@@ -92,20 +104,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
     marginBottom: 6,
-    color: '#111',
   },
   timeBox: {
-    backgroundColor: '#fff',
     borderRadius: 10,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   timeText: {
-    color: '#111',
     fontSize: 15,
     flex: 1,
   },

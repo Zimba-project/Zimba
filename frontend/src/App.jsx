@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StatusBar } from 'expo-status-bar';
+import React, { useState, useEffect} from 'react';
+import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -18,35 +18,39 @@ import Welcome from './screens/Welcome';
 import Splash from './screens/SplashScreen';
 import { HeaderForStack } from './navigation/TopBar';
 import useInitialRoute from './utils/InitialRoute';
-
+import * as NavigationBar from 'expo-navigation-bar';
+import { config } from '@/components/ui/gluestack-ui-provider/config'; 
+import { ThemeProvider, useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
+import { getTheme } from './utils/theme';
 import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 import '@/global.css';
-import { useColorMode } from '@gluestack-style/react';
 
-// navigation ref so headers/components can dispatch drawer actions
 export const navigationRef = createNavigationContainerRef();
 const Stack = createNativeStackNavigator();
 
-export default function App() {
+const RootApp = () => {
+  const { theme } = useTheme();
+  const t = getTheme(theme);
   const [ready, setReady] = useState(false);
   const initialRoute = useInitialRoute();
+
+  useEffect(() => {
+    NavigationBar.setButtonStyleAsync(theme === 'dark' ? 'light' : 'dark');
+  }, [theme]);
 
   if (!initialRoute || !ready) {
     return <Splash onFinish={() => setReady(true)} />;
   }
-
+  
   return (
-  <GluestackUIProvider>
+   <GluestackUIProvider config={config} colorMode={theme}> 
     <SafeAreaProvider>
       <NavigationContainer ref={navigationRef}>
-        <Stack.Navigator
-          initialRouteName={initialRoute}
-          screenOptions={{ header: (props) => <HeaderForStack {...props} /> }}
-        >
+        <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ header: (props) => <HeaderForStack {...props} /> }}>
           <Stack.Screen name="Welcome" component={Welcome} options={{ headerShown: false }} />
           <Stack.Screen name="Main" component={Sidebar} options={{ title: 'ZIMBA', headerBackVisible: false }} />
-          <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
-          <Stack.Screen name="Register" component={Register} options={{ headerShown: false }} />
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Register" component={Register} />
           <Stack.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
           <Stack.Screen name="Discuss" component={Discuss} />
           <Stack.Screen name="Poll" component={Poll} />
@@ -55,8 +59,16 @@ export default function App() {
           <Stack.Screen name="Chat" component={Chat} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
-      <StatusBar style="auto" />
+      <StatusBar barStyle={t.statusBarStyle} backgroundColor={t.background} />
     </SafeAreaProvider>
   </GluestackUIProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <RootApp />
+    </ThemeProvider>
   );
 }

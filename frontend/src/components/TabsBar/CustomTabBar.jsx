@@ -7,15 +7,17 @@ import { VStack } from '@/components/ui/vstack';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const CustomTabBar = ({ state, descriptors, navigation }) => {
+const CustomTabBar = ({ state, navigation, theme }) => {
   const insets = useSafeAreaInsets();
 
-  return (
+    return (
     <HStack
-      className="absolute bottom-0 justify-around items-center w-full px-12 bg-white shadow-xl"
       style={{
         paddingBottom: insets.bottom,
         height: Platform.OS === 'ios' ? 24 + insets.bottom : 45 + insets.bottom,
+        backgroundColor: theme.background, // <-- dynamic
+        justifyContent: 'space-around',
+        alignItems: 'center',
       }}
     >
       {state.routes.map((route, index) => {
@@ -28,38 +30,17 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
         else if (route.name === 'Profile') iconName = isFocused ? 'person' : 'person-outline';
         else return null;
 
-        const onPress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
-          });
-
-          if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
-          }
-        };
-
-        const onLongPress = () => {
-          navigation.emit({
-            type: 'tabLongPress',
-            target: route.key,
-          });
-        };
-
         return (
           <Pressable
             key={route.key}
-            onPress={onPress}
-            onLongPress={onLongPress}
-            style={{ flex: 1, alignItems: 'center' }}
-            className="pt-1"
+            onPress={() => navigation.navigate(route.name)}
+            style={{ flex: 1, alignItems: 'center', paddingTop: 5 }}
           >
             <VStack className="items-center justify-center">
               <Ionicons
                 name={iconName}
                 size={28}
-                color={isFocused ? '#6366f1' : '#6b7280'}
+                color={isFocused ? theme.accent : theme.secondaryText} // <-- dynamic
               />
             </VStack>
           </Pressable>

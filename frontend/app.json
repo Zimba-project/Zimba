@@ -1,7 +1,6 @@
 {
   "expo": {
     "name": "Zimba",
-    "slug": "zimbaApp",
     "version": "1.0.0",
     "scheme": "zimbaapp",
     "orientation": "portrait",

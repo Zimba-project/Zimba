@@ -8,19 +8,23 @@ import MainScreen from '../screens/MainScreen';
 import CreatePostScreen from '../screens/CreatePost';
 import Inbox from '../screens/Inbox';
 import CustomTabBar from '../components/TabsBar/CustomTabBar';
+import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
+import { getTheme } from '../utils/theme';
 
 const Tab = createBottomTabNavigator();
 
 export default function AppNavigator() {
   const insets = useSafeAreaInsets();
-  
+  const { theme } = useTheme(); // get current theme
+  const t = getTheme(theme); // get theme colors
+
   return (
     <Tab.Navigator
-        screenOptions={{
+      screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,
-        tabBarActiveTintColor: '#6366f1',
-        tabBarInactiveTintColor: '#9ca3af',
+        tabBarActiveTintColor: t.accent,
+        tabBarInactiveTintColor: t.secondaryText,
         tabBarLabelStyle: {
           fontSize: 12,
           marginBottom: Platform.OS === 'ios' ? 0 : 5,
@@ -31,10 +35,10 @@ export default function AppNavigator() {
           paddingTop: 5,
           borderTopWidth: 0,
           elevation: 10,
-          backgroundColor: '#ffffff',
+          backgroundColor: t.background,
         },
       }}
-      tabBar={(props) => <CustomTabBar {...props} />}
+      tabBar={(props) => <CustomTabBar {...props} theme={t} />}
     >
 
       {/* Home */}
@@ -42,7 +46,7 @@ export default function AppNavigator() {
         name="Main"
         component={MainScreen}
         options={{
-          tabBarIcon: ({ focused, color, size }) => (
+          tabBarIcon: ({ focused, color }) => (
             <View style={styles.iconContainer}>
               <Ionicons
                 name={focused ? 'home' : 'home-outline'}
@@ -61,7 +65,14 @@ export default function AppNavigator() {
         options={{
           tabBarLabel: '',
           tabBarIcon: ({ focused }) => (
-            <View style={[styles.addButton, { backgroundColor: focused ? '#362ddbff' : '#6366f1' }]}>
+            <View
+              style={[
+                styles.addButton,
+                {
+                  backgroundColor: focused ? t.accent : t.secondaryText,
+                },
+              ]}
+            >
               <Ionicons name="add" size={26} color="#fff" />
             </View>
           ),
@@ -73,8 +84,8 @@ export default function AppNavigator() {
         name="Inbox"
         component={Inbox}
         options={{
-          tabBarIcon: ({ focused, color, size }) => (
-              <View style={styles.iconContainer}>
+          tabBarIcon: ({ focused, color }) => (
+            <View style={styles.iconContainer}>
               <Ionicons
                 name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
                 size={26}
@@ -88,3 +99,7 @@ export default function AppNavigator() {
   );
 }
 
+const styles = StyleSheet.create({
+  iconContainer: { alignItems: 'center', justifyContent: 'center' },
+  addButton: { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center' },
+});

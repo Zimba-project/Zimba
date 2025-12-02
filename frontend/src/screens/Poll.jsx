@@ -14,9 +14,12 @@ import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CardHeader from '../components/Cards/CardHeader';
 import StatsBar from '../components/Cards/StatsBar';
+import PollResults from '../components/Cards/PollResults';
 import { getPollOptions, votePoll } from '../api/postService';
 import useCurrentUser from '../utils/GetUser';
 import { normalizeUrl, normalizeAvatarUrl } from '../utils/urlHelper';
+import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
+import { getTheme } from '../utils/theme';
 
 export default function PollScreen() {
   const route = useRoute();
@@ -30,10 +33,12 @@ export default function PollScreen() {
   const [selectedOption, setSelectedOption] = useState(null);
   const [submitted, setSubmitted] = useState(false);
 
+  const { theme } = useTheme();
+  const t = getTheme(theme);
+
   useEffect(() => {
     if (!postId) return;
     fetchOptions();
-    console.log('User JSON:', user);
   }, [postId]);
 
   const fetchOptions = async () => {
@@ -58,23 +63,23 @@ export default function PollScreen() {
       await fetchOptions(); // refresh votes
     } catch (err) {
       console.log('Vote failed:', err);
-      Alert.alert('Thank you', err.message || 'Unable to submit your vote.');
+      Alert.alert('Error', err.message || 'Unable to submit your vote.');
     }
   };
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.center, { paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" color="#6366f1" />
-        <Text style={{ marginTop: 12 }}>Loading...</Text>
+      <SafeAreaView style={[styles.center, { paddingTop: insets.top, backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.accent} />
+        <Text style={{ marginTop: 12, color: t.text }}>Loading...</Text>
       </SafeAreaView>
     );
   }
 
   if (!postData) {
     return (
-      <SafeAreaView style={[styles.center, { paddingTop: insets.top }]}>
-        <Text>No poll data available</Text>
+      <SafeAreaView style={[styles.center, { paddingTop: insets.top, backgroundColor: t.background }]}>
+        <Text style={{ color: t.text }}>No poll data available</Text>
       </SafeAreaView>
     );
   }
@@ -85,18 +90,16 @@ export default function PollScreen() {
     title,
     description,
     image,
-    comments = 0,
     views = 0,
     created_at,
     topic,
   } = postData;
 
-  // ✅ Use utils to normalize URLs
   const imageUrl = normalizeUrl(image);
   const avatarUrl = normalizeAvatarUrl(author_avatar);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
         <CardHeader
           author={{ avatar: avatarUrl, name: author_name, time: created_at }}
@@ -106,50 +109,58 @@ export default function PollScreen() {
         {imageUrl && <Image source={{ uri: imageUrl }} style={styles.image} />}
 
         <View style={styles.body}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.description}>{description}</Text>
-          <StatsBar comments={comments} views={views} />
+          <Text style={[styles.title, { color: t.text }]}>{title}</Text>
+          <Text style={[styles.description, { color: t.secondaryText }]}>{description}</Text>
+
+          {/* Show votes and views, but no comments */}
+          <StatsBar views={views} />
 
           <View style={styles.optionsContainer}>
-            {options.map((opt) => {
-              const isSelected = selectedOption === opt.id;
-              return (
-                <TouchableOpacity
-                  key={opt.id}
-                  style={[
-                    styles.optionButton,
-                    isSelected && styles.selectedOption,
-                    submitted && styles.disabledOption,
-                  ]}
-                  disabled={submitted}
-                  onPress={() => setSelectedOption(opt.id)}
-                >
-                  <Text
+            {!submitted ? (
+              options.map((opt) => {
+                const isSelected = selectedOption === opt.id;
+                return (
+                  <TouchableOpacity
+                    key={opt.id}
                     style={[
-                      styles.optionText,
-                      isSelected && styles.selectedOptionText,
+                      styles.optionButton,
+                      { backgroundColor: t.cardBackground, borderColor: t.inputBorder },
+                      isSelected && { backgroundColor: t.accent, borderColor: t.accent },
                     ]}
+                    onPress={() => setSelectedOption(opt.id)}
                   >
-                    {opt.text}
-                  </Text>
-                  <Text style={styles.voteCount}>{opt.votes} votes</Text>
-                </TouchableOpacity>
-              );
-            })}
-
-            {submitted ? (
-              <Text style={styles.thankYouText}>Thanks for voting!</Text>
+                    <Text
+                      style={[
+                        styles.optionText,
+                        { color: t.text },
+                        isSelected && { color: '#fff' },
+                      ]}
+                    >
+                      {opt.text}
+                    </Text>
+                    <Text style={[styles.voteCount, { color: t.accent }]}>{opt.votes} votes</Text>
+                  </TouchableOpacity>
+                );
+              })
             ) : (
+              <PollResults options={options} />
+            )}
+
+            {!submitted && (
               <TouchableOpacity
                 style={[
                   styles.submitButton,
-                  !selectedOption && styles.disabledSubmit,
+                  { backgroundColor: selectedOption ? t.accent : t.placeholder },
                 ]}
                 disabled={!selectedOption}
                 onPress={handleSubmit}
               >
                 <Text style={styles.submitText}>Submit Vote</Text>
               </TouchableOpacity>
+            )}
+
+            {submitted && (
+              <Text style={[styles.thankYouText, { color: '#16a34a' }]}>Thanks for voting!</Text>
             )}
           </View>
         </View>
@@ -159,42 +170,38 @@ export default function PollScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   image: { width: '100%', height: 250 },
-  body: { padding: 16 },
-  title: { fontSize: 22, fontWeight: '700', marginBottom: 12, color: '#111' },
-  description: { fontSize: 16, color: '#555', lineHeight: 22 },
+  title: { fontSize: 22, fontWeight: '700', marginBottom: 12 },
+  body: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+  description: { fontSize: 16, lineHeight: 22 },
   optionsContainer: { marginTop: 20 },
   optionButton: {
     padding: 12,
     marginVertical: 6,
-    backgroundColor: '#f3f4f6',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#d1d5db',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  selectedOption: { backgroundColor: '#6366f1', borderColor: '#4f46e5' },
   disabledOption: { opacity: 0.7 },
-  optionText: { fontSize: 16, color: '#111' },
-  selectedOptionText: { color: '#fff', fontWeight: '600' },
-  voteCount: { fontWeight: '600', color: '#4f46e5' },
+  optionText: { fontSize: 16 },
+  voteCount: { fontWeight: '600' },
   submitButton: {
-    backgroundColor: '#6366f1',
     paddingVertical: 12,
     borderRadius: 8,
     marginTop: 12,
     alignItems: 'center',
   },
-  disabledSubmit: { backgroundColor: '#a5b4fc' },
   submitText: { color: '#fff', fontWeight: '600', fontSize: 16 },
   thankYouText: {
     marginTop: 12,
     fontSize: 16,
     fontWeight: '500',
-    color: '#16a34a',
   },
 });

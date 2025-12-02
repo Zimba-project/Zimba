@@ -1,9 +1,14 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, LayoutAnimation } from 'react-native';
+import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
+import { getTheme } from '../../utils/theme';
 
 const FILTERS = ['All', 'Discussions', 'Polls'];
 
 export const FilterBar = ({ selectedFilter, setSelectedFilter }) => {
+  const { theme } = useTheme();
+  const t = getTheme(theme);
+
   const handleSelect = (filter) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setSelectedFilter(filter);
@@ -20,10 +25,20 @@ export const FilterBar = ({ selectedFilter, setSelectedFilter }) => {
         return (
           <TouchableOpacity
             key={filter}
-            style={[styles.chip, isActive && styles.activeChip]}
+            style={[
+              styles.chip,
+              { backgroundColor: t.cardBackground, borderColor: t.inputBorder },
+              isActive && { backgroundColor: t.accent },
+            ]}
             onPress={() => handleSelect(filter)}
           >
-            <Text style={[styles.chipText, isActive && styles.activeText]}>
+            <Text
+              style={[
+                styles.chipText,
+                { color: t.text },
+                isActive && { color: '#fff' },
+              ]}
+            >
               {filter}
             </Text>
           </TouchableOpacity>
@@ -43,17 +58,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    backgroundColor: '#e5e7eb',
-  },
-  activeChip: {
-    backgroundColor: '#6366f1',
+    borderWidth: 1,
   },
   chipText: {
     fontSize: 14,
-    color: '#374151',
     fontWeight: '500',
-  },
-  activeText: {
-    color: '#fff',
   },
 });

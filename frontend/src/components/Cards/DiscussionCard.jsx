@@ -10,6 +10,8 @@ import StatsBar from './StatsBar';
 import CardHeader from './CardHeader';
 import CardContainer from './CardContainer';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
+import { getTheme } from '../../utils/theme';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_BASE.replace(/\/api$/, '');
 
@@ -28,33 +30,43 @@ const DiscussionCard = ({
   onSave = () => {},
 }) => {
   const navigation = useNavigation();
+  const themeFromProvider = useTheme();
+  const t = getTheme(themeFromProvider?.theme);
 
   const handlePress = () => {
     const postData = {
-        id,
-        topic,
-        author_name,
-        author_avatar,
-        image,
-        title,
-        description,
-        comments,
-        views,
-        created_at,
-      };
-        console.log('DiscussionCard postData:', postData);
-        navigation.navigate('Discuss', {
-        postId: id, 
-        postData
+      id,
+      topic,
+      author_name,
+      author_avatar,
+      image,
+      title,
+      description,
+      comments,
+      views,
+      created_at,
+    };
+    console.log('DiscussionCard postData:', postData);
+    navigation.navigate('Discuss', {
+      postId: id,
+      postData,
     });
   };
 
-  const imageUrl = image? image.startsWith('http')? image: `${API_BASE}${image}`: null;
+  const imageUrl = image
+    ? image.startsWith('http')
+      ? image
+      : `${API_BASE}${image}`
+    : null;
 
-  const avatarUrl = author_avatar ? author_avatar.startsWith('http')? author_avatar:`${API_BASE}${author_avatar}`: null;
+  const avatarUrl = author_avatar
+    ? author_avatar.startsWith('http')
+      ? author_avatar
+      : `${API_BASE}${author_avatar}`
+    : null;
 
   return (
-    <TouchableOpacity onPress={handlePress}>
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
       <CardContainer>
         {/* HEADER */}
         <CardHeader
@@ -72,9 +84,15 @@ const DiscussionCard = ({
         )}
 
         {/* BODY */}
-        <View style={styles.body}>
-          {!imageUrl && <Text style={styles.title}>{title}</Text>}
-          <Text style={styles.preview} numberOfLines={3} ellipsizeMode="tail">
+        <View style={[styles.body, { backgroundColor: t.cardBackground }]}>
+          {!imageUrl && (
+            <Text style={[styles.title, { color: t.text }]}>{title}</Text>
+          )}
+          <Text
+            style={[styles.preview, { color: t.secondaryText }]}
+            numberOfLines={3}
+            ellipsizeMode="tail"
+          >
             {description}
           </Text>
           <StatsBar
@@ -105,8 +123,8 @@ const styles = StyleSheet.create({
   },
   imageTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
   body: { padding: 16 },
-  title: { fontSize: 18, fontWeight: '700', marginBottom: 8, color: '#111' },
-  preview: { fontSize: 14, color: '#555', marginBottom: 12 },
+  title: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
+  preview: { fontSize: 14, marginBottom: 12 },
 });
 
 export default DiscussionCard;

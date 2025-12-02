@@ -67,4 +67,17 @@ export const searchPosts = async (query) => {
 };
 
 
-export default { getAllPosts, createPost,  getPollOptions, votePoll, getPostComments, addPostComment, searchPosts };
+// ---------- User API ----------
+export const pickAndUploadAvatar = async (userId, formData) => {
+  const res = await request(`/users/${userId}/avatar`, 'POST', formData, {});
+  if (!res.ok) throw new Error(res.body?.error || `Failed to upload avatar (status ${res.status})`);
+  return res.body;
+};
+
+export const updateUser = async (userId, data) => {
+  const res = await request(`/users/${userId}`, 'PUT', data);
+  if (!res.ok) throw new Error(res.body?.error || `Failed to update user (status ${res.status})`);
+  return res.body;
+};
+
+export default { getAllPosts, createPost,  getPollOptions, votePoll, getPostComments, addPostComment, searchPosts, pickAndUploadAvatar, updateUser };

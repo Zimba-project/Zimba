@@ -5,14 +5,15 @@ import {
   ScrollView, Alert, TouchableOpacity, Modal
 } from 'react-native';
 import { Feather as Icon } from '@expo/vector-icons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { register as registerApi } from '../api/auth';
 import GoogleLogo from '../../assets/google.svg';
 import AppleLogo from '../../assets/apple.svg';
+import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
+import { getTheme } from '../utils/theme';
 
 const COUNTRIES = [
-  { name: 'Finland', dial_code: '+358', code: 'FI', flag: '🇫🇮' }, 
+  { name: 'Finland', dial_code: '+358', code: 'FI', flag: '🇫🇮' },
   { name: 'United States', dial_code: '+1', code: 'US', flag: '🇺🇸' },
   { name: 'United Kingdom', dial_code: '+44', code: 'GB', flag: '🇬🇧' },
   { name: 'Sweden', dial_code: '+46', code: 'SE', flag: '🇸🇪' },
@@ -35,6 +36,9 @@ export default function RegisterScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const { theme } = useTheme();
+  const t = getTheme(theme);
+
   const handleRegister = async () => {
     setError(null);
     if (!firstName || !lastName || !phone || !email || !password || !confirmPassword) {
@@ -56,7 +60,7 @@ export default function RegisterScreen({ navigation }) {
           { text: 'OK', onPress: () => navigation.replace('Login', { phone: fullPhone }) }
         ]);
       } else {
-        setError(res?.body?.message || `Registration failed (${res.status})`);
+        setError(res?.body?.message || `Registration failed (${res?.status ?? 'unknown'})`);
       }
     } catch (e) {
       setError(e.message || 'Network error');
@@ -66,43 +70,98 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.card}>
-        <Text style={styles.title}>Create Account</Text>
-        {error && <Text style={styles.error}>{error}</Text>}
+    <SafeAreaView style={[styles.container, { backgroundColor: t.background}]}>
+      <ScrollView contentContainerStyle={[styles.card, { backgroundColor: t.background }]}>
+        <Text style={[styles.title, { color: t.text }]}>Create Account</Text>
+        {error && <Text style={[styles.error, { color: t.error }]}>{error}</Text>}
 
-        <Text style={styles.sectionTitle}>Personal Info</Text>
+        <Text style={[styles.sectionTitle, { color: t.text }]}>Personal Info</Text>
         <View style={styles.row}>
-          <TextInput style={[styles.input, { flex: 1, marginRight: 8 }]} placeholder="First name" value={firstName} onChangeText={setFirstName} />
-          <TextInput style={[styles.input, { flex: 1 }]} placeholder="Last name" value={lastName} onChangeText={setLastName} />
+          <TextInput
+            style={[
+              styles.input,
+              {
+                flex: 1,
+                marginRight: 8,
+                backgroundColor: t.inputBackground,
+                borderColor: t.inputBorder,
+                color: t.text
+              }
+            ]}
+            placeholder="First name"
+            placeholderTextColor={t.placeholder}
+            value={firstName}
+            onChangeText={setFirstName}
+          />
+          <TextInput
+            style={[
+              styles.input,
+              {
+                flex: 1,
+                backgroundColor: t.inputBackground,
+                borderColor: t.inputBorder,
+                color: t.text
+              }
+            ]}
+            placeholder="Last name"
+            placeholderTextColor={t.placeholder}
+            value={lastName}
+            onChangeText={setLastName}
+          />
         </View>
-        <TextInput style={styles.input} placeholder="Email address" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
+
+        <TextInput
+          style={[
+            styles.input,
+            {
+              backgroundColor: t.inputBackground,
+              borderColor: t.inputBorder,
+              color: t.text
+            }
+          ]}
+          placeholder="Email address"
+          placeholderTextColor={t.placeholder}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
+        />
 
         {/* Phone */}
-        <View style={styles.phoneContainer}>
-          <TouchableOpacity style={styles.countryButton} onPress={() => setShowCountryPicker(true)}>
-            <Text style={styles.countryText}>{country.flag} {country.dial_code}</Text>
+        <View style={[styles.phoneContainer, { backgroundColor: t.inputBackground, borderColor: t.inputBorder }]}>
+          <TouchableOpacity
+            style={[styles.countryButton, { borderRightColor: t.inputBorder }]}
+            onPress={() => setShowCountryPicker(true)}
+          >
+            <Text style={[styles.countryText, { color: t.text }]}>{country.flag} {country.dial_code}</Text>
           </TouchableOpacity>
-          <TextInput style={styles.phoneInput} placeholder="Phone number" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
+          <TextInput
+            style={[styles.phoneInput, { color: t.text }]}
+            placeholder="Phone number"
+            placeholderTextColor={t.placeholder}
+            keyboardType="phone-pad"
+            value={phone}
+            onChangeText={setPhone}
+          />
         </View>
 
         {/* Country Picker Modal */}
         {showCountryPicker && (
           <Modal visible={showCountryPicker} transparent animationType="slide" onRequestClose={() => setShowCountryPicker(false)}>
             <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 12 }}>Select Country</Text>
+              <View style={[styles.modalContent, { backgroundColor: t.cardBackground }]}>
+                <Text style={[{ fontSize: 18, fontWeight: '600', marginBottom: 12 }, { color: t.text }]}>Select Country</Text>
                 {COUNTRIES.map(c => (
                   <TouchableOpacity
                     key={c.code}
                     style={{ paddingVertical: 10 }}
                     onPress={() => { setCountry(c); setShowCountryPicker(false); }}
                   >
-                    <Text style={{ fontSize: 16 }}>{c.flag} {c.name} ({c.dial_code})</Text>
+                    <Text style={{ fontSize: 16, color: t.text }}>{c.flag} {c.name} ({c.dial_code})</Text>
                   </TouchableOpacity>
                 ))}
                 <TouchableOpacity onPress={() => setShowCountryPicker(false)}>
-                  <Text style={{ color: '#2563eb', marginTop: 12, textAlign: 'center' }}>Close</Text>
+                  <Text style={{ color: t.accent, marginTop: 12, textAlign: 'center' }}>Close</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -110,11 +169,18 @@ export default function RegisterScreen({ navigation }) {
         )}
 
         {/* Birthdate */}
-        <TouchableOpacity style={[styles.input, styles.dateRow]} onPress={() => setShowDatePicker(true)}>
-          <Text style={birthdate ? styles.dateText : styles.placeholderText}>
+        <TouchableOpacity
+          style={[
+            styles.input,
+            styles.dateRow,
+            { backgroundColor: t.inputBackground, borderColor: t.inputBorder }
+          ]}
+          onPress={() => setShowDatePicker(true)}
+        >
+          <Text style={birthdate ? [styles.dateText, { color: t.text }] : [styles.placeholderText, { color: t.placeholder }]}>
             {birthdate ? birthdate.toLocaleDateString() : 'Birthdate (YYYY-MM-DD)'}
           </Text>
-          <Icon name="calendar" size={18} color="#6b7280" />
+          <Icon name="calendar" size={18} color={t.placeholder} />
         </TouchableOpacity>
 
         {/* Date Picker */}
@@ -128,37 +194,52 @@ export default function RegisterScreen({ navigation }) {
               setShowDatePicker(false);
               if (selectedDate) setBirthdate(selectedDate);
             }}
+            themeVariant={theme === 'dark' ? 'dark' : 'light'}
           />
         )}
 
-        <Text style={styles.sectionTitle}>Security</Text>
-        <TextInput style={styles.input} placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
-        <TextInput style={styles.input} placeholder="Confirm password" secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} />
+        <Text style={[styles.sectionTitle, { color: t.text }]}>Security</Text>
+        <TextInput
+          style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
+          placeholder="Password"
+          placeholderTextColor={t.placeholder}
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+        <TextInput
+          style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
+          placeholder="Confirm password"
+          placeholderTextColor={t.placeholder}
+          secureTextEntry
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+        />
 
         {loading ? (
-          <ActivityIndicator />
+          <ActivityIndicator color={t.accent} />
         ) : (
-          <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+          <TouchableOpacity style={[styles.registerButton, { backgroundColor: t.accent }]} onPress={handleRegister}>
             <Text style={styles.registerText}>Sign Up</Text>
           </TouchableOpacity>
         )}
 
-        <Text style={styles.orText}>or sign up with</Text>
+        <Text style={[styles.orText, { color: t.secondaryText }]}>or sign up with</Text>
         <View style={styles.socialContainer}>
-        <TouchableOpacity style={styles.socialButton}>
+          <TouchableOpacity style={[styles.socialButton, { backgroundColor: t.inputBackground, borderColor: t.inputBorder }]}>
             <GoogleLogo width={22} height={22} />
-            <Text style={styles.socialText}>Google</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.socialButton}>
+            <Text style={[styles.socialText, { color: t.text }]}>Google</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.socialButton, { backgroundColor: t.inputBackground, borderColor: t.inputBorder }]}>
             <AppleLogo width={22} height={22} />
-            <Text style={styles.socialText}>Apple</Text>
-        </TouchableOpacity>
+            <Text style={[styles.socialText, { color: t.text }]}>Apple</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.loginRow}>
-          <Text style={{ color: '#6b7280' }}>Already have an account?</Text>
+          <Text style={{ color: t.secondaryText }}>Already have an account?</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.link}> Login</Text>
+            <Text style={[styles.link, { color: t.accent }]}> Login</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -167,22 +248,32 @@ export default function RegisterScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffffff' },
-  card: { padding: 24, width: '100%', backgroundColor: '#fff', borderRadius: 12, marginVertical: 16, alignSelf: 'stretch' },
-  title: { fontSize: 28, fontWeight: '700', color: '#111827', marginBottom: 12, textAlign: 'center' },
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#374151', marginBottom: 12, alignSelf: 'flex-start' },
-  error: { color: 'red', marginBottom: 12 },
+  container: { flex: 1, paddingHorizontal: 20 },
+  card: {
+    paddingBottom: 40,
+    width: '100%',
+    borderRadius: 12,
+    alignSelf: 'stretch',
+  },
+  title: { fontSize: 28, fontWeight: '700', marginBottom: 12, textAlign: 'center' },
+  sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 12, alignSelf: 'flex-start' },
+  error: { marginBottom: 12 },
   row: { flexDirection: 'row', width: '100%' },
-  input: { backgroundColor: '#fff', width: '100%', borderWidth: 1, borderColor: '#e5e7eb', paddingHorizontal: 12, paddingVertical: 10, marginBottom: 16, borderRadius: 8, fontSize: 14 },
+  input: {
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
+    borderRadius: 8,
+    fontSize: 14,
+  },
   phoneContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
     borderRadius: 8,
-    backgroundColor: '#fff',
   },
   countryButton: {
     paddingHorizontal: 12,
@@ -191,49 +282,46 @@ const styles = StyleSheet.create({
     minWidth: 92,
     alignItems: 'center',
     borderRightWidth: 1,
-    borderRightColor: '#e5e7eb',
   },
-  countryText: { color: '#111827' },
+  countryText: {},
   phoneInput: { flex: 1, height: 44, paddingHorizontal: 12 },
   dateRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  dateText: { color: '#111827' },
-  placeholderText: { color: '#666' },
+  dateText: {},
+  placeholderText: {},
   registerButton: {
     width: '100%',
-    backgroundColor: '#2563eb',
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
     marginBottom: 24,
   },
   registerText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  orText: { textAlign: 'center', color: '#6b7280', marginBottom: 16 },
+  orText: { textAlign: 'center', marginBottom: 16 },
   socialContainer: {
     flexDirection: 'row',
     marginBottom: 16,
+    gap: 8
   },
   socialButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#d1d5db',
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 10,
-    backgroundColor: '#ffffff',
-    flex: 1,                  
-    marginHorizontal: 4,        
+    marginHorizontal: 4,
   },
   icon: { marginRight: 6 },
-  socialText: { fontSize: 14, color: '#374151', marginLeft: 6 },
+  socialText: { fontSize: 14, marginLeft: 6 },
   loginRow: {
     flexDirection: 'row',
     marginTop: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  link: { color: '#2563eb', fontWeight: '600' },
+  link: { fontWeight: '600' },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',
@@ -241,7 +329,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#fff',
     padding: 16,
     borderRadius: 12,
     width: '90%',

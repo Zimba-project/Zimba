@@ -50,10 +50,10 @@ const loadUser = useCallback(async () => {
   setLoading(false);
 }, []);
 
-  useEffect(() => {
-    loadUser();
-    console.log('Current user token:', sessionStorage.getItem('authToken'));
-  }, [route?.params?.user]);
+useEffect(() => {
+  loadUser();
+  // Token debug -> (async () => {const tokenValue = await sessionStorage.getItem('authToken'); console.log('Current user token:', tokenValue);})();
+}, [route?.params?.user]);
 
   const refreshUser = () => loadUser();
 
