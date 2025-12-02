@@ -16,7 +16,7 @@ export default function ChatHeader({ navigation, chatWith, avatarUrl }) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: t.cardBackground, borderBottomColor: t.secondaryText }]}>
+    <View style={[styles.container, { backgroundColor: t.background, borderBottomColor: t.secondaryText }]}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
         <Ionicons name="chevron-back" size={28} color={t.text} />
       </TouchableOpacity>
@@ -59,9 +59,9 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 80,
+    height: 90,
     paddingHorizontal: 10,
-    paddingTop: 20,
+    paddingTop: 30,
     borderBottomWidth: 1,
   },
   backBtn: { padding: 4 },
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.2)' },
   menu: {
     position: 'absolute',
-    top: 70,
+    top: 50,
     right: 10,
     borderRadius: 8,
     paddingVertical: 4,

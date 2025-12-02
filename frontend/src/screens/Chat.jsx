@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
+  Text,
   TextInput,
   FlatList,
-  Text,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   Keyboard,
   TouchableWithoutFeedback,
+  SafeAreaView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ChatHeader from '../components/Chat/ChatHeader';
@@ -71,46 +72,52 @@ export default function ChatScreen({ route, navigation }) {
   );
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView
-        style={[styles.container, { backgroundColor: t.background }]}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-      >
-        <ChatHeader navigation={navigation} chatWith={chatWith} avatarUrl={avatarUrl} />
-
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 70 }}
-        />
-
-        <View
-          style={[
-            styles.inputContainer,
-            {
-              backgroundColor: t.cardBackground,
-              borderColor: t.secondaryText,
-              paddingBottom: insets.bottom,
-            },
-          ]}
+    <SafeAreaView style={{ flex: 1, backgroundColor: t.background }}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView
+          style={styles.container}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
-          <TextInput
-            value={input}
-            onChangeText={setInput}
-            style={[styles.input, { borderColor: t.secondaryText, color: t.text }]}
-            placeholder="Type a message..."
-            placeholderTextColor={t.secondaryText}
+          {/* Custom Header */}
+          <ChatHeader navigation={navigation} chatWith={chatWith} avatarUrl={avatarUrl} />
+
+          {/* Messages */}
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 70 }}
+            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
           />
-          <TouchableOpacity onPress={sendMessage} style={styles.sendBtn}>
-            <Text style={[styles.sendText, { color: t.accent }]}>Send</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </TouchableWithoutFeedback>
+
+          {/* Input */}
+          <View
+            style={[
+              styles.inputContainer,
+              {
+                backgroundColor: t.cardBackground,
+                borderColor: t.secondaryText,
+                paddingBottom: insets.bottom,
+              },
+            ]}
+          >
+            <TextInput
+              value={input}
+              onChangeText={setInput}
+              style={[styles.input, { borderColor: t.secondaryText, color: t.text }]}
+              placeholder="Type a message..."
+              placeholderTextColor={t.secondaryText}
+            />
+            <TouchableOpacity onPress={sendMessage} style={styles.sendBtn}>
+              <Text style={[styles.sendText, { color: t.accent }]}>Send</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
+    </SafeAreaView>
   );
 }
 

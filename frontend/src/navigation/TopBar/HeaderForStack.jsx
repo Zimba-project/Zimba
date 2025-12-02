@@ -10,7 +10,7 @@ export default function HeaderForStack({ navigation, route, back }) {
     const user = resolveUser(navigation, route);
     const activeName = resolveActiveName(navigation, route);
     const noBackScreens = ['Main'];
-    const backScreens = ['Login', 'Register', 'Discuss'];
+    const backScreens = ['Login', 'Register', 'Discuss', 'Profile'];
     const showBack = !noBackScreens.includes(activeName) &&(back || backScreens.includes(activeName));
 
     const [searching, setSearching] = useState(false);

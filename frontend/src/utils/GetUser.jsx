@@ -52,7 +52,7 @@ const loadUser = useCallback(async () => {
 
 useEffect(() => {
   loadUser();
-  // Token debug -> (async () => {const tokenValue = await sessionStorage.getItem('authToken'); console.log('Current user token:', tokenValue);})();
+  // for token debug (async () => {const tokenValue = await sessionStorage.getItem('authToken'); console.log('Current user token:', tokenValue);})();
 }, [route?.params?.user]);
 
   const refreshUser = () => loadUser();

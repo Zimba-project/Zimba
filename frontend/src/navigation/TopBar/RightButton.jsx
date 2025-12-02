@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
-import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, View, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import useCurrentUser from '../../utils/GetUser';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
+import { normalizeAvatarUrl } from '../../utils/urlHelper';
 
 export default function RightButton() {
   const navigation = useNavigation();
@@ -12,10 +13,10 @@ export default function RightButton() {
 
   const { theme } = useTheme();
   const t = getTheme(theme);
-
+  console.log('User',user)
   useEffect(() => {
     const unsub = navigation.addListener('focus', () => {
-      //refreshUser();
+      refreshUser();
     });
     return unsub;
   }, [navigation, refreshUser]);
@@ -26,18 +27,14 @@ export default function RightButton() {
     const first = user.firstName || user.first_name || '';
     const last = user.lastName || user.last_name || '';
 
-    if (first && last) {
-      return (String(first)[0] + String(last)[0]).toUpperCase();
-    }
+    if (first && last) return (first[0] + last[0]).toUpperCase();
 
     const full = user.name || user.fullName || user.username || user.email || '';
     const parts = String(full).trim().split(/\s+/).filter(Boolean);
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    }
-    if (parts.length === 1) {
-      return parts[0].slice(0, 2).toUpperCase();
-    }
+
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+
     return null;
   };
 
@@ -53,10 +50,17 @@ export default function RightButton() {
         onPress={() => navigation.navigate('Search')}
         accessibilityLabel="Search"
       >
-      <Ionicons name="search" size={20} color={t.text} />
+        <Ionicons name="search" size={20} color={t.text} />
       </TouchableOpacity>
 
-      {initials ? (
+      {user?.avatar ? (
+        <TouchableOpacity
+          style={styles.avatar}
+          onPress={() => navigation.navigate('Profile')}
+        >
+        <Image source={{ uri: normalizeAvatarUrl(user.avatar) }} style={styles.avatarImage} />
+        </TouchableOpacity>
+      ) : initials ? (
         <TouchableOpacity
           style={[styles.avatar, { backgroundColor: t.accent }]}
           onPress={() => navigation.navigate('Profile')}
@@ -84,6 +88,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   initials: { color: '#fff', fontWeight: '700' },
 });

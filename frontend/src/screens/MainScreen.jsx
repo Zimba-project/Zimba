@@ -5,22 +5,25 @@ import PollCard from '../components/Cards/PollCard';
 import DiscussionCard from '../components/Cards/DiscussionCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAllPosts } from '../api/postService';
-import { FilterBar } from '../components/MainPage/FilterBar';
+import { PostFilterBar } from '../components/MainPage/FilterBar';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
+import useCurrentUser from '../utils/GetUser';
 
 const FILTER_MAP = { Discussions: 'discussion', Polls: 'poll' };
 
 export default function MainScreen({ navigation, route }) {
     const { theme } = useTheme();
     const t = getTheme(theme);
-
+    const user = useCurrentUser();
     const [allPosts, setAllPosts] = useState([]);
     const [feed, setFeed] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState(null);
-    const [selectedFilter, setSelectedFilter] = useState('All');
+    const [selectedTab, setSelectedTab] = useState('New');
+    const [selectedDropdown, setSelectedDropdown] = useState('All');
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const fetchPosts = async (isRefresh = false) => {
         try {
@@ -44,9 +47,22 @@ export default function MainScreen({ navigation, route }) {
 
     useEffect(() => {
         if (!allPosts.length) return;
-        const filtered = selectedFilter === "All" ? allPosts : allPosts.filter((p) => p.type === FILTER_MAP[selectedFilter]);
-        setFeed(filtered);
-    }, [selectedFilter, allPosts]);
+        if (isProcessing) return; 
+        setIsProcessing(true);
+        let filtered = selectedDropdown === "All" 
+            ? [...allPosts] 
+            : allPosts.filter(p => p.type === FILTER_MAP[selectedDropdown]);
+        if (selectedTab === "New") {
+            filtered = [...filtered].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        } else if (selectedTab === "Hot") {
+            filtered = [...filtered].sort((a, b) => b.votes - a.votes);
+        } else if (selectedTab === 'Top') {
+            filtered = [...filtered].sort((a, b) => b.comments - a.comments);
+        }
+        setFeed(filtered); 
+        const timer = setTimeout(() => setIsProcessing(false), 200);
+        return () => clearTimeout(timer);
+    }, [selectedDropdown, selectedTab, allPosts]);
 
     const handleRefresh = () => fetchPosts(true);
 
@@ -99,7 +115,12 @@ export default function MainScreen({ navigation, route }) {
                                 onCardPress={(it) => alert(`Info: ${it.title}`)}
                                 theme={theme}
                             />
-                            <FilterBar selectedFilter={selectedFilter} setSelectedFilter={setSelectedFilter} theme={theme} />
+                            <PostFilterBar
+                                selectedTab={selectedTab}
+                                setSelectedTab={setSelectedTab}
+                                selectedDropdown={selectedDropdown}
+                                setSelectedDropdown={setSelectedDropdown}
+                            />
                         </View>
                     )}
                     onRefresh={handleRefresh}
@@ -112,7 +133,7 @@ export default function MainScreen({ navigation, route }) {
 const infoItems = [
     {
         id: 'i1',
-        title: 'Traffic arrangements in downtown (wk 45)',
+        title: 'Traffic arrangements in downtown (week 45)',
         subtitle: 'Road and cable works in the city center — expect detours and temporary closures.',
         image: 'https://unsplash.com/photos/HCDmcskE_Zk/download?force=true&w=800',
       

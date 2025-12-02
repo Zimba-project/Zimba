@@ -74,10 +74,4 @@ export const pickAndUploadAvatar = async (userId, formData) => {
   return res.body;
 };
 
-export const updateUser = async (userId, data) => {
-  const res = await request(`/users/${userId}`, 'PUT', data);
-  if (!res.ok) throw new Error(res.body?.error || `Failed to update user (status ${res.status})`);
-  return res.body;
-};
-
-export default { getAllPosts, createPost,  getPollOptions, votePoll, getPostComments, addPostComment, searchPosts, pickAndUploadAvatar, updateUser };
+export default { getAllPosts, createPost,  getPollOptions, votePoll, getPostComments, addPostComment, searchPosts, pickAndUploadAvatar };

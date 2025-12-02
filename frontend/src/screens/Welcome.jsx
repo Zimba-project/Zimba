@@ -1,18 +1,18 @@
 import React, { useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TouchableOpacity, StyleSheet, Pressable, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Pressable, Animated, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
 import WelcomeIllustration from '../../assets/welcome.svg';
+import LionMascot from '../../assets/lion2.png'; 
 
 export default function Welcome() {
   const navigation = useNavigation();
   const { theme, toggleTheme } = useTheme();
   const t = getTheme(theme);
 
-  // Animated glow value
   const glowAnim = useRef(new Animated.Value(0)).current;
 
   const animateGlow = (toValue) => {
@@ -26,8 +26,8 @@ export default function Welcome() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
+      {/* Top Bar */}
       <View style={styles.topBar}>
-        {/* Dark mode toggle with animated glow */}
         <Pressable
           onPress={toggleTheme}
           onPressIn={() => animateGlow(15)}
@@ -54,21 +54,23 @@ export default function Welcome() {
         </Pressable>
       </View>
 
+      {/* Main Content */}
       <View style={styles.content}>
-        <Text style={[styles.header, { color: t.text }]}>Welcome</Text>
-        <Text style={[styles.subHeader, { color: t.secondaryText }]}>
-          Login or signup to continue
-        </Text>
-
-        {/* Illustration */}
+        <Text style={[styles.header, { color: t.text }]}>Welcome!</Text>
+      
+        
         <WelcomeIllustration width={400} height={180} />
-
-        <Text style={[styles.appName, { color: t.text }]}>𝐙𝐢𝐦𝐛𝐚</Text>
+        <Image
+          source={LionMascot}
+          style={styles.lionMascot}
+        />
+        <Text style={[styles.appName, { color: t.moonIconGlow }]}>𝐙𝐢𝐦𝐛𝐚</Text>
         <Text style={[styles.tagline, { color: t.secondaryText }]}>
           Enhances your decisions with secure voting,{'\n'}
           powerful data insights, and AI guidance
         </Text>
 
+        {/* Buttons */}
         <TouchableOpacity
           style={[styles.primaryButton, { backgroundColor: t.accent }]}
           onPress={() => navigation.navigate('Register')}
@@ -121,12 +123,13 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 32,
     fontWeight: '700',
-    marginTop: 16,
+    bottom: 80,
   },
   subHeader: {
     fontSize: 16,
     marginBottom: 16,
     textAlign: 'center',
+    right: 40,
   },
   appName: {
     fontSize: 24,
@@ -167,5 +170,13 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     textAlign: 'center',
     marginBottom: 24,
+  },
+  lionMascot: {
+    position: 'absolute',
+    bottom: 450,
+    right: 5,
+    width: 120,
+    height: 120,
+    zIndex: 1,
   },
 });
