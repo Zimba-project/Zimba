@@ -1,15 +1,17 @@
 import React from 'react';
 import { Image, View, StyleSheet } from 'react-native';
-import avatar from '../../assets/avatar.jpg';
+import avatar from '../../../assets/avatar.jpg';
 
 const sizes = { sm: 32, md: 40, lg: 56 };
 
 const Avatar = ({ uri, size = 'md' }) => {
     const dim = sizes[size];
+    const fullUri = uri?.startsWith('http') ? uri : `https://your-backend.com${uri}`;
+
     return (
         <View style={[styles.container, { width: dim, height: dim }]}>
             <Image
-                source={uri ? { uri } : avatar}
+                source={uri ? { uri: fullUri } : avatar}
                 style={[styles.image, { width: dim, height: dim }]}
                 resizeMode="cover"
             />

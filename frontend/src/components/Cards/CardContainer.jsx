@@ -1,20 +1,30 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
+import { getTheme } from '../../utils/theme';
 
-const CardContainer = ({ children }) => (
-    <View style={styles.card}>
-        {children}
+const CardContainer = ({ children, style }) => {
+   const { theme } = useTheme();
+   const t = getTheme(theme);
+
+  return (
+    <View style={[styles.card, { backgroundColor: t.cardBackground }, style]}>
+      {children}
     </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        margin: 16,
-        overflow: 'hidden',
-        elevation: 3,
-    },
+  card: {
+    borderRadius: 16,
+    margin: 16,
+    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
 });
 
 export default CardContainer;

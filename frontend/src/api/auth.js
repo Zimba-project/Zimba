@@ -1,20 +1,14 @@
-import { API_BASE } from '@env';
 
-async function request(path, method = 'GET', body) {
-    const opts = { method, headers: { 'Content-Type': 'application/json' } };
-    if (body) opts.body = JSON.stringify(body);
-    const res = await fetch(`${API_BASE}${path}`, opts);
-    let json = {};
-    try {
-        json = await res.json();
-    } catch (e) {
-        // no JSON body
-    }
-    return { ok: res.ok, status: res.status, body: json };
-}
+import { request } from './requestBase';
 
 export const register = (data) => request('/auth/register', 'POST', data);
 export const login = (data) => request('/auth/login', 'POST', data);
-export const me = () => request('/auth/me', 'GET');
+export const me = (token) => request('/auth/me', "GET", null, token);
 
-export default { register, login, me };
+
+export const updateUser = async (userId, data) => {
+  return await request(`/users/${userId}`, 'PUT', data);
+};
+
+
+export default { register, login, me, updateUser };

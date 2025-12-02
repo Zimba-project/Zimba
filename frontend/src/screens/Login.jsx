@@ -1,126 +1,184 @@
 import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
-import { Feather as Icon, FontAwesome } from '@expo/vector-icons';
+import { SafeAreaView, StatusBar, View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import Checkbox from 'expo-checkbox';
+import GoogleLogo from '../../assets/google.svg';
+import AppleLogo from '../../assets/apple.svg';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { login as loginApi } from '../api/auth';
+import { sessionStorage } from '../utils/Storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
+import { getTheme } from '../utils/theme'; // centralized theme
 
-const Login = ({ navigation, route }) => {
-    const initialPhone = route && route.params && route.params.phone ? route.params.phone : '';
-    const [phone, setPhone] = useState(initialPhone);
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+export default function LoginScreen() {
+  const navigation = useNavigation();
+  const route = useRoute();
 
-    const handleLogin = async () => {
-        setError(null);
-        if (!phone || !password) {
-            setError('Please enter phone and password');
-            return;
+  const initialPhone = route?.params?.phone ?? '';
+  const [phone, setPhone] = useState(initialPhone);
+  const [password, setPassword] = useState('');
+  const [keepLoggedIn, setKeepLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const { theme } = useTheme();
+  const t = getTheme(theme); // centralized theme object
+
+  const handleLogin = async () => {
+    setError(null);
+
+    if (!phone || !password) {
+      setError('Please enter phone and password');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await loginApi({ phone, password });
+
+      if (res && res.ok) {
+        if (res.body?.token) {
+          sessionStorage.setItem('authToken', res.body.token);
+
+          if (keepLoggedIn) {
+            await AsyncStorage.setItem('authToken', res.body.token);
+          } else {
+            await AsyncStorage.removeItem('authToken');
+          }
+
+          navigation.replace('Main', { user: res.body.user });
+        } else {
+          setError('Login succeeded but no token returned');
         }
-        setLoading(true);
-        try {
-            const res = await loginApi({ phone, password });
-            if (res && res.ok) {
-                if (res.body && res.body.token) {
-                    // TODO: persist token (AsyncStorage / SecureStore) later
-                    // pass user to Main so top bar can show initials
-                    navigation.replace('Main', { user: res.body.user });
-                } else {
-                    setError('Login succeeded but no token returned');
-                }
-            } else if (res) {
-                const msg = (res.body && res.body.message) || `Login failed (${res.status})`;
-                setError(msg);
-            } else {
-                setError('Unexpected server response');
-            }
-        } catch (e) {
-            setError(e.message || 'Network error');
-        } finally {
-            setLoading(false);
-        }
-    };
+      } else if (res) {
+        const msg = res.body?.message || `Login failed (${res.status})`;
+        setError(msg);
+      } else {
+        setError('Unexpected server response');
+      }
+    } catch (e) {
+      setError(e.message || 'Network error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.card}>
-                <Text style={styles.title}>Login</Text>
+  return (
+      <SafeAreaView style={[styles.container, { backgroundColor: t.background, paddingTop: 60 }]}>
+        <Text style={[styles.title, { color: t.text }]}>Login Account</Text>
 
-                {error ? <Text style={styles.error}>{error}</Text> : null}
+        {error && <Text style={{ color: t.error, marginBottom: 10 }}>{error}</Text>}
 
-                <TextInput
-                    placeholder="Phone"
-                    placeholderTextColor="#666"
-                    value={phone}
-                    onChangeText={setPhone}
-                    keyboardType="phone-pad"
-                    style={styles.input}
-                />
+        {/* Phone */}
+        <Text style={[styles.label, { color: t.text }]}>Mobile Number</Text>
+        <TextInput
+          style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
+          placeholder="Enter mobile number"
+          placeholderTextColor={t.placeholder}
+          keyboardType="phone-pad"
+          value={phone}
+          onChangeText={setPhone}
+        />
 
-                <TextInput
-                    placeholder="Password"
-                    placeholderTextColor="#666"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                    style={styles.input}
-                />
+        {/* Password */}
+        <Text style={[styles.label, { color: t.text }]}>Password</Text>
+        <TextInput
+          style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
+          placeholder="Enter password"
+          placeholderTextColor={t.placeholder}
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
 
-                {loading ? (
-                    <ActivityIndicator />
-                ) : (
-                    <>
-                        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                            <Icon name="log-in" size={16} color="#fff" style={{ marginRight: 8 }} />
-                            <Text style={styles.loginText}>Login</Text>
-                        </TouchableOpacity>
-                        <View style={{ height: 12 }} />
+        {/* Keep me logged in */}
+        <View style={styles.checkboxContainer}>
+          <Checkbox
+            value={keepLoggedIn}
+            onValueChange={setKeepLoggedIn}
+            color={keepLoggedIn ? t.accent : undefined}
+          />
+          <Text style={[styles.checkboxLabel, { color: t.text }]}>Keep me logged in</Text>
+        </View>
 
-                        <TouchableOpacity
-                            style={styles.googleButton}
-                            onPress={() => Alert.alert('Not implemented', 'Google sign-in is decorative only')}
-                        >
-                            <FontAwesome name="google" size={18} color="#DB4437" style={{ marginRight: 10 }} />
-                            <Text style={[styles.socialText, { color: '#111827' }]}>Sign in with Google</Text>
-                        </TouchableOpacity>
+        {/* Login Button */}
+        <TouchableOpacity
+          style={[styles.loginButton, { backgroundColor: t.accent }]}
+          onPress={handleLogin}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.loginText}>Login</Text>
+          )}
+        </TouchableOpacity>
 
-                        <View style={{ height: 8 }} />
+        {/* Social Login */}
+        <Text style={[styles.orText, { color: t.text }]}>or sign in with</Text>
+        <View style={styles.socialContainer}>
+          <TouchableOpacity
+            style={[styles.socialButton, { borderColor: t.inputBorder, backgroundColor: t.inputBackground }]}
+            onPress={() => Alert.alert('Not implemented')}
+          >
+            <GoogleLogo width={22} height={22} />
+            <Text style={[styles.socialText, { color: t.text }]}>Continue with Google</Text>
+          </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.facebookButton}
-                            onPress={() => Alert.alert('Not implemented', 'Facebook sign-in is decorative only')}
-                        >
-                            <FontAwesome name="facebook" size={18} color="#1877F2" style={{ marginRight: 10 }} />
-                            <Text style={[styles.socialText, { color: '#111827' }]}>Sign in with Facebook</Text>
-                        </TouchableOpacity>
-                    </>
-                )}
+          <TouchableOpacity
+            style={[styles.socialButton, { borderColor: t.inputBorder, backgroundColor: t.inputBackground }]}
+            onPress={() => Alert.alert('Not implemented')}
+          >
+            <AppleLogo width={22} height={22} />
+            <Text style={[styles.socialText, { color: t.text }]}>Continue with Apple</Text>
+          </TouchableOpacity>
+        </View>
 
-                <View style={styles.row}>
-                    <Text style={styles.rowText}>Don't have an account?</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                        <Text style={styles.link}> Register</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        </SafeAreaView>
-    );
-};
+        {/* Sign Up */}
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <Text style={[styles.signupText, { color: t.text }]}>
+            Don’t have an account?{' '}
+            <Text style={{ color: t.accent, fontWeight: '600' }}>Sign Up</Text>
+          </Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+  );
+}
 
 const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16, backgroundColor: '#f3f4f6' },
-    card: { width: '100%', maxWidth: 420, backgroundColor: '#fff', padding: 20, borderRadius: 12, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
-    title: { fontSize: 22, fontWeight: '600', marginBottom: 12, color: '#111827' },
-    input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', padding: 10, marginBottom: 12, borderRadius: 8, color: '#000' },
-    row: { flexDirection: 'row', marginTop: 12, alignItems: 'center' },
-    rowText: { color: '#374151' },
-    link: { color: '#2563eb' },
-    error: { color: 'red', marginBottom: 8 },
-    googleButton: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', paddingVertical: 10, borderRadius: 8, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
-    facebookButton: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', paddingVertical: 10, borderRadius: 8, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
-    socialText: { color: '#111827', fontWeight: '600' },
-    loginButton: { backgroundColor: '#2563eb', paddingVertical: 12, borderRadius: 8, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
-    loginText: { color: '#fff', fontWeight: '700' }
+  container: { flex: 1, paddingHorizontal: 24},
+  title: { fontSize: 28, fontWeight: '700', marginBottom: 12 },
+  label: { fontSize: 14, marginBottom: 6 },
+  input: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    fontSize: 14
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12
+  },
+  checkboxLabel: { marginLeft: 8, fontSize: 14 },
+  loginButton: {
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 24
+  },
+  loginText: { color: '#ffffff', fontSize: 16, fontWeight: '700' },
+  orText: { textAlign: 'center', marginBottom: 16 },
+  socialContainer: { gap: 12 },
+  socialButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 12
+  },
+  socialText: { fontSize: 14, marginLeft: 8 },
+  signupText: { textAlign: 'center', fontSize: 14, marginTop: 32 }
 });
-
-export default Login;
