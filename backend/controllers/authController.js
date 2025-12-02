@@ -62,10 +62,33 @@ exports.register = async (req, res) => {
         to: email,
         subject: "Verify your Zimba account",
         html: `
-          <p>Hello ${firstName},</p>
-          <p>Click below to verify your email:</p>
-          <a href="${verifyUrl}">Verify Email</a>
-        `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="UTF-8">
+              <title>Verify Your Email</title>
+              <style>
+                body { font-family: Arial, sans-serif; background-color: #f7f7f7; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; }
+                h1 { color: #2563eb; }
+                p { color: #333; font-size: 16px; line-height: 1.5; }
+                a.button { display: inline-block; padding: 12px 24px; background-color: #2563eb; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
+                a.button:hover { background-color: #1e4bb8; }
+                .footer { margin-top: 30px; font-size: 12px; color: #888; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <h1>Welcome to Zimba, ${firstName}!</h1>
+                <p>Thank you for creating an account. Please verify your email address by clicking the button below:</p>
+                <a class="button" href="${verifyUrl}">Verify Email</a>
+                <p>Or copy and paste this link into your browser:</p>
+                <p><a href="${verifyUrl}">${verifyUrl}</a></p>
+                <p class="footer">If you did not sign up for a Zimba account, please ignore this email.</p>
+              </div>
+            </body>
+          </html>
+          `
       });
     } catch (e) {
       console.log("Email send error:", e);
@@ -146,16 +169,31 @@ exports.verifyEmail = async (req, res) => {
       payload.userId
     ]);
 
-    return res.send(`
-      <!doctype html>
+    return res.send( `
+      <!DOCTYPE html>
       <html>
-        <body style="font-family:Arial;padding:40px;text-align:center;">
-          <h2>Email Verified 🎉</h2>
-          <p>Your email has been successfully verified.</p>
-          <p>You may now return to the Zimba app and log in.</p>
+        <head>
+          <meta charset="UTF-8">
+          <title>Email Verified</title>
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #f7fafc; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 60px auto; background: #fff; border-radius: 10px; padding: 40px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); text-align: center; }
+            h2 { color: #22c55e; }
+            p { font-size: 16px; color: #333; line-height: 1.5; }
+            a.button { display: inline-block; padding: 12px 24px; background-color: #2563eb; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
+            a.button:hover { background-color: #1e4bb8; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h2>Email Verified 🎉</h2>
+            <p>Your email has been successfully verified.</p>
+            <p>You may now return to the Zimba app and log in.</p>
+            <a class="button" href="${FRONTEND_URL || '#'}">Open App</a>
+          </div>
         </body>
       </html>
-    `);
+      `);
 
   } catch (err) {
     console.error("verifyEmail error:", err);
