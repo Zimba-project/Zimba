@@ -10,22 +10,20 @@ const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // Ensure uploads folder exists
-const uploadFolder = path.join(__dirname, '../public/uploads');
+const uploadFolder = path.join('/storage', 'uploads');
 if (!fs.existsSync(uploadFolder)) {
   fs.mkdirSync(uploadFolder, { recursive: true });
 }
 
-const storage = multer.memoryStorage(); 
-const upload = multer({ 
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // max 10MB
-  fileFilter: (req, file, cb) => {
-    if (!file.mimetype.startsWith('image/')) {
-      return cb(new Error('Only images are allowed'));
-    }
-    cb(null, true);
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadFolder),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
   }
 });
+
+const upload = multer({ storage });
 
 // POST /api/upload 
 router.post('/', upload.single('file'), async (req, res) => { 
