@@ -242,7 +242,7 @@ exports.resendVerification = async (req, res) => {
 exports.me = async (req, res) => {
   try {
     const { rows } = await pgPool.query(
-      "SELECT id, first_name, last_name, email, phone, birthdate, about, verified FROM users WHERE id = $1",
+      "SELECT id, first_name, last_name, email, phone, birthdate, about, verified, avatar FROM users WHERE id = $1",
       [req.userId]
     );
 
