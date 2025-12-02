@@ -3,8 +3,8 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const db = require('../db'); // assuming you have a db module to run queries
-const { verifyToken } = require('../middleware/auth'); // optional: auth middleware
+const pgPool = require('../database/pg_connection');
+const authMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -27,7 +27,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // POST /api/upload
-router.post('/', verifyToken, upload.single('file'), async (req, res) => {
+router.post('/', authMiddleware, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
@@ -35,7 +35,7 @@ router.post('/', verifyToken, upload.single('file'), async (req, res) => {
     const userId = req.user.id; 
     const query = 'UPDATE users SET avatar = ? WHERE id = ?';
     
-    await db.query(query, [url, userId]);
+    await pgPool.query(query, [url, userId]);
 
     res.json({ url });
   } catch (err) {
