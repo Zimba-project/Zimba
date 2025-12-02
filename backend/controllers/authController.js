@@ -188,8 +188,7 @@ exports.verifyEmail = async (req, res) => {
           <div class="container">
             <h2>Email Verified 🎉</h2>
             <p>Your email has been successfully verified.</p>
-            <p>You may now return to the Zimba app and log in.</p>
-            <a class="button" href="${FRONTEND_URL || '#'}">Open App</a>
+            <p>You can now return to the app and log in with your credentials.</p>
           </div>
         </body>
       </html>
