@@ -55,7 +55,7 @@ export default function ProfileScreen({ navigation, route }) {
   const getDisplayName = () => {
     const first = user?.first_name ?? user?.firstName ?? '';
     const last = user?.last_name ?? user?.lastName ?? '';
-    if (first || last) return `${first} ${last}`.trim();
+    if (first || last) return `${first}`.trim(); 
     return user?.name ?? user?.username ?? 'User';
   };
 

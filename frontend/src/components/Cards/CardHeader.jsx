@@ -5,6 +5,7 @@ import { getTopicColors } from '../../utils/TopicColors';
 import { formatTime } from '../../utils/TimeFormatter';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
+import { Ionicons } from '@expo/vector-icons'; 
 
 const CardHeader = ({ author, topic }) => {
   const { theme } = useTheme();
@@ -16,7 +17,8 @@ const CardHeader = ({ author, topic }) => {
     <View style={[styles.header, { backgroundColor: t.cardBackground }]}>
       <Avatar uri={author.avatar} />
 
-      <View style={styles.headerCenter}>
+    <View style={styles.headerCenter}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <Text
           style={[styles.authorName, { color: t.text }]}
           numberOfLines={1}
@@ -24,8 +26,21 @@ const CardHeader = ({ author, topic }) => {
         >
           {author.name}
         </Text>
-        <Text style={[styles.time, { color: t.secondaryText }]}>{formatTime(author.time)}</Text>
+
+        {author.verified && (
+          <Ionicons
+            name="checkmark-circle"
+            size={16}
+            color="#1DA1F2"
+            style={{ marginLeft: 4 }}
+          />
+        )}
       </View>
+
+      <Text style={[styles.time, { color: t.secondaryText }]}>
+        {formatTime(author.time)}
+      </Text>
+    </View>
 
       {topic ? (
         <View style={[styles.topicContainer, { backgroundColor: topicBg }]}>

@@ -22,6 +22,7 @@ const PollCard = ({
   topic = 'Poll',
   author_name,
   author_avatar,
+  author_verified,
   image,
   title,
   description,
@@ -42,6 +43,7 @@ const PollCard = ({
       topic,
       author_name,
       author_avatar,
+      author_verified,
       image,
       title,
       description,
@@ -70,6 +72,7 @@ const PollCard = ({
               : null,
             name: author_name,
             time: created_at,
+            verified: author_verified
           }}
           topic={topic}
         />
