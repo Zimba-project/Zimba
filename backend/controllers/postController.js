@@ -8,7 +8,7 @@ exports.getAllPosts = async (req, res) => {
     let query = `
     SELECT 
       p.id, p.type, p.topic, p.created_at, p.author_id,
-      u.first_name AS author_name, u.avatar AS author_avatar,
+      u.first_name AS author_name, u.avatar AS author_avatar, u.verified AS author_verified,
       b.title, b.description, b.image, b.end_time,
       COALESCE(v.total_votes, 0) AS votes,
       COALESCE(c.total_comments, 0) AS comments,
