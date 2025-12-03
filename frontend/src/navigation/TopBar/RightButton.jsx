@@ -13,7 +13,7 @@ export default function RightButton() {
 
   const { theme } = useTheme();
   const t = getTheme(theme);
-  console.log('User',user)
+  // debug console.log('User',user)
   useEffect(() => {
     const unsub = navigation.addListener('focus', () => {
       refreshUser();

@@ -20,6 +20,7 @@ const DiscussionCard = ({
   topic = 'Discussion',
   author_name,
   author_avatar,
+  author_verified,
   image,
   title,
   description,
@@ -39,6 +40,7 @@ const DiscussionCard = ({
       topic,
       author_name,
       author_avatar,
+      author_verified,
       image,
       title,
       description,
@@ -70,7 +72,7 @@ const DiscussionCard = ({
       <CardContainer>
         {/* HEADER */}
         <CardHeader
-          author={{ avatar: avatarUrl, name: author_name, time: created_at }}
+          author={{ avatar: avatarUrl, name: author_name, time: created_at, verified: author_verified }}
           topic={topic}
         />
 

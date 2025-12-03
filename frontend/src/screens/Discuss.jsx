@@ -94,6 +94,7 @@ export default function DiscussScreen() {
   const {
     author_name,
     author_avatar,
+    author_verified,
     title,
     description,
     image,
@@ -109,7 +110,7 @@ export default function DiscussScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
       <ScrollView>
         <CardHeader
-          author={{ avatar: avatarUrl, name: author_name, time: created_at }}
+          author={{ avatar: avatarUrl, name: author_name, time: created_at, verified: author_avatar }}
           topic={topic}
         />
 

@@ -173,8 +173,8 @@ const styles = StyleSheet.create({
   },
   lionMascot: {
     position: 'absolute',
-    bottom: 450,
-    right: 5,
+    bottom: 519,
+    right: 25,
     width: 120,
     height: 120,
     zIndex: 1,

@@ -87,6 +87,7 @@ export default function PollScreen() {
   const {
     author_name,
     author_avatar,
+    author_verified,
     title,
     description,
     image,
@@ -102,7 +103,7 @@ export default function PollScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
         <CardHeader
-          author={{ avatar: avatarUrl, name: author_name, time: created_at }}
+          author={{ avatar: avatarUrl, name: author_name, time: created_at, verified: author_verified }}
           topic={topic}
         />
 
