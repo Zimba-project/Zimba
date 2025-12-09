@@ -16,10 +16,17 @@ const Text = React.forwardRef<React.ComponentRef<'span'>, ITextProps>(
       sub,
       italic,
       highlight,
+      style,
       ...props
     }: { className?: string } & ITextProps,
     ref
   ) {
+    
+    let normalizedStyle: React.CSSProperties | undefined = style as any;
+    if (Array.isArray(style)) {
+      normalizedStyle = Object.assign({}, ...style.filter(Boolean));
+    }
+
     return (
       <span
         className={textStyle({
@@ -33,6 +40,7 @@ const Text = React.forwardRef<React.ComponentRef<'span'>, ITextProps>(
           highlight: highlight as boolean,
           class: className,
         })}
+        style={normalizedStyle}
         {...props}
         ref={ref}
       />
