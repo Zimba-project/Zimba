@@ -115,7 +115,6 @@ const Drawer = createDrawerNavigator();
 export default function Sidebar({ route, navigation }) {
   const { theme } = useTheme();
   const t = getTheme(theme);
-
   React.useEffect(() => {
     const shouldOpen = route?.params?.openDrawer;
     if (shouldOpen) {
@@ -128,7 +127,7 @@ export default function Sidebar({ route, navigation }) {
       } catch (e) {}
     }
   }, [route?.params?.openDrawer]);
-
+               console.log("works");
   return (
     <Drawer.Navigator
       drawerContent={(props) => <CustomDrawerContent key={theme} {...props} />}

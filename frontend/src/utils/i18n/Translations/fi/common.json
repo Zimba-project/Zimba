@@ -1,0 +1,23 @@
+{
+    "screens": {
+        "intro": {
+            "title": "Intro Screen",
+            "text": {
+                "introText": "Tervetuloa Zimbaan",
+                "login": "Kirjaudu",
+                "signup": "Rekisteröidy"
+            }
+        },
+        "login": {
+            "title": "Kirjaudu sisään",
+            "text": {
+                "login": "Kijaudu",
+                "emailAddress": "sähköposti",
+                "password": "Salasana",
+                "continue": "jatka",
+                "createAccount": "rekisteröi käyttäjä",
+                "forgotPassword": "Unohditko salasanan?"
+            }
+        }
+    }
+}

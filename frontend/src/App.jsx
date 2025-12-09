@@ -24,6 +24,7 @@ import { ThemeProvider, useTheme } from '@/components/ui/ThemeProvider/ThemeProv
 import { getTheme } from './utils/theme';
 import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 import '@/global.css';
+import { loadSavedLanguage } from './utils/lang'
 
 export const navigationRef = createNavigationContainerRef();
 const Stack = createNativeStackNavigator();
@@ -33,6 +34,14 @@ const RootApp = () => {
   const t = getTheme(theme);
   const [ready, setReady] = useState(false);
   const initialRoute = useInitialRoute();
+
+  useEffect( ()=>
+    {
+      async function fetchData() {
+        await loadSavedLanguage();
+      }
+  fetchData();
+    },[]);
 
   useEffect(() => {
     NavigationBar.setButtonStyleAsync(theme === 'dark' ? 'light' : 'dark');
