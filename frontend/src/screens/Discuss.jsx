@@ -11,6 +11,7 @@ import {
   FlatList,
   ActivityIndicator,
   Alert,
+  Modal, 
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,17 +19,109 @@ import CardHeader from '../components/Cards/CardHeader';
 import StatsBar from '../components/Cards/StatsBar';
 import useCurrentUser from '../utils/GetUser';
 import { getPostComments, addPostComment } from '../api/postService';
+import { fetchSummary } from '../api/ai';
 import { normalizeUrl, normalizeAvatarUrl } from '../utils/urlHelper';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
+
+
+// Tähän vois lisätä esim sen zimba "logon"
+const AnalysisModal = ({ analysis, isVisible, onClose, t }) => {
+    if (!analysis) return null;
+
+    return (
+        <Modal
+            animationType="fade"
+            transparent={true}
+            visible={isVisible}
+            onRequestClose={onClose}
+        >
+            <View style={styles.modalOverlay}>
+                <View style={[styles.modalContent, { backgroundColor: t.background }]}>
+                    
+                    <Text style={[styles.modalTitle, { color: t.text }]}>AI-Analyysi</Text>
+                    
+                    {/* KONTEKSTI / TIIVISTELMÄ */}
+                    <Text style={[styles.sectionTitle, { color: t.accent }]}>Yhteenveto</Text>
+                    <ScrollView style={{ maxHeight: 100 }}>
+                      <Text style={[styles.sectionText, { color: t.secondaryText }]}>{analysis.recap}</Text>
+                    </ScrollView>
+
+                    {/* PLUSSAT */}
+                    <Text style={[styles.sectionTitle, { color: t.accent }]}>Plussat</Text>
+                    <View style={styles.listContainer}>
+                        {analysis.pros && analysis.pros.map((p, i) => (
+                            <Text key={`p${i}`} style={[styles.prosText, { color: t.text }]}>
+                                ✅ {p}
+                            </Text>
+                        ))}
+                    </View>
+
+                    {/* MIINUKSET */}
+                    <Text style={[styles.sectionTitle, { color: t.accent }]}>Miinukset</Text>
+                    <View style={styles.listContainer}>
+                        {analysis.cons && analysis.cons.map((c, i) => (
+                            <Text key={`c${i}`} style={[styles.consText, { color: t.text }]}>
+                                ❌ {c}
+                            </Text>
+                        ))}
+                    </View>
+
+                    <TouchableOpacity 
+                        style={[styles.modalCloseButton, { backgroundColor: t.accent }]}
+                        onPress={onClose}
+                    >
+                        <Text style={styles.modalCloseButtonText}>Sulje</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
+    );
+};
 
 export default function DiscussScreen() {
   const route = useRoute();
   const insets = useSafeAreaInsets();
   const { postData } = route.params || {};
   const postId = postData?.id;
+  
+  
+  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const { user } = useCurrentUser();
+  const [aiRecapLoading, setAiRecapLoading] = useState(false);
+  
+  // Handler for AI Recap
+  const handleAiRecap = async () => {
+
+    setAiRecapLoading(true);
+    // Varmista, että käytämme postDatan muuttujia, jotka on destructurettu myöhemmin
+    const textToSummarize = postData?.description || postData?.title; 
+
+    if (!textToSummarize) {
+      Alert.alert('Virhe', 'Tiivistettävää tekstiä ei ole saatavilla.');
+      setAiRecapLoading(false);
+      return;
+    }
+
+    try {
+      const analysis = await fetchSummary(textToSummarize); 
+      
+      if (analysis && analysis.recap) {
+          setAiAnalysis(analysis); 
+          setIsModalVisible(true); 
+      } else {
+          Alert.alert('Virhe', 'Analyysiä ei saatu. Yritä uudelleen.');
+      }
+      
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Virhe', 'AI-palvelu epäonnistui. Tarkista backendin lokit.');
+    } finally {
+      setAiRecapLoading(false);
+    }
+  };
 
   const [commentsList, setCommentsList] = useState([]);
   const [commentText, setCommentText] = useState('');
@@ -119,6 +212,15 @@ export default function DiscussScreen() {
         <View style={styles.body}>
           <Text style={[styles.title, { color: t.text }]}>{title}</Text>
           <Text style={[styles.description, { color: t.secondaryText }]}>{description}</Text>
+
+          {/* AI Recap Button */}
+          <TouchableOpacity
+            style={[styles.aiButton, aiRecapLoading && { opacity: 0.6 }]}
+            onPress={handleAiRecap}
+            disabled={aiRecapLoading}
+          >
+            <Text style={styles.aiButtonText}>{aiRecapLoading ? 'Loading...' : 'AI Recap'}</Text>
+          </TouchableOpacity>
           <StatsBar comments={commentsList.length} views={views} />
 
           {/* Add Comment */}
@@ -165,6 +267,14 @@ export default function DiscussScreen() {
           )}
         </View>
       </ScrollView>
+      
+      {/* RENDERÖI MODAL TÄHÄN! */}
+      <AnalysisModal 
+          analysis={aiAnalysis} 
+          isVisible={isModalVisible} 
+          onClose={() => setIsModalVisible(false)} 
+          t={t}
+      />
     </SafeAreaView>
   );
 }
@@ -207,4 +317,70 @@ const styles = StyleSheet.create({
   },
   commentAuthor: { fontWeight: '700', marginBottom: 2 },
   commentText: { fontSize: 15 },
+  aiButton: {
+    marginTop: 12,
+    marginBottom: 8,
+    alignSelf: 'flex-end',
+    backgroundColor: '#0d488cff',
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+  },
+  aiButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  modalContent: {
+    width: '100%',
+    padding: 20,
+    borderRadius: 12,
+    maxHeight: '80%', 
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 10,
+    marginBottom: 5,
+  },
+  sectionText: {
+    fontSize: 14,
+    marginBottom: 10,
+    lineHeight: 20,
+  },
+  listContainer: {
+    marginBottom: 10,
+  },
+  prosText: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  consText: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  modalCloseButton: {
+    marginTop: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalCloseButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
 });

@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Dimensions, Platform } from 'react-native';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
+import { fetchSummary } from '@/src/api/ai';
 
 const { width } = Dimensions.get('window');
 const SIDE_PADDING = 24;
