@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
-import {
-  View, TextInput, StyleSheet,
-  ActivityIndicator, Alert, LayoutAnimation, Platform, UIManager, Image, ScrollView, Pressable, Modal, TouchableOpacity, KeyboardAvoidingView
+import { View, TextInput, StyleSheet, ActivityIndicator, Alert, LayoutAnimation, Platform, UIManager, Image, ScrollView, Pressable, Modal, TouchableOpacity, KeyboardAvoidingView
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaView } from '@/components/ui/safe-area-view';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { createPost } from '../api/postService';
+import { createPost, getAllPosts } from '../api/postService';
 import { DatePickerModal } from '@/src/components/DatePicker/DatePickerModal.jsx';
 import useCurrentUser from '../utils/GetUser';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
@@ -139,14 +137,41 @@ export default function CreatePostScreen({ navigation, route }) {
       };
       const response = await createPost(data);
       console.log('Post created:', response);
-      Alert.alert('Success', 'Your post has been created successfully!');
+      const newId = response?.postId;
+      // Try to fetch the newly created post data and redirect to its detail screen
+      let createdPost = null;
+      try {
+        const all = await getAllPosts();
+        createdPost = (all || []).find(p => p.id === newId) || null;
+      } catch (e) {
+        console.warn('Could not fetch posts to locate the new post:', e?.message);
+      }
+
+      Alert.alert('Success', 'Your post has been created successfully!', [
+        {
+          text: 'View Post',
+          onPress: () => {
+            if (createdPost) {
+              if (createdPost.type === 'poll') {
+                navigation.navigate('Poll', { postData: createdPost });
+              } else {
+                navigation.navigate('Discuss', { postData: createdPost });
+              }
+            } else {
+              // Fallback: go to feed
+              navigation.navigate('Main');
+            }
+          }
+        }
+      ]);
+
+      // Reset form
       setTitle('');
       setDescription('');
       setTopic('');
       setImage('');
       setEndTime(null);
       setOptions([{ id: 1, text: '' }, { id: 2, text: '' }]);
-      navigation.navigate('Home');
     } catch (error) {
       console.error('Error creating post:', error.message);
       Alert.alert('Error', error.message || 'Failed to create post.');
