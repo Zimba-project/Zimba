@@ -1,5 +1,8 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Pressable } from '@/components/ui/pressable';
+import { HStack } from '@/components/ui/hstack';
+import { VStack } from '@/components/ui/vstack';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
 import MainTabs from './MainTabs';
@@ -12,7 +15,7 @@ import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
 
 function LanguageScreen() {
-  return <View style={{ flex: 1 }} />;
+  return <VStack flex={1} />;
 }
 
 function CustomDrawerContent(props) {
@@ -24,28 +27,27 @@ function CustomDrawerContent(props) {
   const t = getTheme(theme);
 
   return (
-    <View style={[styles.container, { flex: 1, backgroundColor: t.background }]}>
+    <VStack style={[styles.container, { flex: 1, backgroundColor: t.background }]}>
       <DrawerContentScrollView
         {...props}
         contentContainerStyle={[styles.content, { backgroundColor: t.background }]}
       >
         {/* Topics collapsible */}
         <Box style={styles.drawerItem}>
-          <TouchableOpacity
+          <Pressable
             style={styles.drawerRow}
-            activeOpacity={0.7}
             onPress={() => setTopicsOpen((s) => !s)}
           >
-            <Box style={styles.drawerRow}>
+            <HStack style={styles.drawerRow}>
               <Ionicons name="list-outline" size={20} color={t.text} />
               <Text style={[styles.drawerLabel, { color: t.text }]}>Topics</Text>
-            </Box>
+            </HStack>
             <Ionicons
               name={topicsOpen ? 'chevron-up' : 'chevron-down'}
               size={18}
               color={t.secondaryText}
             />
-          </TouchableOpacity>
+          </Pressable>
           {topicsOpen && (
             <Box
               style={styles.topicsList}
@@ -56,14 +58,13 @@ function CustomDrawerContent(props) {
               shadow="1"
             >
               {topics.map((topic) => (
-                <TouchableOpacity
+                <Pressable
                   key={topic}
                   style={styles.topicInnerRow}
-                  activeOpacity={0.7}
                   onPress={() => {
                     try {
                       navigation.closeDrawer && navigation.closeDrawer();
-                    } catch (e) {}
+                    } catch (e) { }
                     navigation.navigate('Home');
                   }}
                 >
@@ -75,7 +76,7 @@ function CustomDrawerContent(props) {
                       {topic}
                     </Text>
                   </Box>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </Box>
           )}
@@ -84,29 +85,28 @@ function CustomDrawerContent(props) {
         <Box style={[styles.separator, { backgroundColor: t.rowBorder }]} />
 
         {/* Language link */}
-        <TouchableOpacity
+        <Pressable
           style={styles.drawerItem}
-          activeOpacity={0.7}
           onPress={() => navigation.navigate('Language')}
         >
-          <View style={styles.drawerRow}>
+          <HStack style={styles.drawerRow}>
             <Ionicons name="language-outline" size={20} color={t.text} />
             <Text style={[styles.drawerLabel, { color: t.text }]}>Language</Text>
-          </View>
-        </TouchableOpacity>
+          </HStack>
+        </Pressable>
 
         <Box style={[styles.separator, { backgroundColor: t.rowBorder }]} />
 
         {/* Dark mode toggle */}
-        <Box flexDirection="row" justifyContent="space-between" alignItems="center" p="$3">
-          <Box flexDirection="row" alignItems="center">
+        <HStack justifyContent="space-between" alignItems="center" p="$3">
+          <HStack alignItems="center">
             <Ionicons name="moon-outline" size={20} color={t.moonIconColor} />
             <Text style={[styles.drawerLabel, { color: t.text }]}>Dark mode</Text>
-          </Box>
+          </HStack>
           <Switch size="md" isChecked={t.isDark} onToggle={toggleTheme} />
-        </Box>
+        </HStack>
       </DrawerContentScrollView>
-    </View>
+    </VStack>
   );
 }
 
@@ -121,11 +121,11 @@ export default function Sidebar({ route, navigation }) {
     if (shouldOpen) {
       try {
         navigation.openDrawer && navigation.openDrawer();
-      } catch (e) {}
+      } catch (e) { }
       try {
         const parent = navigation.getParent && navigation.getParent();
         parent && parent.setParams && parent.setParams({ openDrawer: false });
-      } catch (e) {}
+      } catch (e) { }
     }
   }, [route?.params?.openDrawer]);
 

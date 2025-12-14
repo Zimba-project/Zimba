@@ -1,5 +1,8 @@
 import React from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
+import { HStack } from '@/components/ui/hstack';
+import { Box } from '@/components/ui/box';
+import { Pressable } from '@/components/ui/pressable';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -47,13 +50,13 @@ export default function AppNavigator() {
         component={MainScreen}
         options={{
           tabBarIcon: ({ focused, color }) => (
-            <View style={styles.iconContainer}>
+            <HStack style={styles.iconContainer}>
               <Ionicons
                 name={focused ? 'home' : 'home-outline'}
                 size={26}
                 color={color}
               />
-            </View>
+            </HStack>
           ),
         }}
       />
@@ -65,7 +68,7 @@ export default function AppNavigator() {
         options={{
           tabBarLabel: '',
           tabBarIcon: ({ focused }) => (
-            <View
+            <Box
               style={[
                 styles.addButton,
                 {
@@ -74,7 +77,7 @@ export default function AppNavigator() {
               ]}
             >
               <Ionicons name="add" size={26} color="#fff" />
-            </View>
+            </Box>
           ),
         }}
       />
@@ -85,13 +88,13 @@ export default function AppNavigator() {
         component={Inbox}
         options={{
           tabBarIcon: ({ focused, color }) => (
-            <View style={styles.iconContainer}>
+            <Box style={styles.iconContainer}>
               <Ionicons
                 name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
                 size={26}
                 color={color}
               />
-            </View>
+            </Box>
           ),
         }}
       />

@@ -1,4 +1,4 @@
-import { TouchableOpacity } from 'react-native';
+import { Pressable } from '@/components/ui/pressable';
 import { DrawerActions } from '@react-navigation/native';
 import { navigationRef } from '../../App';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
@@ -20,8 +20,8 @@ export default function LeftButton({ navigation, showBack }) {
     };
 
     return (
-        <TouchableOpacity onPress={onPress} style={{ padding: 4 }}>
+        <Pressable onPress={onPress} style={{ padding: 4 }}>
             <Ionicons name={showBack ? 'chevron-back' : 'menu'} size={24} color={iconColor} />
-        </TouchableOpacity>
+        </Pressable>
     );
 }
