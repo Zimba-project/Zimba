@@ -26,13 +26,16 @@ export const request = async (path, method = 'GET', body = null, token = null) =
   }
 
   let data;
+  // Read the response body as text once, then try to parse JSON.
+  // This avoids "Already read" / "body used" errors when attempting
+  // to call both res.json() and res.text().
+  const text = await res.text();
   try {
-    data = await res.json();
+    data = text ? JSON.parse(text) : null;
   } catch (err) {
-    // Response is not JSON (e.g., HTML error page)
-    const text = await res.text();
     data = { error: 'Invalid JSON response', raw: text };
   }
 
-  return { ok: res.ok, status: res.status, body: data };
+  // Return statusText and request url for easier debugging
+  return { ok: res.ok, status: res.status, statusText: res.statusText, url, body: data };
 };

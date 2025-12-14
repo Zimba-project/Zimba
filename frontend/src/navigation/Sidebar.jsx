@@ -3,6 +3,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
 import MainTabs from './MainTabs';
+import GroupsStack from './GroupsStack';
 import { TOPIC_COLORS } from '../utils/TopicColors';
 
 import { Text } from '@/components/ui/text';
@@ -82,6 +83,19 @@ function CustomDrawerContent(props) {
         </Box>
 
         <Box style={[styles.separator, { backgroundColor: t.rowBorder }]} />
+        {/* Groups link */}
+        <TouchableOpacity
+          style={styles.drawerItem}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Groups')}
+        >
+          <View style={styles.drawerRow}>
+            <Ionicons name="people-outline" size={20} color={t.text} />
+            <Text style={[styles.drawerLabel, { color: t.text }]}>Groups</Text>
+          </View>
+        </TouchableOpacity>
+
+        <Box style={[styles.separator, { backgroundColor: t.rowBorder }]} />
 
         {/* Language link */}
         <TouchableOpacity
@@ -139,6 +153,7 @@ export default function Sidebar({ route, navigation }) {
         component={MainTabs}
         options={{ drawerItemStyle: { display: 'none' } }}
       />
+      <Drawer.Screen name="Groups" component={GroupsStack} />
       <Drawer.Screen name="Language" component={LanguageScreen} />
     </Drawer.Navigator>
   );

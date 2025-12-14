@@ -5,6 +5,7 @@ const registerTestRoute = require("./test/registerTest");
 const authRoutes = require("./routes/auth");
 const postRoutes = require("./routes/post");
 const uploadRoutes = require("./routes/upload");
+const groupRoutes = require("./routes/groups");
 const path = require('path');
 const app = express();
 
@@ -21,6 +22,7 @@ app.use("/api", registerTestRoute);
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/groups", groupRoutes);
 app.use('/uploads', express.static('/storage/uploads'));
 
 const PORT = process.env.PORT || 3001;
