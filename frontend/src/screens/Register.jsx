@@ -14,7 +14,7 @@ import { SafeAreaView } from '@/components/ui/safe-area-view';
 import { Text } from '@/components/ui/text';
 import { HStack } from '@/components/ui/hstack';
 import { Button, ButtonText } from '@/components/ui/button';
-import { BirthdatePicker } from '@/src/components/DatePicker/BirthdatePicker.jsx';
+import { DatePickerModal } from '@/src/components/DatePicker/DatePickerModal.jsx';
 import { COUNTRIES } from '@/src/utils/CountryAreaCodes';
 
 export default function RegisterScreen({ navigation }) {
@@ -179,11 +179,14 @@ export default function RegisterScreen({ navigation }) {
         </TouchableOpacity>
 
         {/* Date Picker */}
-        <BirthdatePicker
+        <DatePickerModal
           visible={showDatePicker}
           value={birthdate}
           theme={theme}
           t={t}
+          mode="date"
+          title="Select Birthdate"
+          maximumDate={new Date()}
           onConfirm={(date, { close }) => {
             setBirthdate(date);
             if (close) setShowDatePicker(false);
