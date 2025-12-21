@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import {
-  View, TextInput, StyleSheet, ActivityIndicator,
-  ScrollView, Alert, TouchableOpacity, Modal, Platform
+  TextInput, StyleSheet, ActivityIndicator,
+  Alert, Modal, Platform
 } from 'react-native';
+import { ScrollView } from '@/components/ui/scroll-view';
+import { Box } from '@/components/ui/box';
+import { Pressable } from '@/components/ui/pressable';
 import { Feather as Icon } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { register as registerApi } from '../api/auth';
@@ -71,7 +74,7 @@ export default function RegisterScreen({ navigation }) {
         {error && <Text style={{ color: t.error, marginBottom: 12 }}>{error}</Text>}
 
         <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 12, color: t.text }}>Personal Info</Text>
-        <View style={styles.row}>
+        <HStack style={styles.row}>
           <TextInput
             style={[
               styles.input,
@@ -103,7 +106,7 @@ export default function RegisterScreen({ navigation }) {
             value={lastName}
             onChangeText={setLastName}
           />
-        </View>
+        </HStack>
 
         <TextInput
           style={[
@@ -123,13 +126,13 @@ export default function RegisterScreen({ navigation }) {
         />
 
         {/* Phone */}
-        <View style={[styles.phoneContainer, { backgroundColor: t.inputBackground, borderColor: t.inputBorder }]}>
-          <TouchableOpacity
+        <HStack style={[styles.phoneContainer, { backgroundColor: t.inputBackground, borderColor: t.inputBorder }]}>
+          <Pressable
             style={[styles.countryButton, { borderRightColor: t.inputBorder }]}
             onPress={() => setShowCountryPicker(true)}
           >
             <Text style={[styles.countryText, { color: t.text }]}>{country.flag} {country.dial_code}</Text>
-          </TouchableOpacity>
+          </Pressable>
           <TextInput
             style={[styles.phoneInput, { color: t.text }]}
             placeholder="Phone number"
@@ -138,33 +141,33 @@ export default function RegisterScreen({ navigation }) {
             value={phone}
             onChangeText={setPhone}
           />
-        </View>
+        </HStack>
 
         {/* Country Picker Modal */}
         {showCountryPicker && (
           <Modal visible={showCountryPicker} transparent animationType="slide" onRequestClose={() => setShowCountryPicker(false)}>
-            <View style={styles.modalOverlay}>
-              <View style={[styles.modalContent, { backgroundColor: t.cardBackground }]}>
+            <Box style={styles.modalOverlay}>
+              <Box style={[styles.modalContent, { backgroundColor: t.cardBackground }]}>
                 <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 12, color: t.text }}>Select Country</Text>
                 {COUNTRIES.map(c => (
-                  <TouchableOpacity
+                  <Pressable
                     key={c.code}
                     style={{ paddingVertical: 10 }}
                     onPress={() => { setCountry(c); setShowCountryPicker(false); }}
                   >
                     <Text style={{ fontSize: 16, color: t.text }}>{c.flag} {c.name} ({c.dial_code})</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
                 <Button variant="link" action="primary" onPress={() => setShowCountryPicker(false)} className="items-center">
                   <Text style={{ color: t.accent, marginTop: 12 }}>Close</Text>
                 </Button>
-              </View>
-            </View>
+              </Box>
+            </Box>
           </Modal>
         )}
 
         {/* Birthdate */}
-        <TouchableOpacity
+        <Pressable
           style={[
             styles.input,
             styles.dateRow,
@@ -176,7 +179,7 @@ export default function RegisterScreen({ navigation }) {
             {birthdate ? birthdate.toLocaleDateString() : 'Birthdate (YYYY-MM-DD)'}
           </Text>
           <Icon name="calendar" size={18} color={t.placeholder} />
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Date Picker */}
         <DatePickerModal
@@ -221,7 +224,7 @@ export default function RegisterScreen({ navigation }) {
         )}
 
         <Text style={{ textAlign: 'center', marginBottom: 16, color: t.secondaryText }}>or sign up with</Text>
-        <View style={styles.socialContainer}>
+        <HStack style={styles.socialContainer}>
           <Button variant="outline" action="secondary" className="flex-1 flex-row items-center justify-center h-11" style={{ backgroundColor: t.inputBackground, borderColor: t.inputBorder, borderRadius: 8 }}>
             <GoogleLogo width={22} height={22} />
             <Text style={{ color: t.text, marginLeft: 6 }}>Google</Text>
@@ -230,16 +233,16 @@ export default function RegisterScreen({ navigation }) {
             <AppleLogo width={22} height={22} />
             <Text style={{ color: t.text, marginLeft: 6 }}>Apple</Text>
           </Button>
-        </View>
+        </HStack>
 
-        <View style={styles.loginRow}>
+        <Box style={styles.loginRow}>
           <HStack className="items-center" style={{ gap: 4 }}>
             <Text style={{ color: t.secondaryText }}>Already have an account?</Text>
             <Button variant="link" action="primary" onPress={() => navigation.navigate('Login')} style={{ borderRadius: 8 }}>
               <Text style={{ color: t.accent, fontWeight: '600' }}> Login</Text>
             </Button>
           </HStack>
-        </View>
+        </Box>
       </ScrollView>
     </SafeAreaView>
   );

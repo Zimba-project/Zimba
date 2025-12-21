@@ -1,17 +1,14 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  ImageBackground,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import { ImageBackground, StyleSheet } from 'react-native';
 import StatsBar from './StatsBar';
 import CardHeader from './CardHeader';
 import CardContainer from './CardContainer';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_BASE.replace(/\/api$/, '');
 
@@ -27,8 +24,8 @@ const DiscussionCard = ({
   comments,
   views,
   created_at,
-  onShare = () => {},
-  onSave = () => {},
+  onShare = () => { },
+  onSave = () => { },
 }) => {
   const navigation = useNavigation();
   const themeFromProvider = useTheme();
@@ -68,7 +65,7 @@ const DiscussionCard = ({
     : null;
 
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+    <Pressable onPress={handlePress} style={{}}>
       <CardContainer>
         {/* HEADER */}
         <CardHeader
@@ -79,14 +76,14 @@ const DiscussionCard = ({
         {/* IMAGE (title overlays image) */}
         {imageUrl && (
           <ImageBackground source={{ uri: imageUrl }} style={styles.image}>
-            <View style={styles.overlay}>
+            <Box style={styles.overlay}>
               <Text style={styles.imageTitle}>{title}</Text>
-            </View>
+            </Box>
           </ImageBackground>
         )}
 
         {/* BODY */}
-        <View style={[styles.body, { backgroundColor: t.cardBackground }]}>
+        <Box style={[styles.body, { backgroundColor: t.cardBackground }]}>
           {!imageUrl && (
             <Text style={[styles.title, { color: t.text }]}>{title}</Text>
           )}
@@ -103,9 +100,9 @@ const DiscussionCard = ({
             share={onShare}
             onSave={onSave}
           />
-        </View>
+        </Box>
       </CardContainer>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

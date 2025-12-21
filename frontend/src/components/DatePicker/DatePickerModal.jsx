@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Modal, Platform, TouchableOpacity } from 'react-native';
+import { Modal, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Text } from '@/components/ui/text';
 import { HStack } from '@/components/ui/hstack';
 import { Button, ButtonText } from '@/components/ui/button';
+import { Box } from '@/components/ui/box';
 
 /**
  * Generic date picker modal.
@@ -38,8 +39,8 @@ export function DatePickerModal({
     if (Platform.OS === 'ios') {
         return (
             <Modal visible transparent animationType="slide" onRequestClose={onCancel}>
-                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', alignItems: 'center' }}>
-                    <View style={{ padding: 16, borderRadius: 12, width: '90%', backgroundColor: t.cardBackground }}>
+                <Box style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', alignItems: 'center' }}>
+                    <Box style={{ padding: 16, borderRadius: 12, width: '90%', backgroundColor: t.cardBackground }}>
                         <Text style={{ color: t.text, fontWeight: '600', marginBottom: 8 }}>{title}</Text>
                         <DateTimePicker
                             value={initialValue}
@@ -60,8 +61,8 @@ export function DatePickerModal({
                                 <ButtonText>Done</ButtonText>
                             </Button>
                         </HStack>
-                    </View>
-                </View>
+                    </Box>
+                </Box>
             </Modal>
         );
     }

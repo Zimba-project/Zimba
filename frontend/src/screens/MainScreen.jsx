@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, Text, TouchableOpacity, ActivityIndicator, StatusBar } from 'react-native';
+import { FlatList, StyleSheet, ActivityIndicator, StatusBar } from 'react-native';
 import InfoBoard from '../components/MainPage/InfoBoard';
 import PollCard from '../components/Cards/PollCard';
 import DiscussionCard from '../components/Cards/DiscussionCard';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from '@/components/ui/safe-area-view';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
 import { getAllPosts } from '../api/postService';
 import { PostFilterBar } from '../components/MainPage/FilterBar';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
@@ -47,10 +50,10 @@ export default function MainScreen({ navigation, route }) {
 
     useEffect(() => {
         if (!allPosts.length) return;
-        if (isProcessing) return; 
+        if (isProcessing) return;
         setIsProcessing(true);
-        let filtered = selectedDropdown === "All" 
-            ? [...allPosts] 
+        let filtered = selectedDropdown === "All"
+            ? [...allPosts]
             : allPosts.filter(p => p.type === FILTER_MAP[selectedDropdown]);
         if (selectedTab === "New") {
             filtered = [...filtered].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -59,7 +62,7 @@ export default function MainScreen({ navigation, route }) {
         } else if (selectedTab === 'Top') {
             filtered = [...filtered].sort((a, b) => b.comments - a.comments);
         }
-        setFeed(filtered); 
+        setFeed(filtered);
         const timer = setTimeout(() => setIsProcessing(false), 200);
         return () => clearTimeout(timer);
     }, [selectedDropdown, selectedTab, allPosts]);
@@ -68,7 +71,7 @@ export default function MainScreen({ navigation, route }) {
 
     if (loading) {
         return (
-            <SafeAreaView style={[styles.centered, { backgroundColor: t.background }]}>
+            <SafeAreaView edges={["bottom"]} style={[styles.centered, { backgroundColor: t.background }]}>
                 <ActivityIndicator size="large" color={t.accent} />
                 <Text style={[styles.loadingText, { color: t.secondaryText }]}>Loading posts...</Text>
             </SafeAreaView>
@@ -77,56 +80,56 @@ export default function MainScreen({ navigation, route }) {
 
     if (error) {
         return (
-            <SafeAreaView style={[styles.centered, { backgroundColor: t.background }]}>
+            <SafeAreaView edges={["bottom"]} style={[styles.centered, { backgroundColor: t.background }]}>
                 <Text style={[styles.errorText, { color: t.error }]}>{error}</Text>
-                <TouchableOpacity style={[styles.retryButton, { backgroundColor: t.accent }]} onPress={() => fetchPosts()}>
+                <Pressable style={[styles.retryButton, { backgroundColor: t.accent }]} onPress={() => fetchPosts()}>
                     <Text style={styles.retryText}>Retry</Text>
-                </TouchableOpacity>
+                </Pressable>
             </SafeAreaView>
         );
     }
 
     return (
-            <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={["left", "right"]}>
-                <FlatList
-                    data={feed}
-                    keyExtractor={(item, index) => `${item.type}-${item.id}-${index}`}
-                    renderItem={({ item }) => (
-                        <TouchableOpacity onPress={() => navigation.navigate("PostDetails", { postId: item.id })}>
-                            {item.type === "poll" ? (
-                                <PollCard {...item} theme={theme} />
-                            ) : (
-                                <DiscussionCard {...item} theme={theme} />
-                            )}
-                        </TouchableOpacity>
-                    )}
-                    showsVerticalScrollIndicator={false}
-                    ListHeaderComponent={() => (
-                        <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                                <Text style={{ fontSize: 18, fontWeight: '700', color: t.text }}>Upcoming in your area</Text>
-                                <TouchableOpacity onPress={() => alert('Show all upcoming changes')}>
-                                    <Text style={{ color: t.accent, fontWeight: '600' }}>See all</Text>
-                                </TouchableOpacity>
-                            </View>
+        <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={["bottom"]}>
+            <FlatList
+                data={feed}
+                keyExtractor={(item, index) => `${item.type}-${item.id}-${index}`}
+                renderItem={({ item }) => (
+                    <Pressable onPress={() => navigation.navigate("PostDetails", { postId: item.id })}>
+                        {item.type === "poll" ? (
+                            <PollCard {...item} theme={theme} />
+                        ) : (
+                            <DiscussionCard {...item} theme={theme} />
+                        )}
+                    </Pressable>
+                )}
+                showsVerticalScrollIndicator={false}
+                ListHeaderComponent={() => (
+                    <Box style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+                        <Box style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <Text style={{ fontSize: 18, fontWeight: '700', color: t.text }}>Upcoming in your area</Text>
+                            <Pressable onPress={() => alert('Show all upcoming changes')}>
+                                <Text style={{ color: t.accent, fontWeight: '600' }}>See all</Text>
+                            </Pressable>
+                        </Box>
 
-                            <InfoBoard
-                                items={infoItems}
-                                onCardPress={(it) => alert(`Info: ${it.title}`)}
-                                theme={theme}
-                            />
-                            <PostFilterBar
-                                selectedTab={selectedTab}
-                                setSelectedTab={setSelectedTab}
-                                selectedDropdown={selectedDropdown}
-                                setSelectedDropdown={setSelectedDropdown}
-                            />
-                        </View>
-                    )}
-                    onRefresh={handleRefresh}
-                    refreshing={refreshing}
-                />
-            </SafeAreaView>
+                        <InfoBoard
+                            items={infoItems}
+                            onCardPress={(it) => alert(`Info: ${it.title}`)}
+                            theme={theme}
+                        />
+                        <PostFilterBar
+                            selectedTab={selectedTab}
+                            setSelectedTab={setSelectedTab}
+                            selectedDropdown={selectedDropdown}
+                            setSelectedDropdown={setSelectedDropdown}
+                        />
+                    </Box>
+                )}
+                onRefresh={handleRefresh}
+                refreshing={refreshing}
+            />
+        </SafeAreaView>
     );
 }
 
@@ -136,21 +139,21 @@ const infoItems = [
         title: 'Traffic arrangements in downtown (week 45)',
         subtitle: 'Road and cable works in the city center — expect detours and temporary closures.',
         image: 'https://unsplash.com/photos/HCDmcskE_Zk/download?force=true&w=800',
-      
+
     },
     {
         id: 'i2',
         title: 'City park renovation begins',
         subtitle: 'Park renovation starts next month: walking paths will be adjusted and the playground renewed.',
         image: 'https://unsplash.com/photos/GjnpGl9KYL4/download?force=true&w=800',
-     
+
     },
     {
         id: 'i3',
         title: 'Public transport timetable changes',
         subtitle: 'New bus schedules take effect on Monday — check routes in the app.',
         image: 'https://unsplash.com/photos/CI3UhW7AaZE/download?force=true&w=800',
-      
+
     },
 ];
 

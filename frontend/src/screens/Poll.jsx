@@ -1,12 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {
-  SafeAreaView,
   ScrollView,
-  View,
-  Text,
   Image,
   StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
 } from 'react-native';
@@ -20,6 +16,10 @@ import useCurrentUser from '../utils/GetUser';
 import { normalizeUrl, normalizeAvatarUrl } from '../utils/urlHelper';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
+import { SafeAreaView } from '@/components/ui/safe-area-view';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
 
 export default function PollScreen() {
   const route = useRoute();
@@ -69,7 +69,7 @@ export default function PollScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.center, { paddingTop: insets.top, backgroundColor: t.background }]}>
+      <SafeAreaView edges={["top", "bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
         <ActivityIndicator size="large" color={t.accent} />
         <Text style={{ marginTop: 12, color: t.text }}>Loading...</Text>
       </SafeAreaView>
@@ -78,7 +78,7 @@ export default function PollScreen() {
 
   if (!postData) {
     return (
-      <SafeAreaView style={[styles.center, { paddingTop: insets.top, backgroundColor: t.background }]}>
+      <SafeAreaView edges={["top", "bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
         <Text style={{ color: t.text }}>No poll data available</Text>
       </SafeAreaView>
     );
@@ -100,7 +100,7 @@ export default function PollScreen() {
   const avatarUrl = normalizeAvatarUrl(author_avatar);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
+    <SafeAreaView edges={["top", "bottom"]} style={[styles.container, { backgroundColor: t.background }]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
         <CardHeader
           author={{ avatar: avatarUrl, name: author_name, time: created_at, verified: author_verified }}
@@ -109,19 +109,19 @@ export default function PollScreen() {
 
         {imageUrl && <Image source={{ uri: imageUrl }} style={styles.image} />}
 
-        <View style={styles.body}>
+        <Box style={styles.body}>
           <Text style={[styles.title, { color: t.text }]}>{title}</Text>
           <Text style={[styles.description, { color: t.secondaryText }]}>{description}</Text>
 
           {/* Show votes and views, but no comments */}
           <StatsBar views={views} />
 
-          <View style={styles.optionsContainer}>
+          <Box style={styles.optionsContainer}>
             {!submitted ? (
               options.map((opt) => {
                 const isSelected = selectedOption === opt.id;
                 return (
-                  <TouchableOpacity
+                  <Pressable
                     key={opt.id}
                     style={[
                       styles.optionButton,
@@ -140,7 +140,7 @@ export default function PollScreen() {
                       {opt.text}
                     </Text>
                     <Text style={[styles.voteCount, { color: t.accent }]}>{opt.votes} votes</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 );
               })
             ) : (
@@ -148,7 +148,7 @@ export default function PollScreen() {
             )}
 
             {!submitted && (
-              <TouchableOpacity
+              <Pressable
                 style={[
                   styles.submitButton,
                   { backgroundColor: selectedOption ? t.accent : t.placeholder },
@@ -157,14 +157,14 @@ export default function PollScreen() {
                 onPress={handleSubmit}
               >
                 <Text style={styles.submitText}>Submit Vote</Text>
-              </TouchableOpacity>
+              </Pressable>
             )}
 
             {submitted && (
               <Text style={[styles.thankYouText, { color: '#16a34a' }]}>Thanks for voting!</Text>
             )}
-          </View>
-        </View>
+          </Box>
+        </Box>
       </ScrollView>
     </SafeAreaView>
   );

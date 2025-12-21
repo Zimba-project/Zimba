@@ -20,6 +20,7 @@ export default function AppNavigator() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme(); // get current theme
   const t = getTheme(theme); // get theme colors
+  const bottomPad = Math.max(insets.bottom, 8);
 
   return (
     <Tab.Navigator
@@ -30,16 +31,18 @@ export default function AppNavigator() {
         tabBarInactiveTintColor: t.secondaryText,
         tabBarLabelStyle: {
           fontSize: 12,
-          marginBottom: Platform.OS === 'ios' ? 0 : 5,
+          marginBottom: Platform.OS === 'ios' ? 2 : 5,
         },
         tabBarStyle: {
-          height: Platform.OS === 'ios' ? 40 : 60,
-          paddingBottom: Platform.OS === 'ios' ? 20 : insets.bottom,
-          paddingTop: 5,
+          // Ensure full visibility on iOS by including safe area
+          height: 56 + bottomPad,
+          paddingBottom: bottomPad,
+          paddingTop: 8,
           borderTopWidth: 0,
           elevation: 10,
           backgroundColor: t.background,
         },
+        tabBarHideOnKeyboard: true,
       }}
       tabBar={(props) => <CustomTabBar {...props} theme={t} />}
     >

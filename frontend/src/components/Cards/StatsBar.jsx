@@ -1,5 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Share, Linking } from 'react-native';
+import { StyleSheet, Share, Linking } from 'react-native';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
 import { Feather as Icon } from '@expo/vector-icons';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
@@ -39,35 +42,35 @@ const StatsBar = ({ votes, comments, showComments = true, onShare, onSave, share
   };
 
   return (
-    <View style={styles.row}>
-      <View style={styles.leftItems}>
+    <Box style={styles.row}>
+      <Box style={styles.leftItems}>
         {votes !== undefined && (
-          <View style={styles.item}>
+          <Box style={styles.item}>
             <Icon name="bar-chart-2" size={16} color={t.accent} />
             <Text style={[styles.label, { color: t.secondaryText }]}>{votes.toLocaleString()} Votes</Text>
-          </View>
+          </Box>
         )}
         {showComments && comments !== undefined && (
-          <View style={styles.item}>
+          <Box style={styles.item}>
             <Icon name="message-circle" size={16} color={t.accent} />
             <Text style={[styles.label, { color: t.secondaryText }]}>{comments} Comments</Text>
-          </View>
+          </Box>
         )}
-      </View>
+      </Box>
 
-      <View style={styles.actions}>
+      <Box style={styles.actions}>
         {(onShare || share) && (
-          <TouchableOpacity onPress={handleShare} style={styles.iconButton}>
+          <Pressable onPress={handleShare} style={styles.iconButton}>
             <Icon name="share-2" size={18} color={t.accent} />
-          </TouchableOpacity>
+          </Pressable>
         )}
         {onSave && (
-          <TouchableOpacity onPress={onSave} style={styles.iconButton}>
+          <Pressable onPress={onSave} style={styles.iconButton}>
             <Icon name="bookmark" size={18} color={t.accent} />
-          </TouchableOpacity>
+          </Pressable>
         )}
-      </View>
-    </View>
+      </Box>
+    </Box>
   );
 };
 

@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, FlatList } from 'react-native';
+import { StyleSheet, Modal, FlatList } from 'react-native';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
 
 const TABS = [
   { key: 'Hot', icon: 'flame' },
@@ -18,13 +21,13 @@ export const PostFilterBar = ({ selectedTab, setSelectedTab, selectedDropdown, s
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
   return (
-    <View style={styles.container}>
+    <Box style={styles.container}>
       {/* Tabs */}
-      <View style={styles.tabsContainer}>
+      <Box style={styles.tabsContainer}>
         {TABS.map(({ key, icon }) => {
           const isActive = selectedTab === key;
           return (
-            <TouchableOpacity
+            <Pressable
               key={key}
               style={[
                 styles.tab,
@@ -36,10 +39,10 @@ export const PostFilterBar = ({ selectedTab, setSelectedTab, selectedDropdown, s
               {isActive && (
                 <Text style={[styles.tabText, { color: '#fff', marginLeft: 4 }]}>{key}</Text>
               )}
-            </TouchableOpacity>
+            </Pressable>
           );
         })}
-      </View>
+      </Box>
 
       {/* Selected filter text */}
       <Text style={[styles.filterLabel, { color: t.text }]}>
@@ -47,12 +50,12 @@ export const PostFilterBar = ({ selectedTab, setSelectedTab, selectedDropdown, s
       </Text>
 
       {/* Filter Icon */}
-      <TouchableOpacity
+      <Pressable
         style={[styles.filterButton, { borderColor: t.inputBorder, backgroundColor: t.cardBackground }]}
         onPress={() => setDropdownVisible(true)}
       >
         <Ionicons name="filter" size={18} color={t.text} />
-      </TouchableOpacity>
+      </Pressable>
 
       {/* Dropdown Modal */}
       <Modal
@@ -61,18 +64,18 @@ export const PostFilterBar = ({ selectedTab, setSelectedTab, selectedDropdown, s
         animationType="fade"
         onRequestClose={() => setDropdownVisible(false)}
       >
-        <TouchableOpacity
+        <Pressable
           style={styles.modalOverlay}
-          activeOpacity={1}
           onPress={() => setDropdownVisible(false)}
         >
-          <View style={[styles.modalContent, { backgroundColor: t.cardBackground }]}>
+          <Box style={[styles.modalContent, { backgroundColor: t.cardBackground }]}
+          >
             <FlatList
               data={DROPDOWN_OPTIONS}
               keyExtractor={(item) => item}
               style={{ maxHeight: 120 }}
               renderItem={({ item }) => (
-                <TouchableOpacity
+                <Pressable
                   style={styles.modalItem}
                   onPress={() => {
                     setSelectedDropdown(item);
@@ -80,13 +83,13 @@ export const PostFilterBar = ({ selectedTab, setSelectedTab, selectedDropdown, s
                   }}
                 >
                   <Text style={{ color: t.text }}>{item}</Text>
-                </TouchableOpacity>
+                </Pressable>
               )}
             />
-          </View>
-        </TouchableOpacity>
+          </Box>
+        </Pressable>
       </Modal>
-    </View>
+    </Box>
   );
 };
 

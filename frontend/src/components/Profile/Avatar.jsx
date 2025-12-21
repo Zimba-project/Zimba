@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, View, StyleSheet } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
+import { Box } from '@/components/ui/box';
 import avatar from '../../../assets/avatar.jpg';
 
 const sizes = { sm: 32, md: 40, lg: 56 };
@@ -9,13 +10,13 @@ const Avatar = ({ uri, size = 'md' }) => {
     const fullUri = uri?.startsWith('http') ? uri : `https://your-backend.com${uri}`;
 
     return (
-        <View style={[styles.container, { width: dim, height: dim }]}>
+        <Box style={[styles.container, { width: dim, height: dim }]}>
             <Image
                 source={uri ? { uri: fullUri } : avatar}
                 style={[styles.image, { width: dim, height: dim }]}
                 resizeMode="cover"
             />
-        </View>
+        </Box>
     );
 };
 

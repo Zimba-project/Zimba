@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, ActivityIndicator, Alert, LayoutAnimation, Platform, UIManager, Image, ScrollView, Pressable, Modal, TouchableOpacity, KeyboardAvoidingView
-} from 'react-native';
+import { TextInput, StyleSheet, ActivityIndicator, Alert, LayoutAnimation, Platform, UIManager, Image, ScrollView, Modal, KeyboardAvoidingView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaView } from '@/components/ui/safe-area-view';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +14,8 @@ import { Button, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';
 import { Textarea, TextareaInput } from '@/components/ui/textarea';
 import { TOPIC_COLORS } from '../utils/TopicColors';
+import { Box } from '@/components/ui/box';
+import { Pressable } from '@/components/ui/pressable';
 
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
@@ -195,7 +196,7 @@ export default function CreatePostScreen({ navigation, route }) {
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 16 : 0}
+        keyboardVerticalOffset={0}
         style={{ flex: 1 }}
       >
         <ScrollView
@@ -203,7 +204,7 @@ export default function CreatePostScreen({ navigation, route }) {
           contentContainerStyle={{ paddingBottom: 100 }}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.form}>
+          <Box style={styles.form}>
             <Text style={[styles.label, { color: t.text }]}>Title</Text>
             <TextInput
               style={[styles.input, { backgroundColor: t.inputBackground, borderColor: focusedField === 'title' ? t.accent : t.inputBorder, color: t.text, borderRadius: 8 }]}
@@ -230,12 +231,12 @@ export default function CreatePostScreen({ navigation, route }) {
 
             {showTopicPicker && (
               <Modal visible transparent animationType="slide" onRequestClose={() => setShowTopicPicker(false)}>
-                <View style={styles.modalOverlay}>
+                <Box style={styles.modalOverlay}>
                   <Pressable style={styles.backdrop} onPress={() => setShowTopicPicker(false)} />
-                  <View style={[styles.modalContent, { backgroundColor: t.cardBackground, borderColor: t.secondaryText }]}>
-                    <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
+                  <Box style={[styles.modalContent, { backgroundColor: t.cardBackground, borderColor: t.secondaryText }]}>
+                    <Box style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
                       <Text style={{ color: t.text, fontWeight: '600' }}>Select Topic</Text>
-                    </View>
+                    </Box>
                     <ScrollView style={{ maxHeight: 320 }} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 12 }} keyboardShouldPersistTaps="handled">
                       {Object.keys(TOPIC_COLORS || {}).map((name) => (
                         <Pressable key={name} style={{ paddingVertical: 10 }} onPress={() => { setTopic(name); setShowTopicPicker(false); }}>
@@ -246,8 +247,8 @@ export default function CreatePostScreen({ navigation, route }) {
                     <Button variant="link" action="primary" onPress={() => setShowTopicPicker(false)} className="items-center" style={{ alignSelf: 'center', marginVertical: 8 }}>
                       <Text style={{ color: t.accent }}>Close</Text>
                     </Button>
-                  </View>
-                </View>
+                  </Box>
+                </Box>
               </Modal>
             )}
 
@@ -275,12 +276,12 @@ export default function CreatePostScreen({ navigation, route }) {
 
             <Text style={[styles.label, { color: t.text }]}>Image (optional)</Text>
             {image ? (
-              <View style={styles.imageWrapper}>
+              <Box style={styles.imageWrapper}>
                 <Image source={{ uri: image }} style={styles.preview} />
-                <TouchableOpacity style={styles.removeOverlay} onPress={() => setImage('')}>
+                <Pressable style={styles.removeOverlay} onPress={() => setImage('')}>
                   <Ionicons name="close-circle" size={18} color={t.error || '#dc2626'} />
-                </TouchableOpacity>
-              </View>
+                </Pressable>
+              </Box>
             ) : (
               <Button
                 variant="outline"
@@ -297,7 +298,7 @@ export default function CreatePostScreen({ navigation, route }) {
             {type === 'poll' && (
               <>
                 {/* End Time using shared DatePickerModal (date-only for consistency) */}
-                <TouchableOpacity
+                <Pressable
                   style={[
                     styles.input,
                     { backgroundColor: t.inputBackground, borderColor: t.inputBorder, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }
@@ -308,7 +309,7 @@ export default function CreatePostScreen({ navigation, route }) {
                     {endTime ? endTime.toLocaleDateString() : 'Select end date'}
                   </Text>
                   <Ionicons name="calendar" size={18} color={t.secondaryText} />
-                </TouchableOpacity>
+                </Pressable>
 
                 <DatePickerModal
                   visible={showDatePicker}
@@ -324,10 +325,10 @@ export default function CreatePostScreen({ navigation, route }) {
                   }}
                   onCancel={() => setShowDatePicker(false)}
                 />
-                <View style={{ marginTop: 16, marginBottom: 16 }}>
+                <Box style={{ marginTop: 16, marginBottom: 16 }}>
                   <Text style={[styles.label, { color: t.text }]}>Options</Text>
                   {options.map((opt, index) => (
-                    <View key={opt.id} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                    <Box key={opt.id} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
                       <TextInput
                         style={[styles.input, { flex: 1, backgroundColor: t.inputBackground, borderColor: focusedField === `option_${opt.id}` ? t.accent : t.inputBorder, color: t.text, borderRadius: 8 }]}
                         placeholder={`Option ${index + 1}`}
@@ -342,17 +343,17 @@ export default function CreatePostScreen({ navigation, route }) {
                         onBlur={() => setFocusedField(null)}
                       />
                       {options.length > 2 && (
-                        <TouchableOpacity onPress={() => removeOption(opt.id)} style={{ marginLeft: 8 }}>
+                        <Pressable onPress={() => removeOption(opt.id)} style={{ marginLeft: 8 }}>
                           <Ionicons name="trash" size={20} color={t.error || '#dc2626'} />
-                        </TouchableOpacity>
+                        </Pressable>
                       )}
-                    </View>
+                    </Box>
                   ))}
                   <Button variant="link" action="primary" onPress={addOption} className="flex-row items-center" style={{ borderRadius: 8 }}>
                     <Ionicons name="add-circle" size={20} color={t.accent} />
                     <Text style={{ marginLeft: 6, color: t.accent, fontWeight: '500' }}>Add Option</Text>
                   </Button>
-                </View>
+                </Box>
               </>
             )}
 
@@ -373,7 +374,7 @@ export default function CreatePostScreen({ navigation, route }) {
                 </HStack>
               )}
             </Button>
-          </View>
+          </Box>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView >

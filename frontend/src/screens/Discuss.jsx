@@ -1,17 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
+import {ScrollView, Image, StyleSheet, TextInput, FlatList, ActivityIndicator, Alert} from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CardHeader from '../components/Cards/CardHeader';
@@ -21,6 +9,10 @@ import { getPostComments, addPostComment } from '../api/postService';
 import { normalizeUrl, normalizeAvatarUrl } from '../utils/urlHelper';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
+import { SafeAreaView } from '@/components/ui/safe-area-view';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
 
 export default function DiscussScreen() {
   const route = useRoute();
@@ -85,7 +77,7 @@ export default function DiscussScreen() {
 
   if (!postData) {
     return (
-      <SafeAreaView style={[styles.center, { paddingTop: insets.top, backgroundColor: t.background }]}>
+      <SafeAreaView edges={["top", "bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
         <Text style={{ color: t.text }}>No discuss data available</Text>
       </SafeAreaView>
     );
@@ -107,7 +99,7 @@ export default function DiscussScreen() {
   const avatarUrl = normalizeAvatarUrl(author_avatar);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
+    <SafeAreaView edges={["top", "bottom"]} style={[styles.container, { backgroundColor: t.background }]}>
       <ScrollView>
         <CardHeader
           author={{ avatar: avatarUrl, name: author_name, time: created_at, verified: author_avatar }}
@@ -116,13 +108,13 @@ export default function DiscussScreen() {
 
         {imageUrl && <Image source={{ uri: imageUrl }} style={styles.image} />}
 
-        <View style={styles.body}>
+        <Box style={styles.body}>
           <Text style={[styles.title, { color: t.text }]}>{title}</Text>
           <Text style={[styles.description, { color: t.secondaryText }]}>{description}</Text>
           <StatsBar comments={commentsList.length} views={views} />
 
           {/* Add Comment */}
-          <View style={[styles.commentInputContainer, { borderTopColor: t.inputBorder }]}>
+          <Box style={[styles.commentInputContainer, { borderTopColor: t.inputBorder }]}>
             <TextInput
               style={[
                 styles.commentInput,
@@ -133,7 +125,7 @@ export default function DiscussScreen() {
               value={commentText}
               onChangeText={setCommentText}
             />
-            <TouchableOpacity
+            <Pressable
               style={[styles.commentButton, { backgroundColor: t.accent }]}
               onPress={handleAddComment}
               disabled={posting}
@@ -141,8 +133,8 @@ export default function DiscussScreen() {
               <Text style={styles.commentButtonText}>
                 {posting ? 'Posting...' : 'Post'}
               </Text>
-            </TouchableOpacity>
-          </View>
+            </Pressable>
+          </Box>
 
           {/* Comments */}
           {loading ? (
@@ -152,18 +144,18 @@ export default function DiscussScreen() {
               data={commentsList}
               keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }) => (
-                <View style={[styles.commentContainer, { borderBottomColor: t.inputBorder }]}>
+                <Box style={[styles.commentContainer, { borderBottomColor: t.inputBorder }]}>
                   <Text style={[styles.commentAuthor, { color: t.text }]}>
                     {item.author_name || 'Unknown'}
                   </Text>
                   <Text style={[styles.commentText, { color: t.secondaryText }]}>{item.text}</Text>
-                </View>
+                </Box>
               )}
               scrollEnabled={false}
               contentContainerStyle={{ marginTop: 16 }}
             />
           )}
-        </View>
+        </Box>
       </ScrollView>
     </SafeAreaView>
   );
@@ -175,9 +167,9 @@ const styles = StyleSheet.create({
   image: { width: '100%', height: 250 },
   title: { fontSize: 22, fontWeight: '700', marginBottom: 12 },
   body: {
-  paddingHorizontal: 16,
-  paddingBottom: 16,
-  marginBottom: 40,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    marginBottom: 40,
   },
   description: { fontSize: 16, lineHeight: 22 },
   commentInputContainer: {

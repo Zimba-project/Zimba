@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StatusBar, View, TextInput, StyleSheet, ActivityIndicator, Alert, Platform } from 'react-native';
+import { StatusBar, TextInput, StyleSheet, ActivityIndicator, Alert, Platform } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import GoogleLogo from '../../assets/google.svg';
 import AppleLogo from '../../assets/apple.svg';
@@ -97,14 +97,14 @@ export default function LoginScreen() {
       />
 
       {/* Keep me logged in */}
-      <View style={styles.checkboxContainer}>
+      <HStack style={styles.checkboxContainer}>
         <Checkbox
           value={keepLoggedIn}
           onValueChange={setKeepLoggedIn}
           color={keepLoggedIn ? t.accent : undefined}
         />
         <Text style={{ color: t.text, marginLeft: 8 }}>Keep me logged in</Text>
-      </View>
+      </HStack>
 
       {/* Login Button */}
       <Button action="primary" variant="solid" onPress={handleLogin} className="h-11 mb-6" style={{ backgroundColor: t.accent, borderRadius: 8 }}>
@@ -117,7 +117,7 @@ export default function LoginScreen() {
 
       {/* Social Login */}
       <Text style={{ textAlign: 'center', marginBottom: 16, color: t.text }}>or sign in with</Text>
-      <View style={styles.socialContainer}>
+      <Box style={styles.socialContainer}>
         <Button variant="outline" action="secondary" onPress={() => Alert.alert('Not implemented')} className="flex-row items-center justify-center h-11 mb-3" style={{ borderColor: t.inputBorder, backgroundColor: t.inputBackground, borderRadius: 8 }}>
           <GoogleLogo width={22} height={22} />
           <Text style={{ color: t.text, marginLeft: 8 }}>Continue with Google</Text>
@@ -127,7 +127,7 @@ export default function LoginScreen() {
           <AppleLogo width={22} height={22} />
           <Text style={{ color: t.text, marginLeft: 8 }}>Continue with Apple</Text>
         </Button>
-      </View>
+      </Box>
 
       {/* Sign Up */}
       <HStack className="items-center justify-center" style={{ marginTop: 12 }}>
