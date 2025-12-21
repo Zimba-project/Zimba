@@ -16,3 +16,7 @@ export async function setLanguage(lang) {
   await i18n.changeLanguage(lang);
   await sessionStorage.setItem('lang', lang);
 }
+
+export async function getLanguages() {
+  return allowed;
+}

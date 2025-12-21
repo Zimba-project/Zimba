@@ -4,7 +4,7 @@ import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigatio
 import { Ionicons } from '@expo/vector-icons';
 import MainTabs from './MainTabs';
 import { TOPIC_COLORS } from '../utils/TopicColors';
-
+import { setLanguage } from '../utils/lang';
 import { Text } from '@/components/ui/text';
 import { Box } from '@/components/ui/box';
 import { Switch } from '@/components/ui/switch';
@@ -87,7 +87,7 @@ function CustomDrawerContent(props) {
         <TouchableOpacity
           style={styles.drawerItem}
           activeOpacity={0.7}
-          onPress={() => navigation.navigate('Language')}
+          onPress={() => setLanguage('en')}
         >
           <View style={styles.drawerRow}>
             <Ionicons name="language-outline" size={20} color={t.text} />
@@ -127,7 +127,6 @@ export default function Sidebar({ route, navigation }) {
       } catch (e) {}
     }
   }, [route?.params?.openDrawer]);
-               console.log("works");
   return (
     <Drawer.Navigator
       drawerContent={(props) => <CustomDrawerContent key={theme} {...props} />}
