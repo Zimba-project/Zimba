@@ -171,7 +171,7 @@ export default function PollScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  image: { width: '100%', height: 250 },
+  image: { width: '100%', height: 250, marginBottom: 12 },
   title: { fontSize: 22, fontWeight: '700', marginBottom: 12 },
   body: {
     paddingHorizontal: 16,
@@ -180,17 +180,27 @@ const styles = StyleSheet.create({
   description: { fontSize: 16, lineHeight: 22 },
   optionsContainer: { marginTop: 20 },
   optionButton: {
-    padding: 12,
+    padding: 16,
     marginVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    minHeight: 56,
   },
   disabledOption: { opacity: 0.7 },
-  optionText: { fontSize: 16 },
-  voteCount: { fontWeight: '600' },
+  optionText: { 
+    fontSize: 16, 
+    flex: 1,
+    marginRight: 12,
+    lineHeight: 22,
+  },
+  voteCount: { 
+    fontWeight: '600',
+    fontSize: 14,
+    flexShrink: 0,
+  },
   submitButton: {
     paddingVertical: 12,
     borderRadius: 8,

@@ -190,16 +190,56 @@ exports.getPostComments = async (req, res) => {
     }
 
     try {
-        const result = await pgPool.query(`
-            SELECT c.id, c.comment, c.created_at,
-            u.id AS user_id, u.first_name AS user_name, u.avatar AS user_avatar
-            FROM post_comments c
-            JOIN users u ON c.user_id = u.id
-            WHERE c.post_id = $1
-            ORDER BY c.created_at ASC
+        // Fetch comments for the post
+        const commentsRes = await pgPool.query(`
+          SELECT c.id, c.comment, c.created_at,
+          u.id AS user_id, u.first_name AS user_name, u.avatar AS user_avatar
+          FROM post_comments c
+          JOIN users u ON c.user_id = u.id
+          WHERE c.post_id = $1
+          ORDER BY c.created_at ASC
         `, [postId]);
 
-        res.status(200).json({ comments: result.rows });
+        const comments = commentsRes.rows || [];
+
+        // If there are comments, try to fetch replies from post_comment_replies table
+        let repliesByComment = {};
+        if (comments.length) {
+          const commentIds = comments.map(c => c.id);
+          try {
+            const repliesRes = await pgPool.query(`
+              SELECT r.id, r.comment_id, r.reply, r.created_at,
+                   u.id AS user_id, u.first_name AS user_name, u.avatar AS user_avatar
+              FROM post_comment_replies r
+              JOIN users u ON r.user_id = u.id
+              WHERE r.comment_id = ANY($1::int[])
+              ORDER BY r.created_at ASC;
+            `, [commentIds]);
+
+            for (const r of repliesRes.rows || []) {
+              const key = r.comment_id;
+              if (!repliesByComment[key]) repliesByComment[key] = [];
+              repliesByComment[key].push({
+                id: r.id,
+                text: r.reply,
+                created_at: r.created_at,
+                user_id: r.user_id,
+                user_name: r.user_name,
+                user_avatar: r.user_avatar,
+              });
+            }
+          } catch (err) {
+            // If table doesn't exist or other error, continue without replies
+            console.warn('Replies unavailable:', err.message);
+          }
+        }
+
+        const merged = comments.map(c => ({
+          ...c,
+          replies: repliesByComment[c.id] || []
+        }));
+
+        res.status(200).json({ comments: merged });
     } catch (err) {
         console.error("Error fetching comments:", err);
         res.status(500).json({ error: "Server error fetching comments", detail: err.message });
@@ -236,3 +276,77 @@ exports.addPostComment = async (req, res) => {
         res.status(500).json({ error: "Server error adding comment", detail: err.message });
     }
 };
+
+  // ---------- ADD A REPLY TO A COMMENT ----------
+  exports.addCommentReply = async (req, res) => {
+    const postIdParam = req.params.postId ?? req.params.id;
+    const postId = parseInt(postIdParam, 10);
+    const commentIdParam = req.params.commentId;
+    const commentId = parseInt(commentIdParam, 10);
+    const { user_id, reply } = req.body;
+
+    if (!postId || Number.isNaN(postId)) {
+      return res.status(400).json({ error: 'Invalid postId' });
+    }
+    if (!commentId || Number.isNaN(commentId)) {
+      return res.status(400).json({ error: 'Invalid commentId' });
+    }
+    if (!user_id) {
+      return res.status(400).json({ error: 'Missing user_id / log in' });
+    }
+    if (!reply || !String(reply).trim()) {
+      return res.status(400).json({ error: 'Missing reply text' });
+    }
+
+    try {
+      // Ensure the comment belongs to the given post
+      const commentRes = await pgPool.query(
+        'SELECT id FROM post_comments WHERE id = $1 AND post_id = $2',
+        [commentId, postId]
+      );
+      if (!commentRes.rows.length) {
+        return res.status(404).json({ error: 'Comment not found for this post' });
+      }
+
+      // Create replies table if it doesn't exist
+      await pgPool.query(`
+        CREATE TABLE IF NOT EXISTS post_comment_replies (
+          id SERIAL PRIMARY KEY,
+          comment_id INT NOT NULL REFERENCES post_comments(id) ON DELETE CASCADE,
+          user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          reply TEXT NOT NULL,
+          created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+        );
+      `);
+
+      // Insert reply
+      const insertRes = await pgPool.query(`
+        INSERT INTO post_comment_replies (comment_id, user_id, reply)
+        VALUES ($1, $2, $3)
+        RETURNING id, comment_id, user_id, reply, created_at;
+      `, [commentId, user_id, reply]);
+
+      const r = insertRes.rows[0];
+
+      // Enrich with user details for convenience
+      const userRes = await pgPool.query(
+        'SELECT first_name AS user_name, avatar AS user_avatar FROM users WHERE id = $1',
+        [r.user_id]
+      );
+
+      res.status(201).json({
+        reply: {
+          id: r.id,
+          comment_id: r.comment_id,
+          user_id: r.user_id,
+          text: r.reply,
+          created_at: r.created_at,
+          user_name: userRes.rows[0]?.user_name,
+          user_avatar: userRes.rows[0]?.user_avatar,
+        }
+      });
+    } catch (err) {
+      console.error('Error adding comment reply:', err);
+      res.status(500).json({ error: 'Server error adding reply', detail: err.message });
+    }
+  };
