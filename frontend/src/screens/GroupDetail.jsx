@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, FlatList, Alert, ScrollView, Image, TextInput } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
 import { getGroup, joinGroup, leaveGroup, listJoinRequests, approveRequest, rejectRequest, deleteGroup, removeMember } from '../api/groupsService';
+import { listGroupPosts, createGroupPost } from '../api/groupPostService';
+import PollCard from '../components/Cards/PollCard';
+import DiscussionCard from '../components/Cards/DiscussionCard';
 import { sessionStorage } from '../utils/Storage';
 
 export default function GroupDetail({ route, navigation }) {
@@ -17,6 +20,9 @@ export default function GroupDetail({ route, navigation }) {
   const [hasPending, setHasPending] = useState(false);
   const [requests, setRequests] = useState([]);
   const [isOwner, setIsOwner] = useState(false);
+  const [activeTab, setActiveTab] = useState('Discussion');
+  const [newPost, setNewPost] = useState('');
+  const [posts, setPosts] = useState([]);
 
   const load = async () => {
     setLoading(true);
@@ -26,6 +32,14 @@ export default function GroupDetail({ route, navigation }) {
       setMembers(res.members || []);
       setJoined(!!res.is_member);
       setHasPending(!!res.has_pending_request);
+      // load posts for this group (use dedicated group posts endpoint)
+      try {
+        const gp = await listGroupPosts(groupId).catch(() => []);
+        setPosts(gp || []);
+      } catch (e) {
+        console.error('Error loading group posts', e);
+        setPosts([]);
+      }
       // determine if current user is owner (res.group.created_by)
       const storedId = await sessionStorage.getItem('userId');
       setIsOwner(storedId ? String(res.group.created_by) === String(storedId) : false);
@@ -42,6 +56,30 @@ export default function GroupDetail({ route, navigation }) {
   };
 
   useEffect(() => { load(); }, [groupId]);
+  // reload when screen gains focus (e.g., after creating a post)
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      load();
+    });
+    return unsubscribe;
+  }, [navigation, groupId]);
+
+  const openCreatePostScreen = (type) => {
+    // GroupDetail sits inside GroupsStack which is rendered in Drawer under 'Groups'.
+    // The CreatePost 'NewPost' screen is inside the Bottom Tabs under Drawer 'Home'.
+    // Navigate via parent (Drawer) to Home -> NewPost.
+    try {
+      const drawer = navigation.getParent();
+      if (drawer && typeof drawer.navigate === 'function') {
+        drawer.navigate('Home', { screen: 'NewPost', params: { groupId, type } });
+        return;
+      }
+    } catch (e) {
+      // fallback
+    }
+    // fallback to direct navigate (may work if navigator structure differs)
+    navigation.navigate('NewPost', { groupId, type });
+  };
 
   const handleJoin = async () => {
     try {
@@ -76,107 +114,272 @@ export default function GroupDetail({ route, navigation }) {
     );
   };
 
+  const handleInvite = () => {
+    Alert.alert('Invite', 'Invite flow not implemented yet');
+  };
+
+  const handleCreatePost = async () => {
+    if (!joined) return Alert.alert('Join group', 'You must join the group to post');
+    if (!newPost.trim()) return;
+    try {
+      const storedId = await sessionStorage.getItem('userId');
+      const userId = storedId || null;
+      if (!userId) return Alert.alert('Error', 'You must be logged in to post');
+      const data = {
+        type: 'discussion',
+        topic: `group:${groupId}`,
+        title: newPost.slice(0, 80) || 'Post',
+        description: newPost,
+        image: null,
+      };
+      await createGroupPost(groupId, data);
+      setNewPost('');
+      // reload posts
+      const gp = await listGroupPosts(groupId).catch(() => []);
+      setPosts(gp || []);
+      Alert.alert('Posted', 'Your post was created');
+    } catch (err) {
+      console.error('Error creating post', err);
+      Alert.alert('Error', err.message || 'Failed to create post');
+    }
+  };
+
   if (!group) return <View style={[styles.container, { backgroundColor: t.background }]} />;
 
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}> 
-      <View style={[styles.header, { backgroundColor: t.cardBackground }]}> 
-        <Text style={[styles.title, { color: t.text }]}>{group.name}</Text>
-        <Text style={{ color: t.secondaryText }}>{group.description}</Text>
-        <View style={styles.controls}>
-          {isOwner ? (
-            <TouchableOpacity style={[styles.button, { backgroundColor: '#c43a3a' }]} onPress={handleDelete}>
-              <Text style={{ color: '#fff' }}>Delete Group</Text>
+      <View style={[styles.card, { backgroundColor: t.cardBackground }]}> 
+        <View style={styles.headerRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.title, { color: t.text }]}>{group.name}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+              <Text style={{ color: t.secondaryText, marginRight: 12 }}>{group.privacy === 1 ? 'Private group' : 'Public group'}</Text>
+              <Text style={{ color: t.secondaryText }}>{members.length} members</Text>
+            </View>
+          </View>
+
+          <View style={{ alignItems: 'flex-end' }}>
+            <TouchableOpacity style={styles.inviteBtn} onPress={handleInvite}>
+              <Text style={{ color: '#fff', fontWeight: '700' }}>+ Invite</Text>
             </TouchableOpacity>
-          ) : joined ? (
-            <TouchableOpacity style={[styles.button, { backgroundColor: t.rowBorder }]} onPress={handleLeave}>
-              <Text style={{ color: t.text }}>Leave</Text>
+
+            <View style={{ marginTop: 10 }}>
+              {isOwner ? (
+                <TouchableOpacity style={[styles.button, { backgroundColor: '#c43a3a' }]} onPress={handleDelete}>
+                  <Text style={{ color: '#fff' }}>Delete Group</Text>
+                </TouchableOpacity>
+              ) : joined ? (
+                <TouchableOpacity style={[styles.button, { backgroundColor: t.rowBorder }]} onPress={handleLeave}>
+                  <Text style={{ color: t.text }}>Leave</Text>
+                </TouchableOpacity>
+              ) : group.privacy === 1 ? (
+                hasPending ? (
+                  <TouchableOpacity style={[styles.button, { backgroundColor: '#999' }]} disabled>
+                    <Text style={{ color: '#fff' }}>Requested</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity style={[styles.button, { backgroundColor: t.accent }]} onPress={handleJoin}>
+                    <Text style={{ color: '#fff' }}>Send join request</Text>
+                  </TouchableOpacity>
+                )
+              ) : (
+                <TouchableOpacity style={[styles.button, { backgroundColor: t.accent }]} onPress={handleJoin}>
+                  <Text style={{ color: '#fff' }}>Join</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.avatarsRow} contentContainerStyle={{ paddingHorizontal: 8 }}>
+          {members.slice(0, 16).map(m => (
+            <View key={m.user_id} style={styles.avatarWrap}>
+              {m.avatar ? (
+                <Image source={{ uri: m.avatar }} style={styles.avatar} />
+              ) : (
+                <View style={[styles.avatar, { backgroundColor: '#ddd', justifyContent: 'center', alignItems: 'center' }]}>
+                  <Text style={{ color: '#555' }}>{(m.first_name || 'U').charAt(0)}</Text>
+                </View>
+              )}
+            </View>
+          ))}
+        </ScrollView>
+
+        <Text style={[styles.description, { color: t.text }]} numberOfLines={3}>{group.description}</Text>
+
+        <View style={styles.tabsRow}>
+          {['Discussion','Posts','Members','Approval'].map(tab => (
+            <TouchableOpacity key={tab} style={[styles.tabItem, activeTab === tab && styles.tabActive]} onPress={() => setActiveTab(tab)}>
+              <Text style={[{ fontWeight: activeTab === tab ? '700' : '500', color: activeTab === tab ? t.text : t.secondaryText }]}>{tab}</Text>
             </TouchableOpacity>
-          ) : group.privacy === 1 ? (
-            // private group
-            hasPending ? (
-              <TouchableOpacity style={[styles.button, { backgroundColor: '#999' }]} disabled>
-                <Text style={{ color: '#fff' }}>Requested</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity style={[styles.button, { backgroundColor: t.accent }]} onPress={handleJoin}>
-                <Text style={{ color: '#fff' }}>Send join request</Text>
-              </TouchableOpacity>
-            )
-          ) : (
-            // public group
-            <TouchableOpacity style={[styles.button, { backgroundColor: t.accent }]} onPress={handleJoin}>
-              <Text style={{ color: '#fff' }}>Join</Text>
-            </TouchableOpacity>
-          )}
+          ))}
         </View>
       </View>
 
-      <View style={{ padding: 12 }}>
-        <Text style={{ color: t.text, fontWeight: '700', marginBottom: 8 }}>Members</Text>
-        <FlatList data={members} keyExtractor={(i) => String(i.user_id)} renderItem={({item}) => (
-          <View style={[styles.memberRow, { borderBottomColor: t.rowBorder }]}> 
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={{ color: t.text }}>{item.first_name}</Text>
-              <Text style={{ color: t.secondaryText, marginLeft: 8 }}>{item.role}</Text>
-            </View>
-            {isOwner && String(item.user_id) !== String(group.created_by) ? (
-              <TouchableOpacity style={[styles.smallBtn, { backgroundColor: '#c43a3a' }]} onPress={() => {
-                Alert.alert('Remove member', `Remove ${item.first_name} from group?`, [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'Remove', style: 'destructive', onPress: async () => {
-                    try {
-                      await removeMember(groupId, item.user_id);
-                      await load();
-                    } catch (err) {
-                      console.error('Remove failed', err);
-                      Alert.alert('Error', err.message || 'Failed to remove member');
-                    }
-                  } }
-                ]);
-              }}>
-                <Text style={{ color: '#fff' }}>Remove</Text>
-              </TouchableOpacity>
+      <View style={{ padding: 12, flex: 1 }}>
+        {activeTab === 'Posts' ? (
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }}>
+            {joined ? (
+              <View style={{ marginBottom: 12 }}>
+                <TouchableOpacity style={[styles.postBtn, { backgroundColor: t.accent }]} onPress={() => openCreatePostScreen('poll')}>
+                  <Text style={{ color: '#fff', fontWeight: '700', textAlign: 'center' }}>Create Post</Text>
+                </TouchableOpacity>
+              </View>
             ) : (
-              <Text style={{ color: t.secondaryText }} />
+              <View style={{ padding: 12 }}>
+                <Text style={{ color: t.secondaryText }}>Join the group to create posts.</Text>
+              </View>
+            )}
+
+            {/* Posts list (use shared card components for consistent UI) */}
+            <View style={{ marginTop: 12 }}>
+              {(!posts || posts.length === 0) ? (
+                <Text style={{ color: t.secondaryText }}>No posts yet. Be the first to post!</Text>
+              ) : (
+                posts.filter(p => p.type === 'poll').map(p => (
+                  <View key={p.id} style={{ marginBottom: 12 }}>
+                    <PollCard
+                      id={p.id}
+                      topic={p.topic || `group:${groupId}`}
+                      author_name={p.author_name}
+                      author_avatar={p.author_avatar}
+                      author_verified={p.author_verified}
+                      image={p.image}
+                      title={p.title}
+                      description={p.description}
+                      votes={p.votes}
+                      comments={p.comments}
+                      end_time={p.end_time}
+                      created_at={p.created_at}
+                      groupId={groupId}
+                    />
+                  </View>
+                ))
+              )}
+            </View>
+          </ScrollView>
+        ) : activeTab === 'Members' ? (
+          <View style={{ flex: 1 }}>
+            {isOwner && requests && requests.length > 0 && (
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ color: t.text, fontWeight: '700', marginBottom: 8 }}>Join requests</Text>
+                {requests.map(r => (
+                  <View key={r.id} style={[styles.requestRow, { borderBottomColor: t.rowBorder, paddingVertical: 8 }]}> 
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <View>
+                        <Text style={{ color: t.text }}>{r.first_name}</Text>
+                        {r.message ? <Text style={{ color: t.secondaryText }}>{r.message}</Text> : null}
+                      </View>
+                      <View style={{ flexDirection: 'row' }}>
+                        <TouchableOpacity style={[styles.smallBtn, { backgroundColor: 'green' }]} onPress={async () => { await approveRequest(groupId, r.id); await load(); }}>
+                          <Text style={{ color: '#fff' }}>Approve</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.smallBtn, { backgroundColor: 'red' }]} onPress={async () => { await rejectRequest(groupId, r.id); await load(); }}>
+                          <Text style={{ color: '#fff' }}>Reject</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <FlatList data={members} keyExtractor={(i) => String(i.user_id)} style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }} renderItem={({item}) => (
+              <View style={[styles.memberRow, { borderBottomColor: t.rowBorder }]}> 
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  {item.avatar ? <Image source={{ uri: item.avatar }} style={styles.smallAvatar} /> : <View style={[styles.smallAvatar, { backgroundColor: '#ddd' }]} />}
+                  <Text style={{ color: t.text }}>{item.first_name}</Text>
+                  <Text style={{ color: t.secondaryText, marginLeft: 8 }}>{item.role}</Text>
+                </View>
+                {isOwner && String(item.user_id) !== String(group.created_by) ? (
+                  <TouchableOpacity style={[styles.smallBtn, { backgroundColor: '#c43a3a' }]} onPress={() => {
+                    Alert.alert('Remove member', `Remove ${item.first_name} from group?`, [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Remove', style: 'destructive', onPress: async () => {
+                        try {
+                          await removeMember(groupId, item.user_id);
+                          await load();
+                        } catch (err) {
+                          console.error('Remove failed', err);
+                          Alert.alert('Error', err.message || 'Failed to remove member');
+                        }
+                      } }
+                    ]);
+                  }}>
+                    <Text style={{ color: '#fff' }}>Remove</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <Text style={{ color: t.secondaryText }} />
+                )}
+              </View>
+            )} />
+          </View>
+        ) : activeTab === 'Discussion' ? (
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }}>
+            {(!posts || posts.filter(p => p.type === 'discussion').length === 0) ? (
+              <Text style={{ color: t.secondaryText }}>No discussions yet.</Text>
+            ) : (
+              posts.filter(p => p.type === 'discussion').map(p => (
+                <View key={p.id} style={{ marginBottom: 12 }}>
+                  <DiscussionCard
+                    id={p.id}
+                    topic={p.topic || `group:${groupId}`}
+                    author_name={p.author_name}
+                    author_avatar={p.author_avatar}
+                    author_verified={p.author_verified}
+                    image={p.image}
+                    title={p.title}
+                    description={p.description}
+                    comments={p.comments}
+                    views={p.views}
+                    created_at={p.created_at}
+                    groupId={groupId}
+                  />
+                </View>
+              ))
+            )}
+          </ScrollView>
+        ) : activeTab === 'Approval' ? (
+          <View>
+            {isOwner ? (
+              <View>
+                <Text style={{ color: t.text, fontWeight: '700', marginBottom: 8 }}>Pending approvals</Text>
+                <Text style={{ color: t.secondaryText }}>No items awaiting approval (placeholder)</Text>
+              </View>
+            ) : (
+              <Text style={{ color: t.secondaryText }}>Approval queue is only visible to group owners.</Text>
             )}
           </View>
-        )} />
+        ) : (
+          <View>
+            <Text style={{ color: t.secondaryText }}>No content for {activeTab} yet.</Text>
+          </View>
+        )}
       </View>
-      {isOwner && (
-        <View style={{ padding: 12 }}>
-          <Text style={{ color: t.text, fontWeight: '700', marginBottom: 8 }}>Join requests</Text>
-          {requests.length === 0 ? (
-            <Text style={{ color: t.secondaryText }}>No pending requests</Text>
-          ) : (
-            requests.map(r => (
-              <View key={r.id} style={[styles.requestRow, { borderBottomColor: t.rowBorder }]}> 
-                <Text style={{ color: t.text }}>{r.first_name}</Text>
-                <Text style={{ color: t.secondaryText }}>{r.message}</Text>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  <TouchableOpacity style={[styles.smallBtn, { backgroundColor: 'green' }]} onPress={async () => { await approveRequest(groupId, r.id); await load(); }}>
-                    <Text style={{ color: '#fff' }}>Approve</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.smallBtn, { backgroundColor: 'red' }]} onPress={async () => { await rejectRequest(groupId, r.id); await load(); }}>
-                    <Text style={{ color: '#fff' }}>Reject</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))
-          )}
-        </View>
-      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { padding: 16 },
-  title: { fontSize: 20, fontWeight: '700' },
+  card: { padding: 16, borderBottomWidth: 1, borderColor: '#e6e6e6' },
+  headerRow: { flexDirection: 'row', alignItems: 'center' },
+  title: { fontSize: 26, fontWeight: '800' },
+  description: { marginTop: 10, fontSize: 14 },
   controls: { marginTop: 12 },
   button: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
+  inviteBtn: { backgroundColor: '#0b69ff', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 },
+  avatarsRow: { marginTop: 12, maxHeight: 64 },
+  avatarWrap: { width: 48, height: 48, marginRight: 8 },
+  avatar: { width: 48, height: 48, borderRadius: 24 },
+  tabsRow: { flexDirection: 'row', marginTop: 12, borderBottomWidth: 1, borderColor: '#eee' },
+  tabItem: { paddingVertical: 12, paddingHorizontal: 14, marginRight: 6 },
+  tabActive: { borderBottomWidth: 3, borderColor: '#0b69ff' },
+  postBox: { padding: 12, borderRadius: 8 },
+  postInput: { minHeight: 60, padding: 10, borderRadius: 8, backgroundColor: 'transparent', borderWidth: 1, borderColor: '#eee' },
+  postBtn: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 8, marginTop: 8 },
   memberRow: { paddingVertical: 12, flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1 },
   requestRow: { paddingVertical: 12, borderBottomWidth: 1 },
+  smallAvatar: { width: 36, height: 36, borderRadius: 18, marginRight: 8 },
   smallBtn: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 6, marginLeft: 8 },
 });

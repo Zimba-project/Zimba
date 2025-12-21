@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { createPost } from '../api/postService';
+import { createGroupPost } from '../api/groupPostService';
 import { EndTimePicker } from '../utils/EndTimePicker';
 import useCurrentUser from '../utils/GetUser';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
@@ -17,10 +18,11 @@ if (Platform.OS === 'android') {
 }
 
 export default function CreatePostScreen({ navigation, route }) {
-  const [type, setType] = useState('discussion');
+  const groupIdParam = route?.params?.groupId;
+  const [type, setType] = useState(route?.params?.type || 'discussion');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [topic, setTopic] = useState('');
+  const [topic, setTopic] = useState(groupIdParam ? `group:${groupIdParam}` : '');
   const [image, setImage] = useState('');
   const [endTime, setEndTime] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -127,16 +129,31 @@ export default function CreatePostScreen({ navigation, route }) {
         author_id: userId,
         options: type === 'poll' ? options.map(o => ({ text: o.text })) : undefined,
       };
-      const response = await createPost(data);
+      let response;
+      if (groupIdParam) {
+        // for group posts, backend derives author from the token, so don't pass author_id
+        const groupData = { ...data };
+        delete groupData.author_id;
+        response = await createGroupPost(groupIdParam, groupData);
+      } else {
+        response = await createPost(data);
+      }
       console.log('Post created:', response);
       Alert.alert('Success', 'Your post has been created successfully!');
       setTitle('');
       setDescription('');
-      setTopic('');
+      if (!groupIdParam) setTopic('');
       setImage('');
       setEndTime(null);
       setOptions([{ id: 1, text: '' }, { id: 2, text: '' }]);
-      navigation.navigate('Home');
+      // If opened from a group, go back so group screen can refresh
+      if (route?.params?.groupId) {
+        navigation.goBack();
+      } else if (route?.params?.returnTo) {
+        navigation.navigate(route.params.returnTo);
+      } else {
+        navigation.navigate('Main');
+      }
     } catch (error) {
       console.error('Error creating post:', error.message);
       Alert.alert('Error', error.message || 'Failed to create post.');
@@ -176,6 +193,7 @@ export default function CreatePostScreen({ navigation, route }) {
             onChangeText={setTopic}
             placeholder="Enter topic/category"
             placeholderTextColor={t.secondaryText}
+            editable={true}
           />
 
           <Text style={[styles.label, { color: t.text }]}>Description</Text>

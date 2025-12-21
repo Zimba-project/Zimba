@@ -16,6 +16,7 @@ import CardHeader from '../components/Cards/CardHeader';
 import StatsBar from '../components/Cards/StatsBar';
 import PollResults from '../components/Cards/PollResults';
 import { getPollOptions, votePoll } from '../api/postService';
+import { getOptions as getGroupOptions, vote as voteGroup } from '../api/groupPostService';
 import useCurrentUser from '../utils/GetUser';
 import { normalizeUrl, normalizeAvatarUrl } from '../utils/urlHelper';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
@@ -44,8 +45,24 @@ export default function PollScreen() {
   const fetchOptions = async () => {
     try {
       setLoading(true);
-      const opts = await getPollOptions(postId);
-      setOptions(opts);
+      const groupId = route.params?.groupId;
+      if (groupId) {
+        const resp = await getGroupOptions(groupId, postId); // { options, user_vote }
+        const rawOptions = resp.options || [];
+        const opts = rawOptions.map(o => ({ ...o, votes: Number(o.votes || 0) }));
+        setOptions(opts);
+        if (resp.user_vote) {
+          setSelectedOption(resp.user_vote);
+          setSubmitted(true);
+        } else {
+          setSelectedOption(null);
+          setSubmitted(false);
+        }
+      } else {
+        const raw = await getPollOptions(postId);
+        const opts = (raw || []).map(o => ({ ...o, votes: Number(o.votes || 0) }));
+        setOptions(opts);
+      }
     } catch (err) {
       console.log('Failed to load options:', err);
       Alert.alert('Error', err.message || 'Unable to load poll options.');
@@ -55,10 +72,16 @@ export default function PollScreen() {
   };
 
   const handleSubmit = async () => {
+    if (submitted) {
+      Alert.alert('Already voted', 'You have already voted on this poll.');
+      return;
+    }
     if (!selectedOption || !user) return;
 
     try {
-      await votePoll(postId, selectedOption, user.id);
+      const groupId = route.params?.groupId;
+      if (groupId) await voteGroup(groupId, postId, selectedOption);
+      else await votePoll(postId, selectedOption, user.id);
       setSubmitted(true);
       await fetchOptions(); // refresh votes
     } catch (err) {

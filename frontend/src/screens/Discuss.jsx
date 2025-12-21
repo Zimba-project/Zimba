@@ -18,6 +18,7 @@ import CardHeader from '../components/Cards/CardHeader';
 import StatsBar from '../components/Cards/StatsBar';
 import useCurrentUser from '../utils/GetUser';
 import { getPostComments, addPostComment } from '../api/postService';
+import { getComments as getGroupComments, addComment as addGroupComment } from '../api/groupPostService';
 import { normalizeUrl, normalizeAvatarUrl } from '../utils/urlHelper';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
@@ -45,7 +46,17 @@ export default function DiscussScreen() {
   const fetchComments = async () => {
     try {
       setLoading(true);
-      const comments = await getPostComments(postId);
+      const groupId = route.params?.groupId;
+      const commentsRaw = groupId ? await getGroupComments(groupId, postId) : await getPostComments(postId);
+      // normalize comment shape to { id, text, author_name, author_avatar, created_at, user_id }
+      const comments = (commentsRaw || []).map(c => ({
+        id: c.id,
+        text: c.comment || c.text || '',
+        author_name: c.author_name || c.first_name || 'Unknown',
+        author_avatar: c.author_avatar || c.avatar || null,
+        created_at: c.created_at,
+        user_id: c.user_id || c.userId,
+      }));
       setCommentsList(comments);
     } catch (err) {
       console.error(err);
@@ -60,8 +71,8 @@ export default function DiscussScreen() {
 
     try {
       setPosting(true);
-
-      const res = await addPostComment(postId, user.id, commentText.trim());
+      const groupId = route.params?.groupId;
+      const res = groupId ? await addGroupComment(groupId, postId, commentText.trim()) : await addPostComment(postId, user.id, commentText.trim());
       const c = res.comment;
 
       const normalized = {

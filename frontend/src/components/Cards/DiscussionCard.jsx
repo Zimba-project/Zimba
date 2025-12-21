@@ -29,6 +29,7 @@ const DiscussionCard = ({
   created_at,
   onShare = () => {},
   onSave = () => {},
+  groupId,
 }) => {
   const navigation = useNavigation();
   const themeFromProvider = useTheme();
@@ -52,6 +53,7 @@ const DiscussionCard = ({
     navigation.navigate('Discuss', {
       postId: id,
       postData,
+      groupId,
     });
   };
 

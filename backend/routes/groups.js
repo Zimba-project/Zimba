@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const groupsController = require('../controllers/groupsController');
 const groupMembersController = require('../controllers/groupMembersController');
+const groupPostController = require('../controllers/groupPostController');
 const auth = require('../middleware/authMiddleware');
 
 // Public list
@@ -19,6 +20,18 @@ router.post('/:id/requests/:reqId/reject', auth, groupsController.rejectRequest)
 
 // Member management (owner/admin)
 router.delete('/:id/members/:memberId', auth, groupMembersController.removeMember);
+
+// Group posts
+router.get('/:id/posts', groupPostController.listPosts);
+router.post('/:id/posts', auth, groupPostController.createPost);
+router.get('/:id/posts/:postId', groupPostController.getPost);
+// poll options, votes and comments
+router.get('/:id/posts/:postId/options', groupPostController.getOptions);
+router.post('/:id/posts/:postId/vote', auth, groupPostController.vote);
+router.get('/:id/posts/:postId/comments', groupPostController.listComments);
+router.post('/:id/posts/:postId/comments', auth, groupPostController.addComment);
+router.post('/:id/posts/:postId/approve', auth, groupPostController.approvePost);
+router.post('/:id/posts/:postId/reject', auth, groupPostController.rejectPost);
 
 // Join & leave
 router.post('/:id/join', auth, groupsController.joinGroup);

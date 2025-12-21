@@ -32,6 +32,7 @@ const PollCard = ({
   created_at,
   onShare = () => {},
   onSave = () => {},
+  groupId,
 }) => {
   const navigation = useNavigation();
   const themeFromProvider = useTheme();
@@ -55,6 +56,7 @@ const PollCard = ({
     navigation.navigate('Poll', {
       postId: id,
       postData,
+      groupId,
     });
   };
 

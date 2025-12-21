@@ -9,7 +9,7 @@ const PollResults = ({ options }) => {
   const themeFromProvider = useTheme();
   const t = getTheme(themeFromProvider?.theme);
 
-  const totalVotes = options.reduce((sum, opt) => sum + opt.votes, 0);
+  const totalVotes = options.reduce((sum, opt) => sum + Number(opt.votes || 0), 0);
 
   return (
     <View style={{ marginTop: 16 }}>
@@ -20,7 +20,7 @@ const PollResults = ({ options }) => {
       {/* Stacked bar */}
       <View style={[styles.stackedBarBackground, { backgroundColor: t.inputBackground }]}>
         {options.map((opt, index) => {
-          const percent = totalVotes > 0 ? (opt.votes / totalVotes) * 100 : 0;
+          const percent = totalVotes > 0 ? (Number(opt.votes || 0) / totalVotes) * 100 : 0;
           return (
             <View
               key={opt.id}
@@ -39,7 +39,7 @@ const PollResults = ({ options }) => {
       {/* Row of options below the bar */}
       <View style={styles.optionsRow}>
         {options.map((opt, index) => {
-          const percent = totalVotes > 0 ? (opt.votes / totalVotes) * 100 : 0;
+          const percent = totalVotes > 0 ? (Number(opt.votes || 0) / totalVotes) * 100 : 0;
           return (
             <View key={opt.id} style={styles.optionItem}>
               <View
