@@ -119,4 +119,15 @@ export const deleteGroup = async (id) => {
   return res.body;
 };
 
+export const removeMember = async (groupId, memberId) => {
+  const token = await getToken();
+  const res = await request(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
+  if (!res.ok) {
+    console.error('Remove member failed response:', { status: res.status, statusText: res.statusText, url: res.url, body: res.body });
+    const message = res.body?.error || res.body?.raw || `Error removing member (status ${res.status})`;
+    throw new Error(message);
+  }
+  return res.body;
+};
+
 export default { listGroups, createGroup, getGroup, joinGroup, leaveGroup };

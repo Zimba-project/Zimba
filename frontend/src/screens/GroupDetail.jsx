@@ -3,7 +3,7 @@ import { View, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-nativ
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
-import { getGroup, joinGroup, leaveGroup, listJoinRequests, approveRequest, rejectRequest, deleteGroup } from '../api/groupsService';
+import { getGroup, joinGroup, leaveGroup, listJoinRequests, approveRequest, rejectRequest, deleteGroup, removeMember } from '../api/groupsService';
 import { sessionStorage } from '../utils/Storage';
 
 export default function GroupDetail({ route, navigation }) {
@@ -115,9 +115,31 @@ export default function GroupDetail({ route, navigation }) {
       <View style={{ padding: 12 }}>
         <Text style={{ color: t.text, fontWeight: '700', marginBottom: 8 }}>Members</Text>
         <FlatList data={members} keyExtractor={(i) => String(i.user_id)} renderItem={({item}) => (
-          <View style={[styles.memberRow, { borderBottomColor: t.rowBorder }]}>
-            <Text style={{ color: t.text }}>{item.first_name}</Text>
-            <Text style={{ color: t.secondaryText }}>{item.role}</Text>
+          <View style={[styles.memberRow, { borderBottomColor: t.rowBorder }]}> 
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={{ color: t.text }}>{item.first_name}</Text>
+              <Text style={{ color: t.secondaryText, marginLeft: 8 }}>{item.role}</Text>
+            </View>
+            {isOwner && String(item.user_id) !== String(group.created_by) ? (
+              <TouchableOpacity style={[styles.smallBtn, { backgroundColor: '#c43a3a' }]} onPress={() => {
+                Alert.alert('Remove member', `Remove ${item.first_name} from group?`, [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Remove', style: 'destructive', onPress: async () => {
+                    try {
+                      await removeMember(groupId, item.user_id);
+                      await load();
+                    } catch (err) {
+                      console.error('Remove failed', err);
+                      Alert.alert('Error', err.message || 'Failed to remove member');
+                    }
+                  } }
+                ]);
+              }}>
+                <Text style={{ color: '#fff' }}>Remove</Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={{ color: t.secondaryText }} />
+            )}
           </View>
         )} />
       </View>

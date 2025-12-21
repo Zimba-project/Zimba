@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const groupsController = require('../controllers/groupsController');
+const groupMembersController = require('../controllers/groupMembersController');
 const auth = require('../middleware/authMiddleware');
 
 // Public list
@@ -15,6 +16,9 @@ router.get('/mine', auth, groupsController.listMyGroups);
 router.get('/:id/requests', auth, groupsController.listJoinRequests);
 router.post('/:id/requests/:reqId/approve', auth, groupsController.approveRequest);
 router.post('/:id/requests/:reqId/reject', auth, groupsController.rejectRequest);
+
+// Member management (owner/admin)
+router.delete('/:id/members/:memberId', auth, groupMembersController.removeMember);
 
 // Join & leave
 router.post('/:id/join', auth, groupsController.joinGroup);
