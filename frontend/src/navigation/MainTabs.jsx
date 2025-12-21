@@ -35,7 +35,7 @@ export default function AppNavigator() {
         },
         tabBarStyle: {
           // Ensure full visibility on iOS by including safe area
-          height: 56 + bottomPad,
+          height: 44 + bottomPad,
           paddingBottom: bottomPad,
           paddingTop: 8,
           borderTopWidth: 0,

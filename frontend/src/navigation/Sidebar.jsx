@@ -99,7 +99,7 @@ function CustomDrawerContent(props) {
 
         {/* Dark mode toggle */}
         <HStack justifyContent="space-between" alignItems="center" p="$3">
-          <HStack alignItems="center">
+          <HStack alignItems="center" style={styles.drawerRow}>
             <Ionicons name="moon-outline" size={20} color={t.moonIconColor} />
             <Text style={[styles.drawerLabel, { color: t.text }]}>Dark mode</Text>
           </HStack>
