@@ -32,6 +32,16 @@ export default function CreateGroup({ navigation }) {
         <Text style={[styles.label, { color: t.text }]}>Description</Text>
         <TextInput value={description} onChangeText={setDescription} style={[styles.input, { color: t.text }]} multiline />
 
+        <Text style={[styles.label, { color: t.text }]}>Privacy</Text>
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <TouchableOpacity onPress={() => setPrivacy(0)} style={[styles.privacyBtn, { borderColor: privacy === 0 ? t.accent : '#ccc' }]}>
+            <Text style={{ color: privacy === 0 ? t.accent : t.text }}>Public</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setPrivacy(1)} style={[styles.privacyBtn, { borderColor: privacy === 1 ? t.accent : '#ccc' }]}>
+            <Text style={{ color: privacy === 1 ? t.accent : t.text }}>Private</Text>
+          </TouchableOpacity>
+        </View>
+
         <TouchableOpacity style={[styles.button, { backgroundColor: t.accent }]} onPress={handleCreate} disabled={loading}>
           <Text style={{ color: '#fff' }}>{loading ? 'Creating...' : 'Create group'}</Text>
         </TouchableOpacity>
@@ -46,4 +56,5 @@ const styles = StyleSheet.create({
   label: { fontWeight: '600', marginTop: 8 },
   input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 8, marginTop: 6 },
   button: { marginTop: 16, paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
+  privacyBtn: { paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderRadius: 8, marginTop: 8 },
 });

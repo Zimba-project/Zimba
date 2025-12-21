@@ -1,22 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
-import { listGroups } from '../api/groupsService';
+import { listGroups, listMyGroups } from '../api/groupsService';
 import { Ionicons } from '@expo/vector-icons';
+import { sessionStorage } from '../utils/Storage';
 
 export default function GroupsList({ navigation }) {
   const { theme } = useTheme();
   const t = getTheme(theme);
   const [groups, setGroups] = useState([]);
+  const [myGroups, setMyGroups] = useState([]);
   const [loading, setLoading] = useState(false);
+  const isFocused = useIsFocused();
+  const [userId, setUserId] = useState(null);
 
   const load = async () => {
     setLoading(true);
     try {
-      const g = await listGroups();
+      const [g, mine] = await Promise.all([listGroups(), listMyGroups().catch(() => [])]);
       setGroups(g);
+      setMyGroups(mine);
+      const storedId = await sessionStorage.getItem('userId');
+      setUserId(storedId || null);
     } catch (err) {
       console.error('Failed to load groups', err);
     } finally {
@@ -24,7 +32,7 @@ export default function GroupsList({ navigation }) {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [isFocused]);
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
@@ -53,11 +61,59 @@ export default function GroupsList({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      {/* Owned groups (you created) */}
       <FlatList
-        data={groups}
-        keyExtractor={(i) => String(i.id)}
+        data={myGroups.filter(g => String(g.created_by) === String(userId))}
+        keyExtractor={(i) => `owned-${i.id}`}
+        ListHeaderComponent={() => (
+          <View style={{ paddingHorizontal: 12 }}>
+            <Text style={[styles.sectionTitle, { color: t.text }]}>Groups you own</Text>
+          </View>
+        )}
         renderItem={renderItem}
         contentContainerStyle={{ padding: 12 }}
+        refreshing={loading}
+        onRefresh={load}
+        ListEmptyComponent={() => (
+          <View style={{ paddingHorizontal: 12 }}>
+            <Text style={{ color: t.secondaryText }}>You don't own any groups yet.</Text>
+          </View>
+        )}
+      />
+
+      {/* Joined groups (you are member but not owner) */}
+      <View style={{ height: 8 }} />
+      <FlatList
+        data={myGroups.filter(g => String(g.created_by) !== String(userId))}
+        keyExtractor={(i) => `joined-${i.id}`}
+        ListHeaderComponent={() => (
+          <View style={{ paddingHorizontal: 12 }}>
+            <Text style={[styles.sectionTitle, { color: t.text }]}>Groups you joined</Text>
+          </View>
+        )}
+        renderItem={renderItem}
+        contentContainerStyle={{ padding: 12 }}
+        refreshing={loading}
+        onRefresh={load}
+        ListEmptyComponent={() => (
+          <View style={{ paddingHorizontal: 12 }}>
+            <Text style={{ color: t.secondaryText }}>You haven't joined any groups yet.</Text>
+          </View>
+        )}
+      />
+
+      {/* All other groups (available to join) */}
+      <View style={{ height: 8 }} />
+      <FlatList
+        data={groups.filter(g => !myGroups.some(m => Number(m.id) === Number(g.id)))}
+        keyExtractor={(i) => `all-${i.id}`}
+        ListHeaderComponent={() => (
+          <View style={{ paddingHorizontal: 12 }}>
+            <Text style={[styles.sectionTitle, { color: t.text }]}>All groups</Text>
+          </View>
+        )}
+        renderItem={renderItem}
+        contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 120 }}
         refreshing={loading}
         onRefresh={load}
       />
@@ -74,4 +130,5 @@ const styles = StyleSheet.create({
   rightCol: { alignItems: 'flex-end', marginLeft: 12 },
   title: { fontSize: 16, fontWeight: '700' },
   desc: { marginTop: 6, fontSize: 13 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', marginTop: 6, marginBottom: 8 },
 });

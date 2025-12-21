@@ -39,11 +39,23 @@ export default function LoginScreen() {
       if (res && res.ok) {
         if (res.body?.token) {
           sessionStorage.setItem('authToken', res.body.token);
+          // Persist userId so other parts of the app can identify the current user
+          if (res.body.user && res.body.user.id !== undefined) {
+            try {
+              sessionStorage.setItem('userId', String(res.body.user.id));
+            } catch (e) {
+              // ignore storage errors
+            }
+          }
 
           if (keepLoggedIn) {
             await AsyncStorage.setItem('authToken', res.body.token);
+            if (res.body.user && res.body.user.id !== undefined) {
+              await AsyncStorage.setItem('userId', String(res.body.user.id));
+            }
           } else {
             await AsyncStorage.removeItem('authToken');
+            await AsyncStorage.removeItem('userId');
           }
 
           navigation.replace('Main', { user: res.body.user });

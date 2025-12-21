@@ -22,3 +22,16 @@ CREATE TABLE IF NOT EXISTS group_members (
 -- Optional indexes
 CREATE INDEX IF NOT EXISTS idx_group_members_group ON group_members(group_id);
 CREATE INDEX IF NOT EXISTS idx_groups_created_by ON groups(created_by);
+
+-- Table for join requests (for private groups)
+CREATE TABLE IF NOT EXISTS group_join_requests (
+  id SERIAL PRIMARY KEY,
+  group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  message TEXT,
+  status VARCHAR(16) DEFAULT 'pending', -- 'pending','approved','rejected'
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(group_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_group_join_requests_group ON group_join_requests(group_id);
