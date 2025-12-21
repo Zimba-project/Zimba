@@ -7,7 +7,6 @@ import {
   Alert,
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CardHeader from '../components/Cards/CardHeader';
 import StatsBar from '../components/Cards/StatsBar';
 import PollResults from '../components/Cards/PollResults';
@@ -23,7 +22,6 @@ import { Pressable } from '@/components/ui/pressable';
 
 export default function PollScreen() {
   const route = useRoute();
-  const insets = useSafeAreaInsets();
   const { postData } = route.params || {};
   const postId = postData?.id;
 
@@ -69,7 +67,7 @@ export default function PollScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView edges={["top", "bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
+      <SafeAreaView edges={["bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
         <ActivityIndicator size="large" color={t.accent} />
         <Text style={{ marginTop: 12, color: t.text }}>Loading...</Text>
       </SafeAreaView>
@@ -78,7 +76,7 @@ export default function PollScreen() {
 
   if (!postData) {
     return (
-      <SafeAreaView edges={["top", "bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
+      <SafeAreaView edges={["bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
         <Text style={{ color: t.text }}>No poll data available</Text>
       </SafeAreaView>
     );
@@ -100,7 +98,7 @@ export default function PollScreen() {
   const avatarUrl = normalizeAvatarUrl(author_avatar);
 
   return (
-    <SafeAreaView edges={["top", "bottom"]} style={[styles.container, { backgroundColor: t.background }]}>
+    <SafeAreaView edges={["bottom"]} style={[styles.container, { backgroundColor: t.background }]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
         <CardHeader
           author={{ avatar: avatarUrl, name: author_name, time: created_at, verified: author_verified }}

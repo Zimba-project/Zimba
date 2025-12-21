@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {ScrollView, Image, StyleSheet, TextInput, FlatList, ActivityIndicator, Alert} from 'react-native';
+import { ScrollView, Image, StyleSheet, TextInput, FlatList, ActivityIndicator, Alert } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CardHeader from '../components/Cards/CardHeader';
 import StatsBar from '../components/Cards/StatsBar';
 import useCurrentUser from '../utils/GetUser';
@@ -16,7 +15,6 @@ import { Pressable } from '@/components/ui/pressable';
 
 export default function DiscussScreen() {
   const route = useRoute();
-  const insets = useSafeAreaInsets();
   const { postData } = route.params || {};
   const postId = postData?.id;
 
@@ -77,7 +75,7 @@ export default function DiscussScreen() {
 
   if (!postData) {
     return (
-      <SafeAreaView edges={["top", "bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
+      <SafeAreaView edges={["bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
         <Text style={{ color: t.text }}>No discuss data available</Text>
       </SafeAreaView>
     );
@@ -99,7 +97,7 @@ export default function DiscussScreen() {
   const avatarUrl = normalizeAvatarUrl(author_avatar);
 
   return (
-    <SafeAreaView edges={["top", "bottom"]} style={[styles.container, { backgroundColor: t.background }]}>
+    <SafeAreaView edges={["bottom"]} style={[styles.container, { backgroundColor: t.background }]}>
       <ScrollView>
         <CardHeader
           author={{ avatar: avatarUrl, name: author_name, time: created_at, verified: author_avatar }}
