@@ -6,6 +6,12 @@ export const getAllPosts = async () => {
     return res.body.posts || res.body; 
 };
 
+export const getPostById = async (postId) => {
+    const res = await request(`/posts/${postId}`);
+    if (!res.ok) throw new Error(res.body?.error || `Error fetching post (status ${res.status})`);
+    return res.body.post || res.body;
+};
+
 export const createPost = async (data) => {
     const res = await request('/posts', 'POST', data);
     if (!res.ok) throw new Error(res.body?.error || `Error creating post (status ${res.status})`);

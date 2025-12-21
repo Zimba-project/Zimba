@@ -8,7 +8,7 @@ import { getTheme } from '../utils/theme';
 
 export const EndTimePicker = ({ endTime, setEndTime }) => {
   const [showPicker, setShowPicker] = useState(false);
-  const [pickerMode, setPickerMode] = useState('date'); // ✅ no type annotation
+  const [pickerMode, setPickerMode] = useState('date');
 
   const { theme } = useTheme();
   const t = getTheme(theme);

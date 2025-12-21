@@ -12,22 +12,27 @@ import {
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import CardHeader from '../components/Cards/CardHeader';
 import StatsBar from '../components/Cards/StatsBar';
 import PollResults from '../components/Cards/PollResults';
-import { getPollOptions, votePoll } from '../api/postService';
+
+import { getPollOptions, votePoll, getPostById } from '../api/postService';
 import useCurrentUser from '../utils/GetUser';
 import { normalizeUrl, normalizeAvatarUrl } from '../utils/urlHelper';
+
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
 
 export default function PollScreen() {
   const route = useRoute();
   const insets = useSafeAreaInsets();
-  const { postData } = route.params || {};
-  const postId = postData?.id;
-
   const { user } = useCurrentUser();
+
+  const { postData, id: deepLinkId } = route.params || {};
+  const postId = postData?.id || deepLinkId;
+
+  const [post, setPost] = useState(postData || null);
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -37,8 +42,22 @@ export default function PollScreen() {
   const t = getTheme(theme);
 
   useEffect(() => {
-    if (!postId) return;
-    fetchOptions();
+    const loadDeepLinkPost = async () => {
+      if (!post && postId) {
+        try {
+          const data = await getPostById(postId);
+          setPost(data);
+        } catch (err) {
+          console.log("Failed to load post:", err);
+          Alert.alert("Error", "Unable to load this post.");
+        }
+      }
+    };
+    loadDeepLinkPost();
+  }, [postId]);
+
+  useEffect(() => {
+    if (postId) fetchOptions();
   }, [postId]);
 
   const fetchOptions = async () => {
@@ -47,8 +66,8 @@ export default function PollScreen() {
       const opts = await getPollOptions(postId);
       setOptions(opts);
     } catch (err) {
-      console.log('Failed to load options:', err);
-      Alert.alert('Error', err.message || 'Unable to load poll options.');
+      console.log("Failed to load options:", err);
+      Alert.alert("Error", err.message || "Unable to load poll options.");
     } finally {
       setLoading(false);
     }
@@ -60,26 +79,19 @@ export default function PollScreen() {
     try {
       await votePoll(postId, selectedOption, user.id);
       setSubmitted(true);
-      await fetchOptions(); // refresh votes
+      fetchOptions();
     } catch (err) {
-      console.log('Vote failed:', err);
-      Alert.alert('Error', err.message || 'Unable to submit your vote.');
+      console.log("Vote failed:", err);
+      Alert.alert("Error", err.message || "Unable to submit your vote.");
     }
   };
 
-  if (loading) {
+  // Loading state
+  if (loading || !post) {
     return (
       <SafeAreaView style={[styles.center, { paddingTop: insets.top, backgroundColor: t.background }]}>
         <ActivityIndicator size="large" color={t.accent} />
         <Text style={{ marginTop: 12, color: t.text }}>Loading...</Text>
-      </SafeAreaView>
-    );
-  }
-
-  if (!postData) {
-    return (
-      <SafeAreaView style={[styles.center, { paddingTop: insets.top, backgroundColor: t.background }]}>
-        <Text style={{ color: t.text }}>No poll data available</Text>
       </SafeAreaView>
     );
   }
@@ -94,7 +106,7 @@ export default function PollScreen() {
     views = 0,
     created_at,
     topic,
-  } = postData;
+  } = post;
 
   const imageUrl = normalizeUrl(image);
   const avatarUrl = normalizeAvatarUrl(author_avatar);
@@ -113,13 +125,14 @@ export default function PollScreen() {
           <Text style={[styles.title, { color: t.text }]}>{title}</Text>
           <Text style={[styles.description, { color: t.secondaryText }]}>{description}</Text>
 
-          {/* Show votes and views, but no comments */}
-          <StatsBar views={views} />
+          {/* Stats */}
+          <StatsBar views={views} postId={postId} share={{ url: `myapp://post/${postId}` }} />
 
           <View style={styles.optionsContainer}>
             {!submitted ? (
               options.map((opt) => {
                 const isSelected = selectedOption === opt.id;
+
                 return (
                   <TouchableOpacity
                     key={opt.id}
@@ -134,12 +147,15 @@ export default function PollScreen() {
                       style={[
                         styles.optionText,
                         { color: t.text },
-                        isSelected && { color: '#fff' },
+                        isSelected && { color: "#fff" },
                       ]}
                     >
                       {opt.text}
                     </Text>
-                    <Text style={[styles.voteCount, { color: t.accent }]}>{opt.votes} votes</Text>
+
+                    <Text style={[styles.voteCount, { color: t.accent }]}>
+                      {opt.votes} votes
+                    </Text>
                   </TouchableOpacity>
                 );
               })
@@ -161,7 +177,9 @@ export default function PollScreen() {
             )}
 
             {submitted && (
-              <Text style={[styles.thankYouText, { color: '#16a34a' }]}>Thanks for voting!</Text>
+              <Text style={[styles.thankYouText, { color: "#16a34a" }]}>
+                Thanks for voting!
+              </Text>
             )}
           </View>
         </View>
@@ -172,13 +190,10 @@ export default function PollScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  image: { width: '100%', height: 250 },
-  title: { fontSize: 22, fontWeight: '700', marginBottom: 12 },
-  body: {
-    paddingHorizontal: 16,
-    paddingBottom: 20,
-  },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  image: { width: "100%", height: 250 },
+  title: { fontSize: 22, fontWeight: "700", marginBottom: 12 },
+  body: { paddingHorizontal: 16, paddingBottom: 20 },
   description: { fontSize: 16, lineHeight: 22 },
   optionsContainer: { marginTop: 20 },
   optionButton: {
@@ -186,23 +201,18 @@ const styles = StyleSheet.create({
     marginVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
-  disabledOption: { opacity: 0.7 },
   optionText: { fontSize: 16 },
-  voteCount: { fontWeight: '600' },
+  voteCount: { fontWeight: "600" },
   submitButton: {
     paddingVertical: 12,
     borderRadius: 8,
     marginTop: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
-  submitText: { color: '#fff', fontWeight: '600', fontSize: 16 },
-  thankYouText: {
-    marginTop: 12,
-    fontSize: 16,
-    fontWeight: '500',
-  },
+  submitText: { color: "#fff", fontWeight: "600", fontSize: 16 },
+  thankYouText: { marginTop: 12, fontSize: 16, fontWeight: "500" },
 });

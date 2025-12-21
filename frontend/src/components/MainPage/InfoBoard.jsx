@@ -16,9 +16,28 @@ const InfoCard = ({ item, onPress, t }) => (
     onPress={() => onPress && onPress(item)}
     activeOpacity={0.9}
   >
+    {/* Scope Badge */}
+    {item.scope && (
+      <View style={styles.scopeBadge}>
+        <Text style={styles.scopeText}>{item.scope}</Text>
+      </View>
+    )}
     {item.image ? (
-      <Image source={{ uri: item.image }} style={styles.image} resizeMode="cover" />
+      <View>
+        <Image
+          source={{ uri: item.image }}
+          style={styles.image}
+          resizeMode="cover"
+        />
+
+        {item.source && (
+          <View style={styles.sourceTag}>
+            <Text style={styles.sourceText}>{item.source}</Text>
+          </View>
+        )}
+      </View>
     ) : null}
+
     <View style={styles.cardBody}>
       <Text
         style={[styles.cardTitle, { color: t.text }]}
@@ -27,6 +46,7 @@ const InfoCard = ({ item, onPress, t }) => (
       >
         {item.title}
       </Text>
+
       {item.subtitle ? (
         <Text
           style={[styles.cardSubtitle, { color: t.text }]}
@@ -112,6 +132,36 @@ const styles = StyleSheet.create({
   cardSubtitle: { fontSize: 13 },
   dots: { flexDirection: 'row', justifyContent: 'center', marginTop: 10 },
   dot: { width: 8, height: 8, borderRadius: 8, marginHorizontal: 6 },
+  sourceTag: {
+  position: 'absolute',
+  top: 8,
+  left: 8,
+  backgroundColor: 'rgba(0, 0, 0, 0.55)',
+  paddingHorizontal: 8,
+  paddingVertical: 3,
+  borderRadius: 6,
+},
+
+sourceText: {
+  color: '#fff',
+  fontSize: 11,
+  fontWeight: '600',
+},
+scopeBadge: {
+  position: 'absolute',
+  top: 8,
+  right: 8, 
+  backgroundColor: 'rgba(0, 0, 0, 0.55)',
+  paddingHorizontal: 8,
+  paddingVertical: 3,
+  borderRadius: 6,
+  zIndex: 2,
+},
+scopeText: {
+  color: '#fff',
+  fontSize: 11,
+  fontWeight: '600',
+},
 });
 
 export default InfoBoard;

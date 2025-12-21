@@ -1,6 +1,6 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TouchableOpacity, StyleSheet, Pressable, Animated, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Pressable, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
@@ -13,52 +13,27 @@ export default function Welcome() {
   const { theme, toggleTheme } = useTheme();
   const t = getTheme(theme);
 
-  const glowAnim = useRef(new Animated.Value(0)).current;
-
-  const animateGlow = (toValue) => {
-    Animated.spring(glowAnim, {
-      toValue,
-      friction: 5,
-      tension: 150,
-      useNativeDriver: false,
-    }).start();
-  };
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
       {/* Top Bar */}
       <View style={styles.topBar}>
         <Pressable
           onPress={toggleTheme}
-          onPressIn={() => animateGlow(15)}
-          onPressOut={() => animateGlow(1)}
           style={{ alignItems: 'center', justifyContent: 'center' }}
         >
-          <Animated.View
-            style={[
-              styles.iconWrapper,
-              {
-                shadowColor: t.moonIconGlow,
-                shadowOpacity: glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }),
-                shadowRadius: glowAnim.interpolate({ inputRange: [0, 1], outputRange: [6, 14] }),
-                elevation: glowAnim.interpolate({ inputRange: [0, 1], outputRange: [6, 12] }),
-              },
-            ]}
-          >
+          <View style={styles.iconWrapper}>
             <Ionicons
               name={theme === 'dark' ? 'moon' : 'moon-outline'}
               size={28}
               color={t.moonIconColor}
             />
-          </Animated.View>
+          </View>
         </Pressable>
       </View>
 
       {/* Main Content */}
       <View style={styles.content}>
         <Text style={[styles.header, { color: t.text }]}>Welcome!</Text>
-      
-        
         <WelcomeIllustration width={400} height={180} />
         <Image
           source={LionMascot}
@@ -109,11 +84,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   iconWrapper: {
-    borderRadius: 30,
-    padding: 8,
-    backgroundColor: 'transparent',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   content: {
     flexGrow: 1,
@@ -124,12 +100,6 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '700',
     bottom: 80,
-  },
-  subHeader: {
-    fontSize: 16,
-    marginBottom: 16,
-    textAlign: 'center',
-    right: 40,
   },
   appName: {
     fontSize: 24,
@@ -173,10 +143,10 @@ const styles = StyleSheet.create({
   },
   lionMascot: {
     position: 'absolute',
-    bottom: 519,
-    right: 25,
-    width: 120,
-    height: 120,
+    bottom: 448,
+    right: 10,
+    width: 125,
+    height: 125,
     zIndex: 1,
   },
 });

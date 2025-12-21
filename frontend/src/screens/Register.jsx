@@ -70,7 +70,7 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: t.background}]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: t.background, paddingTop: 20}]}edges={[]}>
       <ScrollView contentContainerStyle={[styles.card, { backgroundColor: t.background }]}>
         <Text style={[styles.title, { color: t.text }]}>Create Account</Text>
         {error && <Text style={[styles.error, { color: t.error }]}>{error}</Text>}
@@ -250,7 +250,7 @@ export default function RegisterScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 20 },
   card: {
-    paddingBottom: 40,
+    paddingBottom: 60,
     width: '100%',
     borderRadius: 12,
     alignSelf: 'stretch',

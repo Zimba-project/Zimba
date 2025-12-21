@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 import { me as getMe } from "../api/auth";
-import { sessionStorage } from "../utils/Storage";
+import { sessionStorage } from "./Storage";
 
 export default function useCurrentUser(route) {
   const initToken = sessionStorage.getItem("authToken");

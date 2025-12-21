@@ -9,17 +9,10 @@ import { normalizeAvatarUrl } from '../../utils/urlHelper';
 
 export default function RightButton() {
   const navigation = useNavigation();
-  const { user, loading, refreshUser } = useCurrentUser();
+  const { user, loading } = useCurrentUser();
 
   const { theme } = useTheme();
   const t = getTheme(theme);
-  // debug console.log('User',user)
-  useEffect(() => {
-    const unsub = navigation.addListener('focus', () => {
-      refreshUser();
-    });
-    return unsub;
-  }, [navigation, refreshUser]);
 
   const getInitials = () => {
     if (!user) return null;

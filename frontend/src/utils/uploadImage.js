@@ -1,4 +1,4 @@
-import { sessionStorage } from '../utils/Storage';
+import { sessionStorage } from './Storage';
 
 export const uploadImage = async (imageUri) => {
   if (!imageUri) return null;

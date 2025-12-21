@@ -52,10 +52,13 @@ export default function MainScreen({ navigation, route }) {
         let filtered = selectedDropdown === "All" 
             ? [...allPosts] 
             : allPosts.filter(p => p.type === FILTER_MAP[selectedDropdown]);
+        // NEW = created.at first
         if (selectedTab === "New") {
             filtered = [...filtered].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        // HOT = the more votes the higher the post is
         } else if (selectedTab === "Hot") {
             filtered = [...filtered].sort((a, b) => b.votes - a.votes);
+        // TOP = the more comments the higher the post it
         } else if (selectedTab === 'Top') {
             filtered = [...filtered].sort((a, b) => b.comments - a.comments);
         }
@@ -92,19 +95,22 @@ export default function MainScreen({ navigation, route }) {
                     data={feed}
                     keyExtractor={(item, index) => `${item.type}-${item.id}-${index}`}
                     renderItem={({ item }) => (
-                        <TouchableOpacity onPress={() => navigation.navigate("PostDetails", { postId: item.id })}>
-                            {item.type === "poll" ? (
-                                <PollCard {...item} theme={theme} />
-                            ) : (
-                                <DiscussionCard {...item} theme={theme} />
-                            )}
-                        </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={() => navigation.navigate(item.type === "poll" ? "Poll" : "Discuss",{ id: item.id })}
+                    activeOpacity={0.7}
+                >
+                    {item.type === "poll" ? (
+                        <PollCard {...item} theme={theme} />
+                    ) : (
+                        <DiscussionCard {...item} theme={theme} />
                     )}
+                </TouchableOpacity>
+                )}
                     showsVerticalScrollIndicator={false}
                     ListHeaderComponent={() => (
                         <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                                <Text style={{ fontSize: 18, fontWeight: '700', color: t.text }}>Upcoming in your area</Text>
+                                <Text style={{ fontSize: 18, fontWeight: '700', color: t.text }}>You might be interested</Text>
                                 <TouchableOpacity onPress={() => alert('Show all upcoming changes')}>
                                     <Text style={{ color: t.accent, fontWeight: '600' }}>See all</Text>
                                 </TouchableOpacity>
@@ -133,24 +139,27 @@ export default function MainScreen({ navigation, route }) {
 const infoItems = [
     {
         id: 'i1',
-        title: 'Traffic arrangements in downtown (week 45)',
-        subtitle: 'Road and cable works in the city center — expect detours and temporary closures.',
-        image: 'https://unsplash.com/photos/HCDmcskE_Zk/download?force=true&w=800',
-      
+        title: 'Europe captures record share of private capital',
+        subtitle: 'Investors bet big on continent’s infrastructure spending spree as European funds raise $311 billion',
+        image: 'https://images.ft.com/v3/image/raw/ftcms%3A7743fa49-e91f-4518-a797-975f933c9877?source=next-article&fit=scale-down&quality=highest&width=700&dpr=1',
+        source: 'Financial Times',
+        scope: 'Global'
     },
     {
         id: 'i2',
-        title: 'City park renovation begins',
-        subtitle: 'Park renovation starts next month: walking paths will be adjusted and the playground renewed.',
-        image: 'https://unsplash.com/photos/GjnpGl9KYL4/download?force=true&w=800',
-     
+        title: 'Robots Are Coming. What Investors Need to Know.',
+        subtitle: 'Robots are coming. Some of the numbers being floated are incredible (and challenging to use for investing).',
+        image: 'https://images.barrons.com/im-85561258?width=700&size=1.5005861664712778',
+        source: 'Barron’s',
+        scope: 'Global'
     },
     {
         id: 'i3',
         title: 'Public transport timetable changes',
         subtitle: 'New bus schedules take effect on Monday — check routes in the app.',
         image: 'https://unsplash.com/photos/CI3UhW7AaZE/download?force=true&w=800',
-      
+        source: 'YLE',
+        scope: 'Local'
     },
 ];
 

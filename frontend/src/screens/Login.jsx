@@ -64,7 +64,7 @@ export default function LoginScreen() {
   };
 
   return (
-      <SafeAreaView style={[styles.container, { backgroundColor: t.background, paddingTop: 60 }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: t.background, paddingTop: 20 }]}>
         <Text style={[styles.title, { color: t.text }]}>Login Account</Text>
 
         {error && <Text style={{ color: t.error, marginBottom: 10 }}>{error}</Text>}
