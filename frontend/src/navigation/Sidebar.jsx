@@ -65,7 +65,16 @@ function CustomDrawerContent(props) {
                     try {
                       navigation.closeDrawer && navigation.closeDrawer();
                     } catch (e) { }
-                    navigation.navigate('Home');
+                    // Navigate to the parent Stack so it matches screen navigations
+                    const parent = navigation.getParent && navigation.getParent();
+                    if (parent && parent.navigate) {
+                      parent.navigate('TopicResults', { topic });
+                    } else {
+                      // Fallback: attempt root-level navigation
+                      try {
+                        navigation.navigate('TopicResults', { topic });
+                      } catch (e) { }
+                    }
                   }}
                 >
                   <Box style={styles.topicInnerRowContent}>
