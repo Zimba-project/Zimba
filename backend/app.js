@@ -5,6 +5,9 @@ const registerTestRoute = require("./test/registerTest");
 const authRoutes = require("./routes/auth");
 const postRoutes = require("./routes/post");
 const uploadRoutes = require("./routes/upload");
+const aiRoutes = require("./routes/ai");
+
+console.log("Gemini AI integration ready");
 const path = require('path');
 const app = express();
 
@@ -22,6 +25,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use('/uploads', express.static('/storage/uploads'));
+app.use("/api/ai", aiRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => {
