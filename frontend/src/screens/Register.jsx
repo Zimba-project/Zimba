@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  View, Text, TextInput, StyleSheet, ActivityIndicator,
-  ScrollView, Alert, TouchableOpacity, Modal
+  TextInput, StyleSheet, ActivityIndicator,
+  Alert, Modal, Platform
 } from 'react-native';
+import { ScrollView } from '@/components/ui/scroll-view';
+import { Box } from '@/components/ui/box';
+import { Pressable } from '@/components/ui/pressable';
 import { Feather as Icon } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { register as registerApi } from '../api/auth';
@@ -11,16 +13,12 @@ import GoogleLogo from '../../assets/google.svg';
 import AppleLogo from '../../assets/apple.svg';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
-
-const COUNTRIES = [
-  { name: 'Finland', dial_code: '+358', code: 'FI', flag: '🇫🇮' },
-  { name: 'United States', dial_code: '+1', code: 'US', flag: '🇺🇸' },
-  { name: 'United Kingdom', dial_code: '+44', code: 'GB', flag: '🇬🇧' },
-  { name: 'Sweden', dial_code: '+46', code: 'SE', flag: '🇸🇪' },
-  { name: 'Germany', dial_code: '+49', code: 'DE', flag: '🇩🇪' },
-  { name: 'France', dial_code: '+33', code: 'FR', flag: '🇫🇷' },
-  { name: 'Norway', dial_code: '+47', code: 'NO', flag: '🇳🇴' },
-];
+import { SafeAreaView } from '@/components/ui/safe-area-view';
+import { Text } from '@/components/ui/text';
+import { HStack } from '@/components/ui/hstack';
+import { Button, ButtonText } from '@/components/ui/button';
+import { DatePickerModal } from '@/src/components/DatePicker/DatePickerModal.jsx';
+import { COUNTRIES } from '@/src/utils/CountryAreaCodes';
 
 export default function RegisterScreen({ navigation }) {
   const [firstName, setFirstName] = useState('');
@@ -70,13 +68,13 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: t.background, paddingTop: 20}]}edges={[]}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={[styles.container, { backgroundColor: t.background, paddingTop: 16 }]}>
       <ScrollView contentContainerStyle={[styles.card, { backgroundColor: t.background }]}>
-        <Text style={[styles.title, { color: t.text }]}>Create Account</Text>
-        {error && <Text style={[styles.error, { color: t.error }]}>{error}</Text>}
+        <Text className="text-2xl font-bold text-center" style={{ color: t.text, marginBottom: 12 }}>Create Account</Text>
+        {error && <Text style={{ color: t.error, marginBottom: 12 }}>{error}</Text>}
 
-        <Text style={[styles.sectionTitle, { color: t.text }]}>Personal Info</Text>
-        <View style={styles.row}>
+        <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 12, color: t.text }}>Personal Info</Text>
+        <HStack style={styles.row}>
           <TextInput
             style={[
               styles.input,
@@ -108,7 +106,7 @@ export default function RegisterScreen({ navigation }) {
             value={lastName}
             onChangeText={setLastName}
           />
-        </View>
+        </HStack>
 
         <TextInput
           style={[
@@ -128,13 +126,13 @@ export default function RegisterScreen({ navigation }) {
         />
 
         {/* Phone */}
-        <View style={[styles.phoneContainer, { backgroundColor: t.inputBackground, borderColor: t.inputBorder }]}>
-          <TouchableOpacity
+        <HStack style={[styles.phoneContainer, { backgroundColor: t.inputBackground, borderColor: t.inputBorder }]}>
+          <Pressable
             style={[styles.countryButton, { borderRightColor: t.inputBorder }]}
             onPress={() => setShowCountryPicker(true)}
           >
             <Text style={[styles.countryText, { color: t.text }]}>{country.flag} {country.dial_code}</Text>
-          </TouchableOpacity>
+          </Pressable>
           <TextInput
             style={[styles.phoneInput, { color: t.text }]}
             placeholder="Phone number"
@@ -143,33 +141,33 @@ export default function RegisterScreen({ navigation }) {
             value={phone}
             onChangeText={setPhone}
           />
-        </View>
+        </HStack>
 
         {/* Country Picker Modal */}
         {showCountryPicker && (
           <Modal visible={showCountryPicker} transparent animationType="slide" onRequestClose={() => setShowCountryPicker(false)}>
-            <View style={styles.modalOverlay}>
-              <View style={[styles.modalContent, { backgroundColor: t.cardBackground }]}>
-                <Text style={[{ fontSize: 18, fontWeight: '600', marginBottom: 12 }, { color: t.text }]}>Select Country</Text>
+            <Box style={styles.modalOverlay}>
+              <Box style={[styles.modalContent, { backgroundColor: t.cardBackground }]}>
+                <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 12, color: t.text }}>Select Country</Text>
                 {COUNTRIES.map(c => (
-                  <TouchableOpacity
+                  <Pressable
                     key={c.code}
                     style={{ paddingVertical: 10 }}
                     onPress={() => { setCountry(c); setShowCountryPicker(false); }}
                   >
                     <Text style={{ fontSize: 16, color: t.text }}>{c.flag} {c.name} ({c.dial_code})</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
-                <TouchableOpacity onPress={() => setShowCountryPicker(false)}>
-                  <Text style={{ color: t.accent, marginTop: 12, textAlign: 'center' }}>Close</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+                <Button variant="link" action="primary" onPress={() => setShowCountryPicker(false)} className="items-center">
+                  <Text style={{ color: t.accent, marginTop: 12 }}>Close</Text>
+                </Button>
+              </Box>
+            </Box>
           </Modal>
         )}
 
         {/* Birthdate */}
-        <TouchableOpacity
+        <Pressable
           style={[
             styles.input,
             styles.dateRow,
@@ -181,24 +179,25 @@ export default function RegisterScreen({ navigation }) {
             {birthdate ? birthdate.toLocaleDateString() : 'Birthdate (YYYY-MM-DD)'}
           </Text>
           <Icon name="calendar" size={18} color={t.placeholder} />
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Date Picker */}
-        {showDatePicker && (
-          <DateTimePicker
-            value={birthdate || new Date(2000, 0, 1)}
-            mode="date"
-            display="default"
-            maximumDate={new Date()}
-            onChange={(event, selectedDate) => {
-              setShowDatePicker(false);
-              if (selectedDate) setBirthdate(selectedDate);
-            }}
-            themeVariant={theme === 'dark' ? 'dark' : 'light'}
-          />
-        )}
+        <DatePickerModal
+          visible={showDatePicker}
+          value={birthdate}
+          theme={theme}
+          t={t}
+          mode="date"
+          title="Select Birthdate"
+          maximumDate={new Date()}
+          onConfirm={(date, { close }) => {
+            setBirthdate(date);
+            if (close) setShowDatePicker(false);
+          }}
+          onCancel={() => setShowDatePicker(false)}
+        />
 
-        <Text style={[styles.sectionTitle, { color: t.text }]}>Security</Text>
+        <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 12, color: t.text }}>Security</Text>
         <TextInput
           style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
           placeholder="Password"
@@ -219,29 +218,31 @@ export default function RegisterScreen({ navigation }) {
         {loading ? (
           <ActivityIndicator color={t.accent} />
         ) : (
-          <TouchableOpacity style={[styles.registerButton, { backgroundColor: t.accent }]} onPress={handleRegister}>
-            <Text style={styles.registerText}>Sign Up</Text>
-          </TouchableOpacity>
+          <Button action="primary" variant="solid" onPress={handleRegister} className="h-11 mb-6" style={{ backgroundColor: t.accent, borderRadius: 8 }}>
+            <ButtonText>Sign Up</ButtonText>
+          </Button>
         )}
 
-        <Text style={[styles.orText, { color: t.secondaryText }]}>or sign up with</Text>
-        <View style={styles.socialContainer}>
-          <TouchableOpacity style={[styles.socialButton, { backgroundColor: t.inputBackground, borderColor: t.inputBorder }]}>
+        <Text style={{ textAlign: 'center', marginBottom: 16, color: t.secondaryText }}>or sign up with</Text>
+        <HStack style={styles.socialContainer}>
+          <Button variant="outline" action="secondary" className="flex-1 flex-row items-center justify-center h-11" style={{ backgroundColor: t.inputBackground, borderColor: t.inputBorder, borderRadius: 8 }}>
             <GoogleLogo width={22} height={22} />
-            <Text style={[styles.socialText, { color: t.text }]}>Google</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.socialButton, { backgroundColor: t.inputBackground, borderColor: t.inputBorder }]}>
+            <Text style={{ color: t.text, marginLeft: 6 }}>Google</Text>
+          </Button>
+          <Button variant="outline" action="secondary" className="flex-1 flex-row items-center justify-center h-11" style={{ backgroundColor: t.inputBackground, borderColor: t.inputBorder, borderRadius: 8 }}>
             <AppleLogo width={22} height={22} />
-            <Text style={[styles.socialText, { color: t.text }]}>Apple</Text>
-          </TouchableOpacity>
-        </View>
+            <Text style={{ color: t.text, marginLeft: 6 }}>Apple</Text>
+          </Button>
+        </HStack>
 
-        <View style={styles.loginRow}>
-          <Text style={{ color: t.secondaryText }}>Already have an account?</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text style={[styles.link, { color: t.accent }]}> Login</Text>
-          </TouchableOpacity>
-        </View>
+        <Box style={styles.loginRow}>
+          <HStack className="items-center" style={{ gap: 4 }}>
+            <Text style={{ color: t.secondaryText }}>Already have an account?</Text>
+            <Button variant="link" action="primary" onPress={() => navigation.navigate('Login')} style={{ borderRadius: 8 }}>
+              <Text style={{ color: t.accent, fontWeight: '600' }}> Login</Text>
+            </Button>
+          </HStack>
+        </Box>
       </ScrollView>
     </SafeAreaView>
   );

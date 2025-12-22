@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
 import Avatar from '../Profile/Avatar';
 import { getTopicColors } from '../../utils/TopicColors';
 import { formatTime } from '../../utils/TimeFormatter';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
-import { Ionicons } from '@expo/vector-icons'; 
+import { Ionicons } from '@expo/vector-icons';
 
 const CardHeader = ({ author, topic }) => {
   const { theme } = useTheme();
@@ -14,15 +16,15 @@ const CardHeader = ({ author, topic }) => {
   const { bg: topicBg, text: topicText, en: topicEnglish } = getTopicColors(topic);
 
   return (
-    <View style={[styles.header, { backgroundColor: t.cardBackground }]}>
+    <Box style={[styles.header, { backgroundColor: t.cardBackground }]}>
       <Avatar 
         uri={author.avatar}
         style={{ width: 40, height: 40, borderRadius: 20, overflow: 'hidden' }}
         imageStyle={{ resizeMode: 'cover' }}
       />
 
-      <View style={styles.headerCenter}>
-        <View style={styles.authorRow}>
+      <Box style={styles.headerCenter}>
+        <Box style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text
             style={[styles.authorName, { color: t.text }]}
             numberOfLines={1}
@@ -39,15 +41,15 @@ const CardHeader = ({ author, topic }) => {
               style={{ marginLeft: 4 }}
             />
           )}
-        </View>
+        </Box>
 
         <Text style={[styles.time, { color: t.secondaryText }]}>
           {formatTime(author.time)}
         </Text>
-      </View>
+      </Box>
 
       {topic ? (
-        <View style={[styles.topicContainer, { backgroundColor: topicBg }]}>
+        <Box style={[styles.topicContainer, { backgroundColor: topicBg }]}>
           <Text
             style={[styles.topic, { color: topicText }]}
             numberOfLines={1}
@@ -55,9 +57,9 @@ const CardHeader = ({ author, topic }) => {
           >
             {topicEnglish}
           </Text>
-        </View>
+        </Box>
       ) : null}
-    </View>
+    </Box>
   );
 };
 

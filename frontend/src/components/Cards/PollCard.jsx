@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  ImageBackground,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import { ImageBackground, StyleSheet } from 'react-native';
 import { Feather as Icon } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import StatsBar from './StatsBar';
@@ -14,6 +8,9 @@ import CardContainer from './CardContainer';
 import { formatTime } from '../../utils/TimeFormatter';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_BASE.replace(/\/api$/, '');
 
@@ -30,8 +27,8 @@ const PollCard = ({
   comments,
   end_time,
   created_at,
-  onShare = () => {},
-  onSave = () => {},
+  onShare = () => { },
+  onSave = () => { },
 }) => {
   const navigation = useNavigation();
   const themeFromProvider = useTheme();
@@ -61,15 +58,15 @@ const PollCard = ({
   const imageUrl = image ? (image.startsWith('http') ? image : `${API_BASE}${image}`) : null;
 
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+    <Pressable onPress={handlePress} style={{}}>
       <CardContainer>
         <CardHeader
           author={{
             avatar: author_avatar?.startsWith('http')
               ? author_avatar
               : author_avatar
-              ? `${API_BASE}${author_avatar}`
-              : null,
+                ? `${API_BASE}${author_avatar}`
+                : null,
             name: author_name,
             time: created_at,
             verified: author_verified
@@ -79,34 +76,34 @@ const PollCard = ({
 
         {imageUrl && (
           <ImageBackground source={{ uri: imageUrl }} style={styles.image}>
-            <View style={styles.overlay}>
+            <Box style={styles.overlay}>
               <Text style={styles.imageTitle}>{title}</Text>
-            </View>
+            </Box>
           </ImageBackground>
         )}
 
-        <View style={[styles.body, { backgroundColor: t.cardBackground }]}>
+        <Box style={[styles.body, { backgroundColor: t.cardBackground }]}>
           {!imageUrl && <Text style={[styles.title, { color: t.text }]}>{title}</Text>}
 
           <Text style={[styles.description, { color: t.text }]} numberOfLines={3}>
             {description}
           </Text>
 
-          <TouchableOpacity style={[styles.pollButton, { backgroundColor: t.accent }]} onPress={handlePress}>
+          <Pressable style={[styles.pollButton, { backgroundColor: t.accent }]} onPress={handlePress}>
             <Text style={styles.pollButtonText}>Take a Poll</Text>
-          </TouchableOpacity>
+          </Pressable>
 
-          <View style={styles.endTime}>
+          <Box style={styles.endTime}>
             <Icon name="clock" size={14} color={t.secondaryText} />
             <Text style={[styles.endTimeText, { color: t.secondaryText }]}>
               Ends: {formatTime(end_time)}
             </Text>
-          </View>
+          </Box>
 
           <StatsBar votes={votes} showComments={false} share={onShare} onSave={onSave} />
-        </View>
+        </Box>
       </CardContainer>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

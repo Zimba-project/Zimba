@@ -44,18 +44,32 @@ export const getPostComments = async (postId) => {
     const raw = res.body?.comments || [];
 
     return raw.map(c => ({
-        id: c.id,
-        text: c.comment,                
-        author_name: c.user_name,       
-        author_avatar: c.user_avatar,  
-        created_at: c.created_at,
-        user_id: c.user_id,
+      id: c.id,
+      text: c.comment,
+      author_name: c.user_name,
+      author_avatar: c.user_avatar,
+      created_at: c.created_at,
+      user_id: c.user_id,
+      replies: (c.replies || []).map(r => ({
+        id: r.id,
+        text: r.text || r.reply,
+        author_name: r.user_name,
+        author_avatar: r.user_avatar,
+        created_at: r.created_at,
+        user_id: r.user_id,
+      }))
     }));
 };
 
 export const addPostComment = async (postId, userId, comment) => {
   const res = await request(`/posts/${postId}/comments`, 'POST', { user_id: userId, comment });
   if (!res.ok) throw new Error(res.body?.error || `Failed to add comment (status ${res.status})`);
+  return res.body;
+};
+
+export const replyToComment = async (postId, commentId, userId, reply) => {
+  const res = await request(`/posts/${postId}/comments/${commentId}/replies`, 'POST', { user_id: userId, reply });
+  if (!res.ok) throw new Error(res.body?.error || `Failed to add reply (status ${res.status})`);
   return res.body;
 };
 
@@ -80,4 +94,4 @@ export const pickAndUploadAvatar = async (userId, formData) => {
   return res.body;
 };
 
-export default { getAllPosts, createPost,  getPollOptions, votePoll, getPostComments, addPostComment, searchPosts, pickAndUploadAvatar };
+export default { getAllPosts, createPost,  getPollOptions, votePoll, getPostComments, addPostComment, replyToComment, searchPosts, pickAndUploadAvatar };

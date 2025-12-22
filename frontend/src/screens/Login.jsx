@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SafeAreaView, StatusBar, View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { StatusBar, TextInput, StyleSheet, ActivityIndicator, Alert, Platform } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import GoogleLogo from '../../assets/google.svg';
 import AppleLogo from '../../assets/apple.svg';
@@ -9,6 +9,11 @@ import { sessionStorage } from '../utils/Storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme'; // centralized theme
+import { SafeAreaView } from '@/components/ui/safe-area-view';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { HStack } from '@/components/ui/hstack';
+import { Button, ButtonText } from '@/components/ui/button';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
@@ -64,90 +69,80 @@ export default function LoginScreen() {
   };
 
   return (
-      <SafeAreaView style={[styles.container, { backgroundColor: t.background, paddingTop: 20 }]}>
-        <Text style={[styles.title, { color: t.text }]}>Login Account</Text>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={[styles.container, { backgroundColor: t.background, paddingTop: 16 }]}>
+      <Text className="text-2xl font-bold" style={{ color: t.text, marginBottom: 12 }}>Login Account</Text>
 
-        {error && <Text style={{ color: t.error, marginBottom: 10 }}>{error}</Text>}
+      {error && <Text style={{ color: t.error, marginBottom: 10 }}>{error}</Text>}
 
-        {/* Phone */}
-        <Text style={[styles.label, { color: t.text }]}>Mobile Number</Text>
-        <TextInput
-          style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
-          placeholder="Enter mobile number"
-          placeholderTextColor={t.placeholder}
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
+      {/* Phone */}
+      <Text style={{ color: t.text, marginBottom: 6, fontSize: 14, fontWeight: '500' }}>Mobile Number</Text>
+      <TextInput
+        style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
+        placeholder="Enter mobile number"
+        placeholderTextColor={t.placeholder}
+        keyboardType="phone-pad"
+        value={phone}
+        onChangeText={setPhone}
+      />
+
+      {/* Password */}
+      <Text style={{ color: t.text, marginBottom: 6, fontSize: 14, fontWeight: '500' }}>Password</Text>
+      <TextInput
+        style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
+        placeholder="Enter password"
+        placeholderTextColor={t.placeholder}
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+
+      {/* Keep me logged in */}
+      <HStack style={styles.checkboxContainer}>
+        <Checkbox
+          value={keepLoggedIn}
+          onValueChange={setKeepLoggedIn}
+          color={keepLoggedIn ? t.accent : undefined}
         />
+        <Text style={{ color: t.text, marginLeft: 8 }}>Keep me logged in</Text>
+      </HStack>
 
-        {/* Password */}
-        <Text style={[styles.label, { color: t.text }]}>Password</Text>
-        <TextInput
-          style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
-          placeholder="Enter password"
-          placeholderTextColor={t.placeholder}
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
+      {/* Login Button */}
+      <Button action="primary" variant="solid" onPress={handleLogin} className="h-11 mb-6" style={{ backgroundColor: t.accent, borderRadius: 8 }}>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <ButtonText>Login</ButtonText>
+        )}
+      </Button>
 
-        {/* Keep me logged in */}
-        <View style={styles.checkboxContainer}>
-          <Checkbox
-            value={keepLoggedIn}
-            onValueChange={setKeepLoggedIn}
-            color={keepLoggedIn ? t.accent : undefined}
-          />
-          <Text style={[styles.checkboxLabel, { color: t.text }]}>Keep me logged in</Text>
-        </View>
+      {/* Social Login */}
+      <Text style={{ textAlign: 'center', marginBottom: 16, color: t.text }}>or sign in with</Text>
+      <Box style={styles.socialContainer}>
+        <Button variant="outline" action="secondary" onPress={() => Alert.alert('Not implemented')} className="flex-row items-center justify-center h-11 mb-3" style={{ borderColor: t.inputBorder, backgroundColor: t.inputBackground, borderRadius: 8 }}>
+          <GoogleLogo width={22} height={22} />
+          <Text style={{ color: t.text, marginLeft: 8 }}>Continue with Google</Text>
+        </Button>
 
-        {/* Login Button */}
-        <TouchableOpacity
-          style={[styles.loginButton, { backgroundColor: t.accent }]}
-          onPress={handleLogin}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.loginText}>Login</Text>
-          )}
-        </TouchableOpacity>
+        <Button variant="outline" action="secondary" onPress={() => Alert.alert('Not implemented')} className="flex-row items-center justify-center h-11" style={{ borderColor: t.inputBorder, backgroundColor: t.inputBackground, borderRadius: 8 }}>
+          <AppleLogo width={22} height={22} />
+          <Text style={{ color: t.text, marginLeft: 8 }}>Continue with Apple</Text>
+        </Button>
+      </Box>
 
-        {/* Social Login */}
-        <Text style={[styles.orText, { color: t.text }]}>or sign in with</Text>
-        <View style={styles.socialContainer}>
-          <TouchableOpacity
-            style={[styles.socialButton, { borderColor: t.inputBorder, backgroundColor: t.inputBackground }]}
-            onPress={() => Alert.alert('Not implemented')}
-          >
-            <GoogleLogo width={22} height={22} />
-            <Text style={[styles.socialText, { color: t.text }]}>Continue with Google</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.socialButton, { borderColor: t.inputBorder, backgroundColor: t.inputBackground }]}
-            onPress={() => Alert.alert('Not implemented')}
-          >
-            <AppleLogo width={22} height={22} />
-            <Text style={[styles.socialText, { color: t.text }]}>Continue with Apple</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Sign Up */}
-        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={[styles.signupText, { color: t.text }]}>
-            Don’t have an account?{' '}
-            <Text style={{ color: t.accent, fontWeight: '600' }}>Sign Up</Text>
-          </Text>
-        </TouchableOpacity>
-      </SafeAreaView>
+      {/* Sign Up */}
+      <HStack className="items-center justify-center" style={{ marginTop: 12 }}>
+        <Text style={{ color: t.text }}>Don’t have an account?</Text>
+        <Button variant="link" action="primary" onPress={() => navigation.navigate('Register')} style={{ borderRadius: 8 }}>
+          <Text style={{ color: t.accent, fontWeight: '600' }}> Sign Up</Text>
+        </Button>
+      </HStack>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 24},
+  container: { flex: 1, paddingHorizontal: 24 },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 12 },
-  label: { fontSize: 14, marginBottom: 6 },
   input: {
     borderWidth: 1,
     borderRadius: 8,
@@ -160,25 +155,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12
   },
-  checkboxLabel: { marginLeft: 8, fontSize: 14 },
-  loginButton: {
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 24
-  },
-  loginText: { color: '#ffffff', fontSize: 16, fontWeight: '700' },
-  orText: { textAlign: 'center', marginBottom: 16 },
   socialContainer: { gap: 12 },
-  socialButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginBottom: 12
-  },
-  socialText: { fontSize: 14, marginLeft: 8 },
-  signupText: { textAlign: 'center', fontSize: 14, marginTop: 32 }
+  socialButton: {},
+  socialText: {},
+  signupText: {}
 });

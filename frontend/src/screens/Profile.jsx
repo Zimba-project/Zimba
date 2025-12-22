@@ -1,18 +1,18 @@
 // ProfileScreen.js
 import React, { useState, useEffect } from 'react';
 import {
-  SafeAreaView,
-  Text,
   TextInput,
   StyleSheet,
-  View,
   Alert,
   ActivityIndicator,
-  ScrollView,
-  TouchableOpacity,
   Image,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from '@/components/ui/safe-area-view';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
+import { ScrollView } from '@/components/ui/scroll-view';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { updateUser } from '../api/auth';
@@ -55,7 +55,7 @@ export default function ProfileScreen({ navigation, route }) {
   const getDisplayName = () => {
     const first = user?.first_name ?? user?.firstName ?? '';
     const last = user?.last_name ?? user?.lastName ?? '';
-    if (first || last) return `${first}`.trim(); 
+    if (first || last) return `${first}`.trim();
     return user?.name ?? user?.username ?? 'User';
   };
 
@@ -169,7 +169,7 @@ export default function ProfileScreen({ navigation, route }) {
 
   if (userLoading) {
     return (
-      <SafeAreaView style={[styles.center, { backgroundColor: t.background }]}>
+      <SafeAreaView edges={["bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
         <ActivityIndicator size="large" color={t.accent} />
       </SafeAreaView>
     );
@@ -177,7 +177,7 @@ export default function ProfileScreen({ navigation, route }) {
 
   if (!user) {
     return (
-      <SafeAreaView style={[styles.center, { backgroundColor: t.background }]}>
+      <SafeAreaView edges={["bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
         <Text style={{ color: t.secondaryText, fontSize: 16 }}>
           You need to log in to view your profile.
         </Text>
@@ -186,42 +186,40 @@ export default function ProfileScreen({ navigation, route }) {
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: t.background }]}>
-      <View style={[styles.topBar, { backgroundColor: t.background, borderBottomColor: t.cardBackground }]}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+    <SafeAreaView edges={["bottom"]} style={[styles.safeArea, { backgroundColor: t.background }]}>
+      <Box style={[styles.topBar, { backgroundColor: t.background, borderBottomColor: t.cardBackground }]}>
+        <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={24} color={t.accent} />
-        </TouchableOpacity>
-      </View>
+        </Pressable>
+      </Box>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* PROFILE CARD */}
-        <View style={[styles.profileCard, { backgroundColor: t.cardBackground, borderColor: t.cardBackground }]}>
+        <Box style={[styles.profileCard, { backgroundColor: t.cardBackground, borderColor: t.cardBackground }]}>
           {/* Avatar + camera + cogwheel */}
-          <View style={styles.avatarContainer}>
-            <TouchableOpacity onPress={uploadAvatar} disabled={uploading}>
+          <Box style={styles.avatarContainer}>
+            <Pressable onPress={uploadAvatar} disabled={uploading}>
               {user?.avatar ? (
                 <Image
                   source={{ uri: normalizeAvatarUrl(user.avatar) + (user.avatar ? `?v=${encodeURIComponent(user.avatar)}` : '') }}
                   style={styles.avatar}
                 />
               ) : (
-                <View style={[styles.avatarPlaceholder, { backgroundColor: t.cardBackground, borderColor: t.secondaryText }]}>
+                <Box style={[styles.avatarPlaceholder, { backgroundColor: t.cardBackground, borderColor: t.secondaryText }]}>
                   <Ionicons name="person-circle-outline" size={60} color={t.secondaryText} />
-                </View>
+                </Box>
               )}
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.cameraBtn, { backgroundColor: t.accent }]} onPress={uploadAvatar}>
+            </Pressable>
+            <Pressable style={[styles.cameraBtn, { backgroundColor: t.accent }]} onPress={uploadAvatar}>
               <Ionicons name="camera" size={16} color="#fff" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
+            </Pressable>
+            <Pressable
               style={[styles.cogBtn, { backgroundColor: t.cardBackground, borderColor: t.secondaryText }]}
               onPress={() => setShowSettings(true)}
             >
               <Ionicons name="settings-sharp" size={18} color={t.text} />
-            </TouchableOpacity>
-          </View>
+            </Pressable>
+          </Box>
 
           {/* Display / Edit area */}
           {!isEditing ? (
@@ -231,25 +229,25 @@ export default function ProfileScreen({ navigation, route }) {
               {user?.about ? <Text style={[styles.about, { color: t.secondaryText }]}>{user.about}</Text> : null}
 
               {/* Toggle Extra Info */}
-              <TouchableOpacity onPress={() => setShowExtraInfo(!showExtraInfo)}>
+              <Pressable onPress={() => setShowExtraInfo(!showExtraInfo)}>
                 <Text style={{ color: t.accent, marginTop: 6 }}>
                   {showExtraInfo ? 'Hide Details' : 'Show Details'}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
 
               {showExtraInfo && (
                 <>
-                  <View style={styles.metaRow}>
+                  <Box style={styles.metaRow}>
                     <Ionicons name="call-outline" size={16} color={t.secondaryText} />
                     <Text style={[styles.metaText, { color: t.secondaryText }]}>{user.phone ?? 'Not set'}</Text>
-                  </View>
+                  </Box>
 
-                  <View style={styles.metaRow}>
+                  <Box style={styles.metaRow}>
                     <Ionicons name="calendar-outline" size={16} color={t.secondaryText} />
                     <Text style={[styles.metaText, { color: t.secondaryText }]}>
                       {user.birthdate ? new Date(user.birthdate).toLocaleDateString('fi-FI') : 'Not set'}
                     </Text>
-                  </View>
+                  </Box>
                 </>
               )}
             </>
@@ -279,11 +277,11 @@ export default function ProfileScreen({ navigation, route }) {
               />
 
               {/* Toggle Extra Info in Edit */}
-              <TouchableOpacity onPress={() => setShowExtraInfo(!showExtraInfo)}>
+              <Pressable onPress={() => setShowExtraInfo(!showExtraInfo)}>
                 <Text style={{ color: t.accent, marginBottom: 6 }}>
                   {showExtraInfo ? 'Hide Details' : 'Show Details'}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
 
               {showExtraInfo && (
                 <>
@@ -304,45 +302,47 @@ export default function ProfileScreen({ navigation, route }) {
                 </>
               )}
 
-              <View style={styles.buttonRow}>
-                <TouchableOpacity onPress={() => setIsEditing(false)}>
+              <Box style={styles.buttonRow}>
+                <Pressable onPress={() => setIsEditing(false)}>
                   <Text style={[styles.btnCancel, { color: t.secondaryText }]}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleSave}>
+                </Pressable>
+                <Pressable onPress={handleSave}>
                   <Text style={[styles.btnSave, { color: t.accent }]}>Save</Text>
-                </TouchableOpacity>
-              </View>
+                </Pressable>
+              </Box>
             </>
           )}
-        </View>
+        </Box>
 
         {/* COMING FEATURES */}
-        <View style={[styles.featuresCard, { backgroundColor: t.cardBackground }]}>
+        <Box style={[styles.featuresCard, { backgroundColor: t.cardBackground }]}>
           <Text style={[styles.featuresTitle, { color: t.text }]}>🚀 Coming Soon </Text>
           <Text style={[styles.featuresTitle, { color: t.text }]}>More features will be added here 👀 </Text>
-        </View>
+        </Box>
       </ScrollView>
 
       {/* SETTINGS BOTTOM SHEET */}
-      {showSettings && (
-        <View style={[styles.settingsSheet, { backgroundColor: t.cardBackground }]}>
-          <TouchableOpacity style={styles.sheetBtn} onPress={() => { setIsEditing(true); setShowSettings(false); }}>
-            <Text style={[styles.sheetText, { color: t.text }]}>Edit Profile</Text>
-          </TouchableOpacity>
+      {
+        showSettings && (
+          <Box style={[styles.settingsSheet, { backgroundColor: t.cardBackground }]}>
+            <Pressable style={styles.sheetBtn} onPress={() => { setIsEditing(true); setShowSettings(false); }}>
+              <Text style={[styles.sheetText, { color: t.text }]}>Edit Profile</Text>
+            </Pressable>
 
-          <TouchableOpacity style={styles.sheetBtn} onPress={() => { setShowSettings(false); handleLogout(); }}>
-            <Text style={[styles.sheetText, { color: t.text }]}>Log Out</Text>
-          </TouchableOpacity>
+            <Pressable style={styles.sheetBtn} onPress={() => { setShowSettings(false); handleLogout(); }}>
+              <Text style={[styles.sheetText, { color: t.text }]}>Log Out</Text>
+            </Pressable>
 
-          <TouchableOpacity style={styles.sheetBtn} onPress={() => { setShowSettings(false); handleDelete(); }}>
-            <Text style={[styles.sheetText, { color: 'red' }]}>Delete Account</Text>
-          </TouchableOpacity>
+            <Pressable style={styles.sheetBtn} onPress={() => { setShowSettings(false); handleDelete(); }}>
+              <Text style={[styles.sheetText, { color: 'red' }]}>Delete Account</Text>
+            </Pressable>
 
-          <TouchableOpacity style={styles.sheetCancel} onPress={() => setShowSettings(false)}>
-            <Text style={[styles.sheetText, { color: t.text }]}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+            <Pressable style={styles.sheetCancel} onPress={() => setShowSettings(false)}>
+              <Text style={[styles.sheetText, { color: t.text }]}>Cancel</Text>
+            </Pressable>
+          </Box>
+        )
+      }
     </SafeAreaView>
   );
 }

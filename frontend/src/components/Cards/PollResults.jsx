@@ -1,5 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
 
@@ -12,17 +14,17 @@ const PollResults = ({ options }) => {
   const totalVotes = options.reduce((sum, opt) => sum + opt.votes, 0);
 
   return (
-    <View style={{ marginTop: 16 }}>
+    <Box style={{ marginTop: 16 }}>
       <Text style={[styles.totalVotes, { color: t.text }]}>
         Total votes: {totalVotes}
       </Text>
 
       {/* Stacked bar */}
-      <View style={[styles.stackedBarBackground, { backgroundColor: t.inputBackground }]}>
+      <Box style={[styles.stackedBarBackground, { backgroundColor: t.inputBackground }]}>
         {options.map((opt, index) => {
           const percent = totalVotes > 0 ? (opt.votes / totalVotes) * 100 : 0;
           return (
-            <View
+            <Box
               key={opt.id}
               style={[
                 styles.stackedBarSegment,
@@ -34,15 +36,15 @@ const PollResults = ({ options }) => {
             />
           );
         })}
-      </View>
+      </Box>
 
       {/* Row of options below the bar */}
-      <View style={styles.optionsRow}>
+      <Box style={styles.optionsRow}>
         {options.map((opt, index) => {
           const percent = totalVotes > 0 ? (opt.votes / totalVotes) * 100 : 0;
           return (
-            <View key={opt.id} style={styles.optionItem}>
-              <View
+            <Box key={opt.id} style={styles.optionItem}>
+              <Box
                 style={[
                   styles.colorBox,
                   { backgroundColor: COLORS[index % COLORS.length] },
@@ -51,11 +53,11 @@ const PollResults = ({ options }) => {
               <Text style={[styles.optionText, { color: t.text }]}>
                 {opt.text} ({Math.round(percent)}%)
               </Text>
-            </View>
+            </Box>
           );
         })}
-      </View>
-    </View>
+      </Box>
+    </Box>
   );
 };
 

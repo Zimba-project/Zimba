@@ -1,16 +1,17 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Box } from '@/components/ui/box';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
 
 const CardContainer = ({ children, style }) => {
-   const { theme } = useTheme();
-   const t = getTheme(theme);
+  const { theme } = useTheme();
+  const t = getTheme(theme);
 
   return (
-    <View style={[styles.card, { backgroundColor: t.cardBackground }, style]}>
+    <Box style={[styles.card, { backgroundColor: t.cardBackground }, style]}>
       {children}
-    </View>
+    </Box>
   );
 };
 

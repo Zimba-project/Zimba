@@ -4,56 +4,127 @@ import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigatio
 import { Ionicons } from '@expo/vector-icons';
 import MainTabs from './MainTabs';
 import { TOPIC_COLORS } from '../utils/TopicColors';
-
+import { setLanguage } from '../utils/lang';
 import { Text } from '@/components/ui/text';
 import { Box } from '@/components/ui/box';
 import { Switch } from '@/components/ui/switch';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
 
-function LanguageScreen() {
-  return <View style={{ flex: 1 }} />;
-}
-
-function CustomDrawerContent({ navigation }) {
+function CustomDrawerContent(props) {
+  const { navigation } = props;
   const topics = Object.keys(TOPIC_COLORS || {});
   const [topicsOpen, setTopicsOpen] = React.useState(false);
+  const [languageOpen, setLanguageOpen] = React.useState(false);
+  const [language, setLang] = React.useState('en');
 
   const { theme, toggleTheme } = useTheme();
   const t = getTheme(theme);
-  const isDarkMode = theme === 'dark';
+
+  const handleLanguageChange = (value) => {
+    setLang(value);
+    setLanguage(value);
+    setLanguageOpen(false);
+  };
 
   return (
-    <View style={[styles.container, { backgroundColor: t.background }]}>
-      <DrawerContentScrollView contentContainerStyle={[styles.content, { backgroundColor: t.background }]}>
+    <View style={[styles.container, { flex: 1, backgroundColor: t.background }]}>
+      <DrawerContentScrollView
+        {...props}
+        contentContainerStyle={[styles.content, { backgroundColor: t.background }]}
+      >
         {/* Topics collapsible */}
         <Box style={styles.drawerItem}>
           <TouchableOpacity
             style={styles.drawerRow}
             activeOpacity={0.7}
-            onPress={() => setTopicsOpen(!topicsOpen)}
+            onPress={() => setTopicsOpen((s) => !s)}
           >
             <Box style={styles.drawerRow}>
               <Ionicons name="list-outline" size={20} color={t.text} />
               <Text style={[styles.drawerLabel, { color: t.text }]}>Topics</Text>
             </Box>
-            <Ionicons name={topicsOpen ? 'chevron-up' : 'chevron-down'} size={18} color={t.secondaryText} />
+            <Ionicons
+              name={topicsOpen ? 'chevron-up' : 'chevron-down'}
+              size={18}
+              color={t.secondaryText}
+            />
           </TouchableOpacity>
-
           {topicsOpen && (
-            <Box style={[styles.topicsList, { backgroundColor: t.cardBackground }]}>
+            <Box
+              style={styles.topicsList}
+              p="$3"
+              mt="$1"
+              bg={t.cardBackground}
+              rounded="md"
+              shadow="1"
+            >
               {topics.map((topic) => (
                 <TouchableOpacity
                   key={topic}
                   style={styles.topicInnerRow}
                   activeOpacity={0.7}
                   onPress={() => {
-                    navigation.closeDrawer?.();
-                    navigation.navigate('Home', { selectedTopic: topic });
+                    try {
+                      navigation.closeDrawer && navigation.closeDrawer();
+                    } catch (e) {}
+                    navigation.navigate('Home');
                   }}
                 >
-                  <Text style={[styles.topicLabel, { color: t.secondaryText }]} numberOfLines={1}>
-                    {topic}
+                  <Box style={styles.topicInnerRowContent}>
+                    <Text
+                      style={[styles.topicLabel, { color: t.secondaryText }]}
+                      numberOfLines={1}
+                    >
+                      {topic}
+                    </Text>
+                  </Box>
+                </TouchableOpacity>
+              ))}
+            </Box>
+          )}
+        </Box>
+
+        <Box style={[styles.separator, { backgroundColor: t.rowBorder }]} />
+
+        {/* Language picker (English / Finnish) */}
+        <Box style={styles.drawerItem}>
+          <TouchableOpacity
+            style={styles.drawerRow}
+            activeOpacity={0.7}
+            onPress={() => setLanguageOpen((s) => !s)}
+          >
+            <Box style={styles.drawerRow}>
+              <Ionicons name="language-outline" size={20} color={t.text} />
+              <Text style={[styles.drawerLabel, { color: t.text }]}>
+                {language === 'en' ? 'English' : 'Finnish'}
+              </Text>
+            </Box>
+            <Ionicons
+              name={languageOpen ? 'chevron-up' : 'chevron-down'}
+              size={18}
+              color={t.secondaryText}
+            />
+          </TouchableOpacity>
+
+          {languageOpen && (
+            <Box
+              style={styles.topicsList}
+              p="$2"
+              mt="$1"
+              bg={t.cardBackground}
+              rounded="md"
+              shadow="1"
+            >
+              {['en', 'fi'].map((lang) => (
+                <TouchableOpacity
+                  key={lang}
+                  style={[styles.topicInnerRowContent, { paddingVertical: 10 }]}
+                  activeOpacity={0.7}
+                  onPress={() => handleLanguageChange(lang)}
+                >
+                  <Text style={[styles.topicLabel, { color: t.secondaryText }]}>
+                    {lang === 'en' ? 'English' : 'Finnish'}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -61,44 +132,15 @@ function CustomDrawerContent({ navigation }) {
           )}
         </Box>
 
-        <View style={[styles.separator, { backgroundColor: t.rowBorder }]} />
+        <Box style={[styles.separator, { backgroundColor: t.rowBorder }]} />
 
-        {/* Language link */}
-        <TouchableOpacity
-          style={styles.drawerItem}
-          activeOpacity={0.7}
-          onPress={() => navigation.navigate('Language')}
-        >
-          <View style={styles.drawerRow}>
-            <Ionicons name="language-outline" size={20} color={t.text} />
-            <Text style={[styles.drawerLabel, { color: t.text }]}>Language</Text>
-          </View>
-        </TouchableOpacity>
-
-        <View style={[styles.separator, { backgroundColor: t.rowBorder }]} />
-
-        {/* Dark mode toggle via icon */}
+        {/* Dark mode toggle */}
         <Box flexDirection="row" justifyContent="space-between" alignItems="center" p="$3">
-          <Text style={[styles.drawerLabel, { color: t.text }]}>Dark mode</Text>
-          
-          <TouchableOpacity
-            onPress={toggleTheme}
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'transparent',
-            }}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name={isDarkMode ? 'moon' : 'moon-outline'}
-              size={28}
-              color={t.moonIconColor}
-            />
-          </TouchableOpacity>
+          <Box flexDirection="row" alignItems="center">
+            <Ionicons name="moon-outline" size={20} color={t.moonIconColor} />
+            <Text style={[styles.drawerLabel, { color: t.text }]}>Dark mode</Text>
+          </Box>
+          <Switch size="md" isChecked={t.isDark} onToggle={toggleTheme} />
         </Box>
       </DrawerContentScrollView>
     </View>
@@ -110,22 +152,28 @@ const Drawer = createDrawerNavigator();
 export default function Sidebar({ route, navigation }) {
   const { theme } = useTheme();
   const t = getTheme(theme);
-
   React.useEffect(() => {
-    if (route?.params?.openDrawer) {
-      navigation.openDrawer?.();
-      const parent = navigation.getParent?.();
-      parent?.setParams?.({ openDrawer: false });
+    const shouldOpen = route?.params?.openDrawer;
+    if (shouldOpen) {
+      try {
+        navigation.openDrawer && navigation.openDrawer();
+      } catch (e) {}
+      try {
+        const parent = navigation.getParent && navigation.getParent();
+        parent && parent.setParams && parent.setParams({ openDrawer: false });
+      } catch (e) {}
     }
   }, [route?.params?.openDrawer]);
-
   return (
     <Drawer.Navigator
-      drawerContent={(props) => <CustomDrawerContent {...props} />}
+      drawerContent={(props) => <CustomDrawerContent key={theme} {...props} />}
       screenOptions={{ headerShown: false, drawerActiveTintColor: t.text }}
     >
-      <Drawer.Screen name="Home" component={MainTabs} options={{ drawerItemStyle: { display: 'none' } }} />
-      <Drawer.Screen name="Language" component={LanguageScreen} />
+      <Drawer.Screen
+        name="Home"
+        component={MainTabs}
+        options={{ drawerItemStyle: { display: 'none' } }}
+      />
     </Drawer.Navigator>
   );
 }
@@ -133,11 +181,18 @@ export default function Sidebar({ route, navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16 },
-  drawerItem: { paddingVertical: 12, paddingHorizontal: 4, borderRadius: 8 },
+  drawerItem: { paddingTop: 12, paddingHorizontal: 4, borderRadius: 8 },
   drawerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   drawerLabel: { marginLeft: 8, fontSize: 16, fontWeight: '500' },
-  topicsList: { marginTop: 8, paddingVertical: 4, borderRadius: 6 },
-  topicInnerRow: { paddingVertical: 10, paddingHorizontal: 12 },
-  topicLabel: { fontSize: 14, lineHeight: 20 },
+  topicsList: {
+    marginTop: 8,
+    paddingLeft: 12,
+    borderRadius: 6,
+    paddingVertical: 4,
+    elevation: 1,
+  },
+  topicInnerRow: { marginBottom: 0, borderBottomWidth: 0 },
+  topicInnerRowContent: { paddingVertical: 10, paddingHorizontal: 6, paddingLeft: 12 },
+  topicLabel: { fontSize: 14, paddingVertical: 0, lineHeight: 20 },
   separator: { height: 1, marginVertical: 10 },
 });

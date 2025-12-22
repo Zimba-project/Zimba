@@ -1,18 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
-  SafeAreaView,
   ScrollView,
-  View,
-  Text,
   Image,
   StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import CardHeader from '../components/Cards/CardHeader';
 import StatsBar from '../components/Cards/StatsBar';
 import PollResults from '../components/Cards/PollResults';
@@ -23,10 +17,13 @@ import { normalizeUrl, normalizeAvatarUrl } from '../utils/urlHelper';
 
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
+import { SafeAreaView } from '@/components/ui/safe-area-view';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
 
 export default function PollScreen() {
   const route = useRoute();
-  const insets = useSafeAreaInsets();
   const { user } = useCurrentUser();
 
   const { postData, id: deepLinkId } = route.params || {};
@@ -89,9 +86,17 @@ export default function PollScreen() {
   // Loading state
   if (loading || !post) {
     return (
-      <SafeAreaView style={[styles.center, { paddingTop: insets.top, backgroundColor: t.background }]}>
+      <SafeAreaView edges={["bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
         <ActivityIndicator size="large" color={t.accent} />
         <Text style={{ marginTop: 12, color: t.text }}>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (!postData) {
+    return (
+      <SafeAreaView edges={["bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
+        <Text style={{ color: t.text }}>No poll data available</Text>
       </SafeAreaView>
     );
   }
@@ -112,7 +117,7 @@ export default function PollScreen() {
   const avatarUrl = normalizeAvatarUrl(author_avatar);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
+    <SafeAreaView edges={["bottom"]} style={[styles.container, { backgroundColor: t.background }]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
         <CardHeader
           author={{ avatar: avatarUrl, name: author_name, time: created_at, verified: author_verified }}
@@ -121,20 +126,20 @@ export default function PollScreen() {
 
         {imageUrl && <Image source={{ uri: imageUrl }} style={styles.image} />}
 
-        <View style={styles.body}>
+        <Box style={styles.body}>
           <Text style={[styles.title, { color: t.text }]}>{title}</Text>
           <Text style={[styles.description, { color: t.secondaryText }]}>{description}</Text>
 
           {/* Stats */}
           <StatsBar views={views} postId={postId} share={{ url: `myapp://post/${postId}` }} />
 
-          <View style={styles.optionsContainer}>
+          <Box style={styles.optionsContainer}>
             {!submitted ? (
               options.map((opt) => {
                 const isSelected = selectedOption === opt.id;
 
                 return (
-                  <TouchableOpacity
+                  <Pressable
                     key={opt.id}
                     style={[
                       styles.optionButton,
@@ -152,11 +157,8 @@ export default function PollScreen() {
                     >
                       {opt.text}
                     </Text>
-
-                    <Text style={[styles.voteCount, { color: t.accent }]}>
-                      {opt.votes} votes
-                    </Text>
-                  </TouchableOpacity>
+                    <Text style={[styles.voteCount, { color: t.accent }]}>{opt.votes} votes</Text>
+                  </Pressable>
                 );
               })
             ) : (
@@ -164,7 +166,7 @@ export default function PollScreen() {
             )}
 
             {!submitted && (
-              <TouchableOpacity
+              <Pressable
                 style={[
                   styles.submitButton,
                   { backgroundColor: selectedOption ? t.accent : t.placeholder },
@@ -173,7 +175,7 @@ export default function PollScreen() {
                 onPress={handleSubmit}
               >
                 <Text style={styles.submitText}>Submit Vote</Text>
-              </TouchableOpacity>
+              </Pressable>
             )}
 
             {submitted && (
@@ -181,8 +183,8 @@ export default function PollScreen() {
                 Thanks for voting!
               </Text>
             )}
-          </View>
-        </View>
+          </Box>
+        </Box>
       </ScrollView>
     </SafeAreaView>
   );
@@ -190,23 +192,37 @@ export default function PollScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  image: { width: "100%", height: 250 },
-  title: { fontSize: 22, fontWeight: "700", marginBottom: 12 },
-  body: { paddingHorizontal: 16, paddingBottom: 20 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  image: { width: '100%', height: 250, marginBottom: 12 },
+  title: { fontSize: 22, fontWeight: '700', marginBottom: 12 },
+  body: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
   description: { fontSize: 16, lineHeight: 22 },
   optionsContainer: { marginTop: 20 },
   optionButton: {
-    padding: 12,
+    padding: 16,
     marginVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    minHeight: 56,
   },
-  optionText: { fontSize: 16 },
-  voteCount: { fontWeight: "600" },
+  disabledOption: { opacity: 0.7 },
+  optionText: { 
+    fontSize: 16, 
+    flex: 1,
+    marginRight: 12,
+    lineHeight: 22,
+  },
+  voteCount: { 
+    fontWeight: '600',
+    fontSize: 14,
+    flexShrink: 0,
+  },
   submitButton: {
     paddingVertical: 12,
     borderRadius: 8,

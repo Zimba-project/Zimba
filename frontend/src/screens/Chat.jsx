@@ -1,17 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  Keyboard,
-  TouchableWithoutFeedback,
-  SafeAreaView,
-} from 'react-native';
+import { TextInput, FlatList, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from '@/components/ui/safe-area-view';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ChatHeader from '../components/Chat/ChatHeader';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
@@ -26,6 +18,7 @@ export default function ChatScreen({ route, navigation }) {
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const canSend = input.trim().length > 0;
 
   useEffect(() => {
     setMessages([
@@ -46,6 +39,10 @@ export default function ChatScreen({ route, navigation }) {
       { id: '15', text: 'Alright, let’s catch up later!', fromMe: false },
       { id: '16', text: 'Sure, talk soon!', fromMe: true },
     ]);
+    // One-time scroll to bottom on initial load
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: false });
+    }, 50);
   }, [chatWith]);
 
   const sendMessage = () => {
@@ -59,7 +56,7 @@ export default function ChatScreen({ route, navigation }) {
   };
 
   const renderItem = ({ item }) => (
-    <View
+    <Box
       style={[
         styles.messageBubble,
         item.fromMe
@@ -68,55 +65,73 @@ export default function ChatScreen({ route, navigation }) {
       ]}
     >
       <Text style={{ color: item.fromMe ? '#fff' : t.text }}>{item.text}</Text>
-    </View>
+    </Box>
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: t.background }}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <KeyboardAvoidingView
-          style={styles.container}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    <SafeAreaView edges={["bottom"]} style={{ flex: 1, backgroundColor: t.background }}>
+      {/* Custom Header outside KAV to avoid extra offset */}
+      <SafeAreaView edges={["top"]} style={{ backgroundColor: t.background }}>
+        <ChatHeader navigation={navigation} chatWith={chatWith} avatarUrl={avatarUrl} />
+      </SafeAreaView>
+
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+
+        {/* Messages */}
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'on-drag' : 'none'}
+          showsVerticalScrollIndicator
+          contentInsetAdjustmentBehavior={undefined}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: 12 }}
+        />
+
+        {/* Input */}
+        <Box
+          style={[
+            styles.inputContainer,
+            {
+              backgroundColor: t.cardBackground,
+              borderColor: t.secondaryText,
+              paddingBottom: 8,
+            },
+          ]}
         >
-          {/* Custom Header */}
-          <ChatHeader navigation={navigation} chatWith={chatWith} avatarUrl={avatarUrl} />
-
-          {/* Messages */}
-          <FlatList
-            ref={flatListRef}
-            data={messages}
-            keyExtractor={(item) => item.id}
-            renderItem={renderItem}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 70 }}
-            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-          />
-
-          {/* Input */}
-          <View
+          <TextInput
+            value={input}
+            onChangeText={setInput}
             style={[
-              styles.inputContainer,
+              styles.input,
               {
-                backgroundColor: t.cardBackground,
                 borderColor: t.secondaryText,
-                paddingBottom: insets.bottom,
+                color: t.text,
+                paddingVertical: Platform.select({ ios: 10, android: 6 }),
+                minHeight: Platform.select({ ios: 44, android: 44 }),
+                maxHeight: 120,
+                textAlignVertical: Platform.select({ android: 'top' }),
               },
             ]}
-          >
-            <TextInput
-              value={input}
-              onChangeText={setInput}
-              style={[styles.input, { borderColor: t.secondaryText, color: t.text }]}
-              placeholder="Type a message..."
-              placeholderTextColor={t.secondaryText}
-            />
-            <TouchableOpacity onPress={sendMessage} style={styles.sendBtn}>
-              <Text style={[styles.sendText, { color: t.accent }]}>Send</Text>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
+            placeholder="Type a message..."
+            placeholderTextColor={t.secondaryText}
+            multiline
+            blurOnSubmit={false}
+            returnKeyType="send"
+            onSubmitEditing={() => canSend && sendMessage()}
+          />
+          <Pressable onPress={sendMessage} disabled={!canSend} style={[styles.sendBtn, !canSend && { opacity: 0.5 }]}>
+            <Text style={[styles.sendText, { color: t.accent }]}>Send</Text>
+          </Pressable>
+        </Box>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -128,10 +143,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 10,
     borderTopWidth: 1,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
   },
   input: {
     flex: 1,
@@ -139,6 +150,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 12,
   },
-  sendBtn: { justifyContent: 'center', paddingHorizontal: 16 },
+  sendBtn: { justifyContent: 'center', alignItems: 'center', minHeight: 44, paddingHorizontal: 16 },
   sendText: { fontWeight: '600' },
 });

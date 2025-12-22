@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { HStack } from '@/components/ui/hstack';
 import LeftButton from './LeftButton';
 import RightButton from './RightButton';
 import { resolveUser, resolveActiveName } from './navigationHelpers';
@@ -11,7 +12,7 @@ export default function HeaderForStack({ navigation, route, back }) {
     const activeName = resolveActiveName(navigation, route);
     const noBackScreens = ['Main'];
     const backScreens = ['Login', 'Register', 'Discuss', 'Profile'];
-    const showBack = !noBackScreens.includes(activeName) &&(back || backScreens.includes(activeName));
+    const showBack = !noBackScreens.includes(activeName) && (back || backScreens.includes(activeName));
 
     const [searching, setSearching] = useState(false);
     const [query, setQuery] = useState('');
@@ -23,19 +24,19 @@ export default function HeaderForStack({ navigation, route, back }) {
     if (activeName === 'Login' || activeName === 'Register') {
         return (
             <SafeAreaView edges={['top']} style={{ backgroundColor }}>
-                <View style={[styles.container, { backgroundColor, borderBottomColor: isDark ? '#374151' : '#e5e7eb' }]}> 
-                    <View style={styles.left}><LeftButton navigation={navigation} showBack={showBack} /></View>
-                </View>
+                <HStack style={[styles.container, { backgroundColor, borderBottomColor: isDark ? '#374151' : '#e5e7eb' }]}>
+                    <HStack style={styles.left}><LeftButton navigation={navigation} showBack={showBack} /></HStack>
+                </HStack>
             </SafeAreaView>
         );
     }
 
     return (
         <SafeAreaView edges={['top']} style={{ backgroundColor }}>
-            <View style={[styles.container, { backgroundColor, borderBottomColor: isDark ? '#374151' : '#e5e7eb' }]}> 
-                <View style={styles.left}><LeftButton navigation={navigation} showBack={showBack} /></View>
-                <View style={styles.right}><RightButton navigation={navigation}user={user}searching={searching}setSearching={setSearching}query={query}setQuery={setQuery}/></View>
-            </View>
+            <HStack style={[styles.container, { backgroundColor, borderBottomColor: isDark ? '#374151' : '#e5e7eb' }]}>
+                <HStack style={styles.left}><LeftButton navigation={navigation} showBack={showBack} /></HStack>
+                <HStack style={styles.right}><RightButton navigation={navigation} user={user} searching={searching} setSearching={setSearching} query={query} setQuery={setQuery} /></HStack>
+            </HStack>
         </SafeAreaView>
     );
 }

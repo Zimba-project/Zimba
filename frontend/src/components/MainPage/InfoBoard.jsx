@@ -1,29 +1,32 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Dimensions, Platform } from 'react-native';
+import { FlatList, Image, StyleSheet, Dimensions, Platform } from 'react-native';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
 
 const { width } = Dimensions.get('window');
 const SIDE_PADDING = 24;
 const CARD_WIDTH = Math.min(340, Math.round(width * 0.78));
 
 const InfoCard = ({ item, onPress, t }) => (
-  <TouchableOpacity
+  <Pressable
     style={[
       styles.card,
       { backgroundColor: item.background || t.cardBackground },
     ]}
     onPress={() => onPress && onPress(item)}
-    activeOpacity={0.9}
   >
     {/* Scope Badge */}
     {item.scope && (
-      <View style={styles.scopeBadge}>
+      <Box style={styles.scopeBadge}>
         <Text style={styles.scopeText}>{item.scope}</Text>
-      </View>
+      </Box>
     )}
+
     {item.image ? (
-      <View>
+      <Box>
         <Image
           source={{ uri: item.image }}
           style={styles.image}
@@ -31,14 +34,14 @@ const InfoCard = ({ item, onPress, t }) => (
         />
 
         {item.source && (
-          <View style={styles.sourceTag}>
+          <Box style={styles.sourceTag}>
             <Text style={styles.sourceText}>{item.source}</Text>
-          </View>
+          </Box>
         )}
-      </View>
+      </Box>
     ) : null}
 
-    <View style={styles.cardBody}>
+    <Box style={styles.cardBody}>
       <Text
         style={[styles.cardTitle, { color: t.text }]}
         numberOfLines={2}
@@ -56,8 +59,8 @@ const InfoCard = ({ item, onPress, t }) => (
           {item.subtitle}
         </Text>
       ) : null}
-    </View>
-  </TouchableOpacity>
+    </Box>
+  </Pressable>
 );
 
 const InfoBoard = ({ items = [], style, onCardPress }) => {
@@ -74,7 +77,7 @@ const InfoBoard = ({ items = [], style, onCardPress }) => {
   };
 
   return (
-    <View style={[styles.container, style]}>
+    <Box style={[styles.container, style]}>
       <FlatList
         ref={listRef}
         data={items}
@@ -87,15 +90,15 @@ const InfoBoard = ({ items = [], style, onCardPress }) => {
         contentContainerStyle={styles.listContent}
         onMomentumScrollEnd={onMomentumScrollEnd}
         renderItem={({ item, index }) => (
-        <InfoCard item={{...item,background: index % 2 === 0 ? t.infoCardBackground : t.infoCardBackgroundAlt,}}
+          <InfoCard item={{ ...item, background: index % 2 === 0 ? t.infoCardBackground : t.infoCardBackgroundAlt, }}
             onPress={onCardPress}
-            t={t}/>)}
-        ItemSeparatorComponent={() => <View style={{ width: 16 }} />}
+            t={t} />)}
+        ItemSeparatorComponent={() => <Box style={{ width: 16 }} />}
       />
 
-      <View style={styles.dots}>
+      <Box style={styles.dots}>
         {items.map((_, i) => (
-          <View
+          <Box
             key={i}
             style={[
               styles.dot,
@@ -104,8 +107,8 @@ const InfoBoard = ({ items = [], style, onCardPress }) => {
             ]}
           />
         ))}
-      </View>
-    </View>
+      </Box>
+    </Box>
   );
 };
 

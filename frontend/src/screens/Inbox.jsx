@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react'; 
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native'; 
-import { Ionicons } from '@expo/vector-icons'; 
-import { getInitials } from '../utils/GetInitials'; 
+import React, { useState, useEffect } from 'react';
+import { FlatList, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import { SafeAreaView } from '@/components/ui/safe-area-view';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
+import { Ionicons } from '@expo/vector-icons';
+import { getInitials } from '../utils/GetInitials';
 import useCurrentUser from '../utils/GetUser';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
@@ -28,7 +32,7 @@ const dummyConversations = [
     avatarUrl: 'https://images.squarespace-cdn.com/content/v1/62ea267df0374c0e9a9a47ff/91a17c9b-f9d1-4f64-b15d-5aff60c7402a/liikenyt_logo.png',
     verified: true,
   },
-    {
+  {
     id: '4',
     name: 'Zimba',
     lastMessage: 'Did you know we peronalize your feed that interests you!',
@@ -46,20 +50,20 @@ export default function InboxScreen({ navigation }) {
   const [inboxLoading, setInboxLoading] = useState(true);
   const { user, loading: userLoading } = useCurrentUser();
 
-  useEffect(() => { 
-    const timer = setTimeout(() => { 
-      setConversations(dummyConversations); 
-      setInboxLoading(false); 
-    }, 1000); 
-    return () => clearTimeout(timer); 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setConversations(dummyConversations);
+      setInboxLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
   }, []);
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity
+    <Pressable
       style={[styles.row, { backgroundColor: t.rowBackground, borderBottomColor: t.rowBorder }]}
       onPress={() => navigation.navigate('Chat', { chatWith: item.name, avatarUrl: item.avatarUrl })}
     >
-      <View style={[styles.avatar, { backgroundColor: t.avatarBackground }]}>
+      <Box style={[styles.avatar, { backgroundColor: t.avatarBackground }]}>
         {item.avatarUrl ? (
           <Image
             source={{ uri: item.avatarUrl }}
@@ -68,10 +72,10 @@ export default function InboxScreen({ navigation }) {
         ) : (
           <Text style={styles.avatarText}>{getInitials(item.name)}</Text>
         )}
-      </View>
+      </Box>
 
-      <View style={styles.messageContent}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <Box style={styles.messageContent}>
+        <Box style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text style={[styles.name, { color: t.text }]}>{item.name}</Text>
           {item.verified && (
             <Ionicons
@@ -81,60 +85,58 @@ export default function InboxScreen({ navigation }) {
               style={{ marginLeft: 4 }}
             />
           )}
-        </View>
+        </Box>
         <Text style={[styles.lastMessage, { color: t.secondaryText }]} numberOfLines={1}>
           {item.lastMessage}
         </Text>
-      </View>
+      </Box>
 
       <Ionicons name="chevron-forward" size={20} color={t.secondaryText} />
-    </TouchableOpacity>
+    </Pressable>
   );
 
   if (userLoading) {
     return (
-      <View style={[styles.loader, { backgroundColor: t.background }]}>
+      <SafeAreaView edges={["bottom"]} style={[styles.loader, { backgroundColor: t.background }]}>
         <ActivityIndicator size="large" color={t.accent} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (!user) {
     return (
-      <View style={[styles.empty, { backgroundColor: t.emptyBackground }]}>
-        <Text style={[styles.emptyText, { color: t.secondaryText }]}>
-          You need to be logged in to see your messages.
-        </Text>
-      </View>
+      <SafeAreaView edges={["bottom"]} style={[styles.empty, { backgroundColor: t.emptyBackground }]}>
+        <Text style={[styles.emptyText, { color: t.secondaryText }]}>You need to be logged in to see your messages.</Text>
+      </SafeAreaView>
     );
   }
 
   if (inboxLoading) {
     return (
-      <View style={[styles.loader, { backgroundColor: t.background }]}>
+      <SafeAreaView edges={["bottom"]} style={[styles.loader, { backgroundColor: t.background }]}>
         <ActivityIndicator size="large" color={t.accent} />
         <Text style={{ marginTop: 10, color: t.secondaryText }}>Loading your inbox...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (conversations.length === 0) {
     return (
-      <View style={[styles.empty, { backgroundColor: t.emptyBackground }]}>
+      <SafeAreaView edges={["bottom"]} style={[styles.empty, { backgroundColor: t.emptyBackground }]}>
         <Text style={[styles.emptyText, { color: t.secondaryText }]}>No messages yet</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: t.background }]}>
+    <SafeAreaView edges={["bottom"]} style={[styles.container, { backgroundColor: t.background }]}>
       <FlatList
         data={conversations}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={{ paddingBottom: 20 }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
