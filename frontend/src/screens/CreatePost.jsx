@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { TextInput, StyleSheet, ActivityIndicator, Alert, LayoutAnimation, Platform, UIManager, Image, ScrollView, Modal, KeyboardAvoidingView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaView } from '@/components/ui/safe-area-view';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -31,14 +30,16 @@ export default function CreatePostScreen({ navigation, route }) {
   const [endTime, setEndTime] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [options, setOptions] = useState([{ id: 1, text: '' }, { id: 2, text: '' }]);
   const [focusedField, setFocusedField] = useState(null);
 
-  const { user, loading: userLoading, getUserId } = useCurrentUser(route);
+  // Multi-question poll state
+  const [questions, setQuestions] = useState([
+    { id: 1, text: '', options: [{ id: 1, text: '' }, { id: 2, text: '' }], allowMultiple: false },
+  ]);
 
+  const { user, loading: userLoading, getUserId } = useCurrentUser(route);
   const { theme } = useTheme();
   const t = getTheme(theme);
-  const insets = useSafeAreaInsets();
 
   const handleTypeToggle = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -63,13 +64,46 @@ export default function CreatePostScreen({ navigation, route }) {
     }
   };
 
-  const addOption = () => {
-    const newId = options.length ? Math.max(...options.map(o => o.id)) + 1 : 1;
-    setOptions([...options, { id: newId, text: '' }]);
+  // Multi-question poll functions
+  const addQuestion = () => {
+    const newId = questions.length ? Math.max(...questions.map(q => q.id)) + 1 : 1;
+    setQuestions([...questions, { id: newId, text: '', options: [{ id: 1, text: '' }, { id: 2, text: '' }], allowMultiple: false }]);
   };
 
-  const removeOption = id => {
-    setOptions(options.filter(o => o.id !== id));
+  const removeQuestion = (id) => {
+    setQuestions(questions.filter(q => q.id !== id));
+  };
+
+  const updateQuestionText = (id, text) => {
+    setQuestions(questions.map(q => q.id === id ? { ...q, text } : q));
+  };
+
+  const addOptionToQuestion = (questionId) => {
+    setQuestions(questions.map(q => {
+      if (q.id === questionId) {
+        const newOptionId = q.options.length ? Math.max(...q.options.map(o => o.id)) + 1 : 1;
+        return { ...q, options: [...q.options, { id: newOptionId, text: '' }] };
+      }
+      return q;
+    }));
+  };
+
+  const removeOptionFromQuestion = (questionId, optionId) => {
+    setQuestions(questions.map(q => {
+      if (q.id === questionId) {
+        return { ...q, options: q.options.filter(o => o.id !== optionId) };
+      }
+      return q;
+    }));
+  };
+
+  const updateOptionText = (questionId, optionId, text) => {
+    setQuestions(questions.map(q => {
+      if (q.id === questionId) {
+        return { ...q, options: q.options.map(o => o.id === optionId ? { ...o, text } : o) };
+      }
+      return q;
+    }));
   };
 
   const uploadImage = async (imageUri) => {
@@ -80,11 +114,7 @@ export default function CreatePostScreen({ navigation, route }) {
       const type = match ? `image/${match[1]}` : 'image/jpeg';
 
       const formData = new FormData();
-      formData.append('file', {
-        uri: imageUri,
-        type,
-        name: filename,
-      });
+      formData.append('file', { uri: imageUri, type, name: filename });
 
       const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE}/upload`, {
         method: 'POST',
@@ -115,17 +145,16 @@ export default function CreatePostScreen({ navigation, route }) {
       Alert.alert('Missing fields', 'Please fill in title, topic and description.');
       return;
     }
-    if (type === 'poll' && options.some(o => !o.text.trim())) {
-      Alert.alert('Invalid options', 'Please fill in all poll options.');
+    if (type === 'poll' && questions.some(q => !q.text.trim() || q.options.some(o => !o.text.trim()))) {
+      Alert.alert('Invalid options', 'Please fill in all poll questions and options.');
       return;
     }
 
     try {
       setLoading(true);
       let imageUrl = null;
-      if (image) {
-        imageUrl = await uploadImage(image);
-      }
+      if (image) imageUrl = await uploadImage(image);
+
       const data = {
         type,
         topic,
@@ -134,12 +163,15 @@ export default function CreatePostScreen({ navigation, route }) {
         image: imageUrl,
         end_time: type === 'poll' && endTime ? endTime.toISOString() : null,
         author_id: userId,
-        options: type === 'poll' ? options.map(o => ({ text: o.text })) : undefined,
+        options: type === 'poll' ? questions.map(q => ({
+          text: q.text,
+          allowMultiple: q.allowMultiple,
+          options: q.options.map(o => ({ text: o.text }))
+        })) : undefined
       };
+
       const response = await createPost(data);
-      console.log('Post created:', response);
       const newId = response?.postId;
-      // Try to fetch the newly created post data and redirect to its detail screen
       let createdPost = null;
       try {
         const all = await getAllPosts();
@@ -153,15 +185,9 @@ export default function CreatePostScreen({ navigation, route }) {
           text: 'View Post',
           onPress: () => {
             if (createdPost) {
-              if (createdPost.type === 'poll') {
-                navigation.navigate('Poll', { postData: createdPost });
-              } else {
-                navigation.navigate('Discuss', { postData: createdPost });
-              }
-            } else {
-              // Fallback: go to feed
-              navigation.navigate('Main');
-            }
+              if (createdPost.type === 'poll') navigation.navigate('Poll', { postData: createdPost });
+              else navigation.navigate('Discuss', { postData: createdPost });
+            } else navigation.navigate('Main');
           }
         }
       ]);
@@ -172,7 +198,7 @@ export default function CreatePostScreen({ navigation, route }) {
       setTopic('');
       setImage('');
       setEndTime(null);
-      setOptions([{ id: 1, text: '' }, { id: 2, text: '' }]);
+      setQuestions([{ id: 1, text: '', options: [{ id: 1, text: '' }, { id: 2, text: '' }], allowMultiple: false }]);
     } catch (error) {
       console.error('Error creating post:', error.message);
       Alert.alert('Error', error.message || 'Failed to create post.');
@@ -194,16 +220,8 @@ export default function CreatePostScreen({ navigation, route }) {
         </Text>
       </Pressable>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}
-        style={{ flex: 1 }}
-      >
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          keyboardShouldPersistTaps="handled"
-        >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={0} style={{ flex: 1 }}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 10 }} keyboardShouldPersistTaps="handled">
           <Box style={styles.form}>
             <Text style={[styles.label, { color: t.text }]}>Title</Text>
             <TextInput
@@ -253,16 +271,7 @@ export default function CreatePostScreen({ navigation, route }) {
             )}
 
             <Text style={[styles.label, { color: t.text }]}>Description</Text>
-            <Textarea
-              variant="default"
-              style={{
-                borderColor: focusedField === 'description' ? t.accent : t.inputBorder,
-                borderWidth: 1,
-                borderRadius: 8,
-                backgroundColor: t.inputBackground,
-                marginBottom: 16,
-              }}
-            >
+            <Textarea variant="default" style={{ borderColor: focusedField === 'description' ? t.accent : t.inputBorder, borderWidth: 1, borderRadius: 8, backgroundColor: t.inputBackground, marginBottom: 16 }}>
               <TextareaInput
                 value={description}
                 onChangeText={setDescription}
@@ -297,17 +306,9 @@ export default function CreatePostScreen({ navigation, route }) {
 
             {type === 'poll' && (
               <>
-                {/* End Time using shared DatePickerModal (date-only for consistency) */}
-                <Pressable
-                  style={[
-                    styles.input,
-                    { backgroundColor: t.inputBackground, borderColor: t.inputBorder, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }
-                  ]}
-                  onPress={() => setShowDatePicker(true)}
-                >
-                  <Text style={{ color: endTime ? t.text : t.secondaryText }}>
-                    {endTime ? endTime.toLocaleDateString() : 'Select end date'}
-                  </Text>
+                {/* Date Picker */}
+                <Pressable style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]} onPress={() => setShowDatePicker(true)}>
+                  <Text style={{ color: endTime ? t.text : t.secondaryText }}>{endTime ? endTime.toLocaleDateString() : 'Select end date'}</Text>
                   <Ionicons name="calendar" size={18} color={t.secondaryText} />
                 </Pressable>
 
@@ -319,41 +320,75 @@ export default function CreatePostScreen({ navigation, route }) {
                   mode="date"
                   title="Select End Date"
                   minimumDate={new Date()}
-                  onConfirm={(date, { close }) => {
-                    setEndTime(date);
-                    if (close) setShowDatePicker(false);
-                  }}
+                  onConfirm={(date, { close }) => { setEndTime(date); if (close) setShowDatePicker(false); }}
                   onCancel={() => setShowDatePicker(false)}
                 />
-                <Box style={{ marginTop: 16, marginBottom: 16 }}>
-                  <Text style={[styles.label, { color: t.text }]}>Options</Text>
-                  {options.map((opt, index) => (
-                    <Box key={opt.id} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                      <TextInput
-                        style={[styles.input, { flex: 1, backgroundColor: t.inputBackground, borderColor: focusedField === `option_${opt.id}` ? t.accent : t.inputBorder, color: t.text, borderRadius: 8 }]}
-                        placeholder={`Option ${index + 1}`}
-                        placeholderTextColor={t.secondaryText}
-                        value={opt.text}
-                        onChangeText={text => {
-                          const newOptions = [...options];
-                          newOptions[index].text = text;
-                          setOptions(newOptions);
-                        }}
-                        onFocus={() => setFocusedField(`option_${opt.id}`)}
-                        onBlur={() => setFocusedField(null)}
-                      />
-                      {options.length > 2 && (
-                        <Pressable onPress={() => removeOption(opt.id)} style={{ marginLeft: 8 }}>
-                          <Ionicons name="trash" size={20} color={t.error || '#dc2626'} />
+
+                {/* Questions */}
+                {questions.map((q, qIndex) => (
+                  <Box key={q.id} style={{ marginBottom: 24, borderWidth: 1, borderColor: t.inputBorder, borderRadius: 12, padding: 12, backgroundColor: t.cardBackground }}>
+                    <HStack style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      {/* Left: Question title */}
+                      <Text style={{ color: t.text, fontWeight: '600', fontSize: 16 }}>Question {qIndex + 1}</Text>
+
+                      {/* Right: Multi-choice toggle + Trash */}
+                      <HStack style={{ alignItems: 'center', gap: 12 }}>
+                        <Pressable 
+                          onPress={() => setQuestions(questions.map(qq => qq.id === q.id ? { ...qq, allowMultiple: !qq.allowMultiple } : qq))} 
+                          style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                        >
+                          <Ionicons name={q.allowMultiple ? 'checkbox' : 'square-outline'} size={22} color={t.accent} />
+                          <Text style={{ color: t.accent, fontSize: 14 }}>Allow multiple choices</Text>
                         </Pressable>
-                      )}
-                    </Box>
-                  ))}
-                  <Button variant="link" action="primary" onPress={addOption} className="flex-row items-center" style={{ borderRadius: 8 }}>
-                    <Ionicons name="add-circle" size={20} color={t.accent} />
-                    <Text style={{ marginLeft: 6, color: t.accent, fontWeight: '500' }}>Add Option</Text>
-                  </Button>
-                </Box>
+
+                        {questions.length > 1 && (
+                          <Pressable onPress={() => removeQuestion(q.id)}>
+                            <Ionicons name="trash" size={22} color={t.error || '#dc2626'} />
+                          </Pressable>
+                        )}
+                      </HStack>
+                    </HStack>
+
+                    <TextInput
+                      style={[styles.input, { backgroundColor: t.inputBackground, borderColor: focusedField === `question_${q.id}` ? t.accent : t.inputBorder, marginBottom: 12 }]}
+                      placeholder="Enter question text"
+                      placeholderTextColor={t.secondaryText}
+                      value={q.text}
+                      onChangeText={(text) => updateQuestionText(q.id, text)}
+                      onFocus={() => setFocusedField(`question_${q.id}`)}
+                      onBlur={() => setFocusedField(null)}
+                    />
+
+                    <Text style={{ color: t.text, fontWeight: '500', marginBottom: 6 }}>Options</Text>
+                    {q.options.map((opt, oIndex) => (
+                      <HStack key={opt.id} style={{ alignItems: 'center', marginBottom: 8, gap: 8 }}>
+                        <TextInput
+                          style={[styles.input, { flex: 1, backgroundColor: t.inputBackground, borderColor: focusedField === `option_${opt.id}` ? t.accent : t.inputBorder }]}
+                          placeholder={`Option ${oIndex + 1}`}
+                          placeholderTextColor={t.secondaryText}
+                          value={opt.text}
+                          onChangeText={(text) => updateOptionText(q.id, opt.id, text)}
+                          onFocus={() => setFocusedField(`option_${opt.id}`)}
+                          onBlur={() => setFocusedField(null)}
+                        />
+                        {q.options.length > 2 && (
+                          <Pressable onPress={() => removeOptionFromQuestion(q.id, opt.id)}>
+                            <Ionicons name="trash" size={22} color={t.error || '#dc2626'} />
+                          </Pressable>
+                        )}
+                      </HStack>
+                    ))}
+                    <Button variant="link" action="primary" onPress={() => addOptionToQuestion(q.id)} className="flex-row items-center" style={{ marginTop: 4 }}>
+                      <Ionicons name="add-circle" size={20} color={t.accent} />
+                      <Text style={{ marginLeft: 6, color: t.accent, fontWeight: '500' }}>Add Option</Text>
+                    </Button>
+                  </Box>
+                ))}
+
+                <Button variant="link" action="primary" onPress={addQuestion} className="flex-row items-center" style={{ marginBottom: 16 }}>
+                  <Ionicons name="add-circle" size={20} color={t.accent} />
+                  <Text style={{ marginLeft: 6, color: t.accent, fontWeight: '500' }}>Add Question</Text>
+                </Button>
               </>
             )}
 
@@ -377,84 +412,22 @@ export default function CreatePostScreen({ navigation, route }) {
           </Box>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView >
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 24 },
   header: { fontSize: 24, fontWeight: '700', textAlign: 'center', marginBottom: 12, marginTop: Platform.OS === 'ios' ? 6 : 0, lineHeight: 28 },
-  toggle: {
-    flexDirection: 'row',
-    justifyContent: 'center',   // centers horizontally
-    alignItems: 'center',
-    alignSelf: 'center',     // centers vertically
-    marginBottom: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    gap: 6,
-  },
-  switch: {
-    alignItems: 'center',
-  },
-
-  toggleText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
+  toggle: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', marginBottom: 20, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.05)', gap: 6 },
+  toggleText: { fontSize: 14, fontWeight: '600' },
   form: {},
   label: { fontWeight: '500', fontSize: 14, marginBottom: 6 },
-  input: {
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 15,
-    borderWidth: 1,
-    marginBottom: 16,
-  },
-  multiline: { height: 120, textAlignVertical: 'top' },
-  button: {
-    paddingVertical: 14,
-    borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
-  uploadButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  uploadText: { fontSize: 14, fontWeight: '500' },
+  input: { borderRadius: 8, padding: 12, fontSize: 15, borderWidth: 1, marginBottom: 16 },
   imageWrapper: { position: 'relative', marginBottom: 16 },
   preview: { width: '100%', height: 180, borderRadius: 8 },
   removeOverlay: { position: 'absolute', top: 8, right: 8, borderRadius: 12 },
-  addOptionButton: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
-  // Modal styles for topic bottom sheet
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  modalContent: {
-    width: '100%',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    borderWidth: 1,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 12,
-  },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  backdrop: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 },
+  modalContent: { width: '100%', borderTopLeftRadius: 16, borderTopRightRadius: 16, borderWidth: 1, paddingBottom: Platform.OS === 'ios' ? 20 : 12 },
 });
