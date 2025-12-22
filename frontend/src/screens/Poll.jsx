@@ -9,9 +9,8 @@ import {
 import { useRoute } from '@react-navigation/native';
 import CardHeader from '../components/Cards/CardHeader';
 import StatsBar from '../components/Cards/StatsBar';
-import PollResults from '../components/Cards/PollResults';
 
-import { getPollOptions, votePoll, getPostById } from '../api/postService';
+import { getPollQuestions, votePoll, getPostById } from '../api/postService';
 import useCurrentUser from '../utils/GetUser';
 import { normalizeUrl, normalizeAvatarUrl } from '../utils/urlHelper';
 
@@ -30,73 +29,85 @@ export default function PollScreen() {
   const postId = postData?.id || deepLinkId;
 
   const [post, setPost] = useState(postData || null);
-  const [options, setOptions] = useState([]);
+  const [questions, setQuestions] = useState([]);
+  const [selectedOptions, setSelectedOptions] = useState({}); // { questionId: [optionIds] }
   const [loading, setLoading] = useState(true);
-  const [selectedOption, setSelectedOption] = useState(null);
   const [submitted, setSubmitted] = useState(false);
 
   const { theme } = useTheme();
   const t = getTheme(theme);
 
+  // Load post and questions
   useEffect(() => {
-    const loadDeepLinkPost = async () => {
-      if (!post && postId) {
-        try {
+    const fetchPostAndQuestions = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch post details if not passed via navigation
+        if (!post) {
           const data = await getPostById(postId);
           setPost(data);
-        } catch (err) {
-          console.log("Failed to load post:", err);
-          Alert.alert("Error", "Unable to load this post.");
         }
+
+        // Fetch questions
+        const pollData = await getPollQuestions(postId);
+        setQuestions(pollData.questions || []);
+      } catch (err) {
+        console.log("Failed to load poll:", err);
+        Alert.alert("Error", "Unable to load this poll.");
+      } finally {
+        setLoading(false);
       }
     };
-    loadDeepLinkPost();
+
+    if (postId) fetchPostAndQuestions();
   }, [postId]);
 
-  useEffect(() => {
-    if (postId) fetchOptions();
-  }, [postId]);
-
-  const fetchOptions = async () => {
-    try {
-      setLoading(true);
-      const opts = await getPollOptions(postId);
-      setOptions(opts);
-    } catch (err) {
-      console.log("Failed to load options:", err);
-      Alert.alert("Error", err.message || "Unable to load poll options.");
-    } finally {
-      setLoading(false);
-    }
+  // Toggle selection for a question option
+  const toggleOption = (questionId, optionId, allowMultiple) => {
+    setSelectedOptions(prev => {
+      const current = prev[questionId] || [];
+      let updated;
+      if (allowMultiple) {
+        updated = current.includes(optionId)
+          ? current.filter(id => id !== optionId)
+          : [...current, optionId];
+      } else {
+        updated = [optionId];
+      }
+      return { ...prev, [questionId]: updated };
+    });
   };
 
+  // Submit votes for all questions
   const handleSubmit = async () => {
-    if (!selectedOption || !user) return;
+    if (!user) return;
 
     try {
-      await votePoll(postId, selectedOption, user.id);
+      for (const q of questions) {
+        const optionIds = selectedOptions[q.id] || [];
+        if (optionIds.length === 0) continue;
+
+        // Backend endpoint expects questionId + array of optionIds
+        await votePoll(q.id, optionIds, user.id);
+      }
+
       setSubmitted(true);
-      fetchOptions();
+
+      // Refresh questions with updated vote counts
+      const pollData = await getPollQuestions(postId);
+      setQuestions(pollData.questions || []);
     } catch (err) {
-      console.log("Vote failed:", err);
-      Alert.alert("Error", err.message || "Unable to submit your vote.");
+      console.error("Vote failed:", err);
+      Alert.alert("Error", "Failed to submit your votes.");
     }
   };
 
-  // Loading state
   if (loading || !post) {
     return (
       <SafeAreaView edges={["bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
         <ActivityIndicator size="large" color={t.accent} />
         <Text style={{ marginTop: 12, color: t.text }}>Loading...</Text>
-      </SafeAreaView>
-    );
-  }
-
-  if (!postData) {
-    return (
-      <SafeAreaView edges={["bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
-        <Text style={{ color: t.text }}>No poll data available</Text>
       </SafeAreaView>
     );
   }
@@ -130,48 +141,38 @@ export default function PollScreen() {
           <Text style={[styles.title, { color: t.text }]}>{title}</Text>
           <Text style={[styles.description, { color: t.secondaryText }]}>{description}</Text>
 
-          {/* Stats */}
           <StatsBar views={views} postId={postId} share={{ url: `myapp://post/${postId}` }} />
 
           <Box style={styles.optionsContainer}>
-            {!submitted ? (
-              options.map((opt) => {
-                const isSelected = selectedOption === opt.id;
-
-                return (
-                  <Pressable
-                    key={opt.id}
-                    style={[
-                      styles.optionButton,
-                      { backgroundColor: t.cardBackground, borderColor: t.inputBorder },
-                      isSelected && { backgroundColor: t.accent, borderColor: t.accent },
-                    ]}
-                    onPress={() => setSelectedOption(opt.id)}
-                  >
-                    <Text
+            {questions.map(q => (
+              <Box key={q.id} style={{ marginBottom: 20 }}>
+                <Text style={[styles.questionText, { color: t.text }]}>{q.text}</Text>
+                {q.options.map(opt => {
+                  const isSelected = (selectedOptions[q.id] || []).includes(opt.id);
+                  return (
+                    <Pressable
+                      key={opt.id}
                       style={[
-                        styles.optionText,
-                        { color: t.text },
-                        isSelected && { color: "#fff" },
+                        styles.optionButton,
+                        { backgroundColor: t.cardBackground, borderColor: t.inputBorder },
+                        isSelected && { backgroundColor: t.accent, borderColor: t.accent }
                       ]}
+                      onPress={() => !submitted && toggleOption(q.id, opt.id, q.allow_multiple)}
                     >
-                      {opt.text}
-                    </Text>
-                    <Text style={[styles.voteCount, { color: t.accent }]}>{opt.votes} votes</Text>
-                  </Pressable>
-                );
-              })
-            ) : (
-              <PollResults options={options} />
-            )}
+                      <Text style={[styles.optionText, { color: isSelected ? "#fff" : t.text }]}>
+                        {opt.text}
+                      </Text>
+                      <Text style={[styles.voteCount, { color: t.accent }]}>{opt.votes} votes</Text>
+                    </Pressable>
+                  );
+                })}
+              </Box>
+            ))}
 
             {!submitted && (
               <Pressable
-                style={[
-                  styles.submitButton,
-                  { backgroundColor: selectedOption ? t.accent : t.placeholder },
-                ]}
-                disabled={!selectedOption}
+                style={[styles.submitButton, { backgroundColor: Object.keys(selectedOptions).length ? t.accent : t.placeholder }]}
+                disabled={Object.keys(selectedOptions).length === 0}
                 onPress={handleSubmit}
               >
                 <Text style={styles.submitText}>Submit Vote</Text>
@@ -195,12 +196,10 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   image: { width: '100%', height: 250, marginBottom: 12 },
   title: { fontSize: 22, fontWeight: '700', marginBottom: 12 },
-  body: {
-    paddingHorizontal: 16,
-    paddingBottom: 20,
-  },
+  body: { paddingHorizontal: 16, paddingBottom: 20 },
   description: { fontSize: 16, lineHeight: 22 },
   optionsContainer: { marginTop: 20 },
+  questionText: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
   optionButton: {
     padding: 16,
     marginVertical: 6,
@@ -211,24 +210,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minHeight: 56,
   },
-  disabledOption: { opacity: 0.7 },
-  optionText: { 
-    fontSize: 16, 
-    flex: 1,
-    marginRight: 12,
-    lineHeight: 22,
-  },
-  voteCount: { 
-    fontWeight: '600',
-    fontSize: 14,
-    flexShrink: 0,
-  },
-  submitButton: {
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginTop: 12,
-    alignItems: "center",
-  },
+  optionText: { fontSize: 16, flex: 1, marginRight: 12, lineHeight: 22 },
+  voteCount: { fontWeight: '600', fontSize: 14, flexShrink: 0 },
+  submitButton: { paddingVertical: 12, borderRadius: 8, marginTop: 12, alignItems: "center" },
   submitText: { color: "#fff", fontWeight: "600", fontSize: 16 },
   thankYouText: { marginTop: 12, fontSize: 16, fontWeight: "500" },
 });

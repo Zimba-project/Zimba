@@ -110,36 +110,54 @@ exports.getPostById = async (req, res) => {
 
 // ---------- CREATE A NEW POST ----------
 exports.createPost = async (req, res) => {
-  const { type, topic, title, description, image, end_time, author_id, options } = req.body;
+  const { type, topic, title, description, image, end_time, author_id, questions } = req.body;
   const authorId = parseInt(author_id, 10);
 
-  if (!type || !topic || !authorId || !title || !description) {
-    return res.status(400).json({ error: "Missing required fields" });
+  if (!type || !topic || !authorId) {
+    return res.status(400).json({ error: "Missing required fields: type, topic, or author_id" });
+  }
+  if (!title || !description) {
+    return res.status(400).json({ error: "Missing title or description" });
   }
 
   try {
-    const postResponse = await pgPool.query(
+    // Insert post
+    const postRes = await pgPool.query(
       `INSERT INTO posts (type, topic, author_id, created_at)
        VALUES ($1, $2, $3, NOW()) RETURNING id;`,
       [type, topic, authorId]
     );
+    const postId = postRes.rows[0].id;
 
-    const postId = postResponse.rows[0].id;
-
+    // Insert post body
     await pgPool.query(
       `INSERT INTO post_body (post_id, title, description, image, end_time)
        VALUES ($1, $2, $3, $4, $5);`,
-      [postId, title, description, image, end_time]
+      [postId, title, description, image || null, end_time || null]
     );
 
-    if (type === 'poll' && Array.isArray(options) && options.length >= 2) {
-      const optionQueries = options.map(opt => 
-        pgPool.query(
-          `INSERT INTO post_options (post_id, option_text) VALUES ($1, $2)`,
-          [postId, opt.text]
-        )
-      );
-      await Promise.all(optionQueries);
+    // Handle multi-question polls
+    if (type === 'poll' && Array.isArray(questions) && questions.length) {
+      for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
+        if (!q.text || !Array.isArray(q.options) || q.options.length < 2) continue;
+
+        const questionRes = await pgPool.query(
+          `INSERT INTO poll_questions (post_id, text, allow_multiple, position)
+           VALUES ($1, $2, $3, $4) RETURNING id;`,
+          [postId, q.text, q.allow_multiple || false, i + 1]
+        );
+        const questionId = questionRes.rows[0].id;
+
+        for (let j = 0; j < q.options.length; j++) {
+          const opt = q.options[j];
+          await pgPool.query(
+            `INSERT INTO poll_options (question_id, text, position)
+             VALUES ($1, $2, $3);`,
+            [questionId, opt.text, j + 1]
+          );
+        }
+      }
     }
 
     res.status(201).json({ message: "Post created successfully", postId });
@@ -149,86 +167,111 @@ exports.createPost = async (req, res) => {
   }
 };
 
-
 // ---------- GET POLL BY ID ----------
 
 exports.getPollOptions = async (req, res) => {
-  const postIdParam = req.params.postId ?? req.params.id;
-  const postId = parseInt(postIdParam, 10);
+  const postId = parseInt(req.params.postId ?? req.params.id, 10);
+  if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
 
   try {
-    const optionsRes = await pgPool.query(
-      `SELECT id, option_text AS text, votes
-       FROM post_options
-       WHERE post_id = $1
-       ORDER BY id ASC`,
-      [postId]
-    );
+    const result = await pgPool.query(`
+      SELECT 
+        pq.id AS question_id,
+        pq.text AS question_text,
+        pq.allow_multiple,
+        pq.position AS question_position,
+        po.id AS option_id,
+        po.text AS option_text,
+        po.position AS option_position,
+        po.votes
+      FROM poll_questions pq
+      JOIN poll_options po ON pq.id = po.question_id
+      WHERE pq.post_id = $1
+      ORDER BY pq.position ASC, po.position ASC;
+    `, [postId]);
 
-    if (!optionsRes.rows.length) {
-      return res.status(404).json({ error: "No options found for this poll" });
+    if (!result.rows.length) return res.status(404).json({ error: "No poll found" });
+
+    // Group by questions
+    const questions = [];
+    const map = {};
+    for (const row of result.rows) {
+      if (!map[row.question_id]) {
+        map[row.question_id] = {
+          id: row.question_id,
+          text: row.question_text,
+          allow_multiple: row.allow_multiple,
+          position: row.question_position,
+          options: []
+        };
+        questions.push(map[row.question_id]);
+      }
+      map[row.question_id].options.push({
+        id: row.option_id,
+        text: row.option_text,
+        votes: row.votes
+      });
     }
 
-    res.status(200).json({ options: optionsRes.rows });
+    res.status(200).json({ questions });
   } catch (err) {
     console.error("Error fetching poll options:", err);
     res.status(500).json({ error: "Server error fetching poll options", detail: err.message });
   }
 };
 
-
 // ---------- VOTE ----------
 
 exports.votePoll = async (req, res) => {
-  const postIdParam = req.params.postId ?? req.params.id;
-  const postId = parseInt(postIdParam, 10);
-  const { user_id, option_id } = req.body || {};
+  const { question_id, user_id, option_ids } = req.body; // option_ids can be array for multiple choice
+  const qId = parseInt(question_id, 10);
+  const uId = parseInt(user_id, 10);
 
-  if (!postId || Number.isNaN(postId)) {
-    return res.status(400).json({ error: 'Missing or invalid post id', details: { postIdParam } });
-  }
-  if (!user_id) {
-    return res.status(400).json({ error: 'Missing user_id in request body' });
-  }
-  if (!option_id) {
-    return res.status(400).json({ error: 'Missing option_id in request body' });
-  }
-
-  const userId = parseInt(user_id, 10);
-  const optionId = parseInt(option_id, 10);
-  if (Number.isNaN(userId) || Number.isNaN(optionId)) {
-    return res.status(400).json({ error: 'user_id and option_id must be integers' });
+  if (!qId || !uId || !Array.isArray(option_ids) || !option_ids.length) {
+    return res.status(400).json({ error: "Missing question_id, user_id, or option_ids" });
   }
 
   try {
-    const opt = await pgPool.query('SELECT id, post_id FROM post_options WHERE id = $1', [optionId]);
-    if (!opt.rows.length || opt.rows[0].post_id !== postId) {
-      return res.status(400).json({ error: 'Option not found or does not belong to post' });
+    // Check question exists
+    const qRes = await pgPool.query('SELECT allow_multiple FROM poll_questions WHERE id = $1', [qId]);
+    if (!qRes.rows.length) return res.status(404).json({ error: "Question not found" });
+
+    const allowMultiple = qRes.rows[0].allow_multiple;
+
+    if (!allowMultiple && option_ids.length > 1) {
+      return res.status(400).json({ error: "Multiple choices not allowed for this question" });
     }
 
+    // Check user has not voted already
     const existing = await pgPool.query(
-      'SELECT 1 FROM post_votes WHERE post_id=$1 AND user_id=$2',
-      [postId, userId]
+      'SELECT 1 FROM post_votes WHERE post_id = (SELECT post_id FROM poll_questions WHERE id=$1) AND user_id=$2 AND option_id = ANY(SELECT id FROM poll_options WHERE question_id=$1)',
+      [qId, uId]
     );
     if (existing.rows.length > 0) {
-      return res.status(400).json({ error: 'You have already voted!' });
+      return res.status(400).json({ error: "User has already voted for this question" });
     }
 
-    await pgPool.query(
-      `INSERT INTO post_votes (post_id, option_id, user_id, created_at)
-       VALUES ($1, $2, $3, NOW())`,
-      [postId, optionId, userId]
-    );
+    // Insert votes
+    for (const oid of option_ids) {
+      const optionId = parseInt(oid, 10);
+      if (isNaN(optionId)) continue;
 
-    await pgPool.query(
-      'UPDATE post_options SET votes = votes + 1 WHERE id = $1',
-      [optionId]
-    );
+      await pgPool.query(
+        `INSERT INTO post_votes (post_id, option_id, user_id, created_at)
+         VALUES ((SELECT post_id FROM poll_questions WHERE id=$1), $2, $3, NOW())`,
+        [qId, optionId, uId]
+      );
 
-    return res.status(200).json({ message: 'Vote recorded' });
+      await pgPool.query(
+        'UPDATE poll_options SET votes = votes + 1 WHERE id = $1',
+        [optionId]
+      );
+    }
+
+    res.status(200).json({ message: "Vote recorded" });
   } catch (err) {
-    console.error('Error voting:', err);
-    return res.status(500).json({ error: 'Server error recording vote', detail: err.message });
+    console.error("Error voting:", err);
+    res.status(500).json({ error: "Server error recording vote", detail: err.message });
   }
 };
 
