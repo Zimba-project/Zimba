@@ -10,12 +10,26 @@ exports.listPosts = async (req, res) => {
 
   try {
     // If requester is owner/admin allow seeing pending posts
-    const userId = req.userId || null;
+    // Try to find current user id from auth middleware or Authorization header
+    let currentUserId = req.userId || null;
+    if (!currentUserId) {
+      const header = req.headers && req.headers.authorization;
+      if (header && typeof header === 'string' && header.startsWith('Bearer ')) {
+        const token = header.split(' ')[1];
+        try {
+          const decoded = jwt.verify(token, JWT_SECRET);
+          if (decoded && decoded.userId) currentUserId = decoded.userId;
+        } catch (e) {
+          // ignore invalid token
+        }
+      }
+    }
+
     let isPrivileged = false;
-    if (userId) {
+    if (currentUserId) {
       const ownerRes = await pgPool.query('SELECT created_by FROM groups WHERE id=$1', [groupId]);
-      if (ownerRes.rows.length && ownerRes.rows[0].created_by === userId) isPrivileged = true;
-      const adminRes = await pgPool.query('SELECT 1 FROM group_members WHERE group_id=$1 AND user_id=$2 AND role IN ($3,$4)', [groupId, userId, 'owner', 'admin']);
+      if (ownerRes.rows.length && ownerRes.rows[0].created_by === currentUserId) isPrivileged = true;
+      const adminRes = await pgPool.query('SELECT 1 FROM group_members WHERE group_id=$1 AND user_id=$2 AND role IN ($3,$4)', [groupId, currentUserId, 'owner', 'admin']);
       if (adminRes.rows.length) isPrivileged = true;
     }
 
@@ -56,11 +70,20 @@ exports.createPost = async (req, res) => {
 
   try {
     // ensure group exists
-    const gRes = await pgPool.query('SELECT id FROM groups WHERE id=$1', [groupId]);
+    const gRes = await pgPool.query('SELECT id, post_moderation, created_by FROM groups WHERE id=$1', [groupId]);
     if (!gRes.rows.length) return res.status(404).json({ error: 'Group not found' });
 
-    // default to approved for now
-    const status = 'approved';
+    // determine post status depending on group moderation settings and author role
+    const postModeration = gRes.rows[0].post_moderation === true;
+    // check if author is owner/admin
+    let isPrivileged = false;
+    if (userId) {
+      if (gRes.rows[0].created_by === userId) isPrivileged = true;
+      const adminRes = await pgPool.query('SELECT 1 FROM group_members WHERE group_id=$1 AND user_id=$2 AND role IN ($3,$4)', [groupId, userId, 'owner', 'admin']);
+      if (adminRes.rows.length) isPrivileged = true;
+    }
+
+    const status = postModeration && !isPrivileged ? 'pending' : 'approved';
 
     const postRes = await pgPool.query(
       `INSERT INTO group_posts (group_id, type, author_id, status, created_at) VALUES ($1,$2,$3,$4,NOW()) RETURNING id`,
@@ -78,7 +101,8 @@ exports.createPost = async (req, res) => {
       await Promise.all(optQueries);
     }
 
-    res.status(201).json({ message: 'Group post created', postId });
+    const respMessage = status === 'pending' ? 'Group post submitted for approval' : 'Group post created';
+    res.status(201).json({ message: respMessage, postId, status });
   } catch (err) {
     console.error('Error creating group post:', err);
     res.status(500).json({ error: 'Server error creating group post', detail: err.message });

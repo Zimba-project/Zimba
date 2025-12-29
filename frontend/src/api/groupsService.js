@@ -130,4 +130,15 @@ export const removeMember = async (groupId, memberId) => {
   return res.body;
 };
 
-export default { listGroups, createGroup, getGroup, joinGroup, leaveGroup };
+export const updateGroup = async (id, data) => {
+  const token = await getToken();
+  const res = await request(`/groups/${id}`, 'PUT', data, token);
+  if (!res.ok) {
+    console.error('Update group failed response:', { status: res.status, statusText: res.statusText, url: res.url, body: res.body });
+    const message = res.body?.error || res.body?.raw || `Error updating group (status ${res.status})`;
+    throw new Error(message);
+  }
+  return res.body;
+};
+
+export default { listGroups, createGroup, getGroup, joinGroup, leaveGroup, updateGroup };

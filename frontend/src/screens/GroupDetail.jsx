@@ -5,7 +5,7 @@ import { Text } from '@/components/ui/text';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
 import { getGroup, joinGroup, leaveGroup, listJoinRequests, approveRequest, rejectRequest, deleteGroup, removeMember } from '../api/groupsService';
-import { listGroupPosts, createGroupPost } from '../api/groupPostService';
+import { listGroupPosts, createGroupPost, approveGroupPost, rejectGroupPost } from '../api/groupPostService';
 import PollCard from '../components/Cards/PollCard';
 import DiscussionCard from '../components/Cards/DiscussionCard';
 import { sessionStorage } from '../utils/Storage';
@@ -21,6 +21,7 @@ export default function GroupDetail({ route, navigation }) {
   const [hasPending, setHasPending] = useState(false);
   const [requests, setRequests] = useState([]);
   const [isOwner, setIsOwner] = useState(false);
+  const [isPrivileged, setIsPrivileged] = useState(false);
   const [activeTab, setActiveTab] = useState('Discussion');
   const [newPost, setNewPost] = useState('');
   const [posts, setPosts] = useState([]);
@@ -41,11 +42,19 @@ export default function GroupDetail({ route, navigation }) {
         console.error('Error loading group posts', e);
         setPosts([]);
       }
-      // determine if current user is owner (res.group.created_by)
+      // determine if current user is owner or admin
       const storedId = await sessionStorage.getItem('userId');
-      setIsOwner(storedId ? String(res.group.created_by) === String(storedId) : false);
-      // if owner, load pending requests
-      if (storedId && String(res.group.created_by) === String(storedId)) {
+      const isOwnerNow = storedId ? String(res.group.created_by) === String(storedId) : false;
+      setIsOwner(isOwnerNow);
+      // check members list for admin role
+      let privileged = isOwnerNow;
+      if (storedId && !privileged) {
+        const my = (res.members || []).find(m => String(m.user_id) === String(storedId));
+        if (my && (my.role === 'admin' || my.role === 'owner')) privileged = true;
+      }
+      setIsPrivileged(privileged);
+      // if owner or admin, load pending requests
+      if (privileged) {
         const reqs = await listJoinRequests(groupId).catch(() => []);
         setRequests(reqs || []);
       } else {
@@ -133,12 +142,16 @@ export default function GroupDetail({ route, navigation }) {
         description: newPost,
         image: null,
       };
-      await createGroupPost(groupId, data);
+      const result = await createGroupPost(groupId, data);
       setNewPost('');
-      // reload posts
+      // reload posts (member requests will not see pending posts)
       const gp = await listGroupPosts(groupId).catch(() => []);
       setPosts(gp || []);
-      Alert.alert('Posted', 'Your post was created');
+      if (result && result.status === 'pending') {
+        Alert.alert('Submitted for approval', 'Your post was sent for approval and will appear after admin approval');
+      } else {
+        Alert.alert('Posted', 'Your post was created');
+      }
     } catch (err) {
       console.error('Error creating post', err);
       Alert.alert('Error', err.message || 'Failed to create post');
@@ -163,6 +176,11 @@ export default function GroupDetail({ route, navigation }) {
           </View>
 
           <View style={{ alignItems: 'flex-end' }}>
+            {isPrivileged ? (
+              <TouchableOpacity style={{ marginBottom: 8 }} onPress={() => navigation.navigate('GroupSettings', { groupId })}>
+                <Ionicons name="settings-outline" size={20} color={t.text} />
+              </TouchableOpacity>
+            ) : null}
             <TouchableOpacity style={styles.inviteBtn} onPress={handleInvite}>
               <Text style={{ color: '#fff', fontWeight: '700' }}>+ Invite</Text>
             </TouchableOpacity>
@@ -240,7 +258,7 @@ export default function GroupDetail({ route, navigation }) {
               {(!posts || posts.length === 0) ? (
                 <Text style={{ color: t.secondaryText }}>No posts yet. Be the first to post!</Text>
               ) : (
-                posts.filter(p => p.type === 'poll').map(p => (
+                posts.filter(p => p.type === 'poll' && p.status === 'approved').map(p => (
                   <View key={p.id} style={{ marginBottom: 12 }}>
                     <PollCard
                       id={p.id}
@@ -320,10 +338,10 @@ export default function GroupDetail({ route, navigation }) {
           </View>
         ) : activeTab === 'Discussion' ? (
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }}>
-            {(!posts || posts.filter(p => p.type === 'discussion').length === 0) ? (
+              {(!posts || posts.filter(p => p.type === 'discussion' && p.status === 'approved').length === 0) ? (
               <Text style={{ color: t.secondaryText }}>No discussions yet.</Text>
             ) : (
-              posts.filter(p => p.type === 'discussion').map(p => (
+              posts.filter(p => p.type === 'discussion' && p.status === 'approved').map(p => (
                 <View key={p.id} style={{ marginBottom: 12 }}>
                   <DiscussionCard
                     id={p.id}
@@ -344,14 +362,33 @@ export default function GroupDetail({ route, navigation }) {
             )}
           </ScrollView>
         ) : activeTab === 'Approval' ? (
-          <View>
-            {isOwner ? (
-              <View>
+          <View style={{ flex: 1 }}>
+            {isPrivileged ? (
+              <View style={{ flex: 1 }}>
                 <Text style={{ color: t.text, fontWeight: '700', marginBottom: 8 }}>Pending approvals</Text>
-                <Text style={{ color: t.secondaryText }}>No items awaiting approval (placeholder)</Text>
+                {(!posts || posts.filter(p => p.status === 'pending').length === 0) ? (
+                  <Text style={{ color: t.secondaryText }}>No items awaiting approval.</Text>
+                ) : (
+                  <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+                    {posts.filter(p => p.status === 'pending').map(p => (
+                      <View key={p.id} style={{ marginBottom: 12, padding: 12, borderRadius: 8, backgroundColor: t.cardBackground }}>
+                        <Text style={{ color: t.text, fontWeight: '700', marginBottom: 6 }}>{p.title || '(No title)'}</Text>
+                        <Text style={{ color: t.secondaryText, marginBottom: 8 }}>{p.description}</Text>
+                        <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                          <TouchableOpacity style={[styles.smallBtn, { backgroundColor: 'green' }]} onPress={async () => { try { await approveGroupPost(groupId, p.id); await load(); } catch (err) { console.error(err); Alert.alert('Error', err.message || 'Approve failed'); } }}>
+                            <Text style={{ color: '#fff' }}>Approve</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity style={[styles.smallBtn, { backgroundColor: 'red' }]} onPress={async () => { try { await rejectGroupPost(groupId, p.id); await load(); } catch (err) { console.error(err); Alert.alert('Error', err.message || 'Reject failed'); } }}>
+                            <Text style={{ color: '#fff' }}>Reject</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))}
+                  </ScrollView>
+                )}
               </View>
             ) : (
-              <Text style={{ color: t.secondaryText }}>Approval queue is only visible to group owners.</Text>
+              <Text style={{ color: t.secondaryText }}>Approval queue is only visible to group owners/admins.</Text>
             )}
           </View>
         ) : (

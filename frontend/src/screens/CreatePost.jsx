@@ -139,7 +139,12 @@ export default function CreatePostScreen({ navigation, route }) {
         response = await createPost(data);
       }
       console.log('Post created:', response);
-      Alert.alert('Success', 'Your post has been created successfully!');
+      // If backend indicates the post is pending approval, show a different message
+      if (response && response.status === 'pending') {
+        Alert.alert('Submitted for approval', 'Your post was sent for approval and will appear after admin approval');
+      } else {
+        Alert.alert('Success', 'Your post has been created successfully!');
+      }
       setTitle('');
       setDescription('');
       if (!groupIdParam) setTopic('');

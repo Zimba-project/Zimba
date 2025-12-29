@@ -6,7 +6,8 @@ const getToken = async () => {
 };
 
 export const listGroupPosts = async (groupId) => {
-  const res = await request(`/groups/${groupId}/posts`);
+  const token = await getToken();
+  const res = await request(`/groups/${groupId}/posts`, 'GET', null, token);
   if (!res.ok) throw new Error(res.body?.error || `Error fetching group posts (status ${res.status})`);
   return res.body.posts || [];
 };

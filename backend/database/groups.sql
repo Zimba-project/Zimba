@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS groups (
   description TEXT,
   created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
   privacy SMALLINT DEFAULT 0,
+  post_moderation BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -35,3 +36,6 @@ CREATE TABLE IF NOT EXISTS group_join_requests (
 );
 
 CREATE INDEX IF NOT EXISTS idx_group_join_requests_group ON group_join_requests(group_id);
+
+
+ALTER TABLE groups ADD COLUMN IF NOT EXISTS post_moderation BOOLEAN DEFAULT FALSE;

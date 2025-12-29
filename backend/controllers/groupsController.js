@@ -66,7 +66,7 @@ exports.getGroup = async (req, res) => {
 
   try {
     const gRes = await pgPool.query(
-      `SELECT g.id, g.name, g.description, g.created_by, g.privacy, g.created_at, u.first_name AS owner_name
+      `SELECT g.id, g.name, g.description, g.created_by, g.privacy, g.post_moderation, g.created_at, u.first_name AS owner_name
        FROM groups g LEFT JOIN users u ON g.created_by = u.id WHERE g.id = $1`,
       [groupId]
     );
@@ -98,10 +98,11 @@ exports.getGroup = async (req, res) => {
     }
 
     if (currentUserId) {
-      const mem = await pgPool.query('SELECT 1 FROM group_members WHERE group_id=$1 AND user_id=$2', [groupId, currentUserId]);
+      const mem = await pgPool.query('SELECT role FROM group_members WHERE group_id=$1 AND user_id=$2', [groupId, currentUserId]);
       const pending = await pgPool.query("SELECT 1 FROM group_join_requests WHERE group_id=$1 AND user_id=$2 AND status='pending'", [groupId, currentUserId]);
       extra.is_member = mem.rows.length > 0;
       extra.has_pending_request = pending.rows.length > 0;
+      if (mem.rows.length) extra.my_role = mem.rows[0].role;
     }
 
     res.status(200).json({ group: gRes.rows[0], members: membersRes.rows, ...extra });
@@ -279,7 +280,7 @@ exports.leaveGroup = async (req, res) => {
 exports.updateGroup = async (req, res) => {
   const groupId = parseInt(req.params.id, 10);
   const userId = req.userId;
-  const { name, description, privacy } = req.body || {};
+  const { name, description, privacy, post_moderation } = req.body || {};
 
   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
   if (Number.isNaN(groupId)) return res.status(400).json({ error: 'Invalid group id' });
@@ -287,11 +288,17 @@ exports.updateGroup = async (req, res) => {
   try {
     const gRes = await pgPool.query('SELECT created_by FROM groups WHERE id=$1', [groupId]);
     if (!gRes.rows.length) return res.status(404).json({ error: 'Group not found' });
-    if (gRes.rows[0].created_by !== userId) return res.status(403).json({ error: 'Only owner can update group' });
+    const isOwner = gRes.rows[0].created_by === userId;
+    const isAdminRes = await pgPool.query('SELECT 1 FROM group_members WHERE group_id=$1 AND user_id=$2 AND role IN ($3,$4)', [groupId, userId, 'owner', 'admin']);
+    if (!isOwner && !isAdminRes.rows.length) return res.status(403).json({ error: 'Not authorized to update group' });
+
+    // preserve existing values when null/undefined
+    const existing = await pgPool.query('SELECT name, description, privacy, post_moderation FROM groups WHERE id=$1', [groupId]);
+    const cur = existing.rows[0];
 
     await pgPool.query(
-      `UPDATE groups SET name=$1, description=$2, privacy=$3 WHERE id=$4`,
-      [name || gRes.rows[0].name, description || null, privacy ?? 0, groupId]
+      `UPDATE groups SET name=$1, description=$2, privacy=$3, post_moderation=$4 WHERE id=$5`,
+      [name || cur.name, description ?? cur.description, privacy ?? cur.privacy, typeof post_moderation === 'boolean' ? post_moderation : cur.post_moderation, groupId]
     );
 
     res.status(200).json({ message: 'Group updated' });
