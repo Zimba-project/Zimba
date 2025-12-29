@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, FlatList, Alert, ScrollView, Image, TextInput } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
@@ -150,6 +151,9 @@ export default function GroupDetail({ route, navigation }) {
     <View style={[styles.container, { backgroundColor: t.background }]}> 
       <View style={[styles.card, { backgroundColor: t.cardBackground }]}> 
         <View style={styles.headerRow}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+            <Ionicons name="chevron-back" size={22} color={t.text} />
+          </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={[styles.title, { color: t.text }]}>{group.name}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
@@ -362,6 +366,7 @@ export default function GroupDetail({ route, navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  backBtn: { padding: 6, marginRight: 8 },
   card: { padding: 16, borderBottomWidth: 1, borderColor: '#e6e6e6' },
   headerRow: { flexDirection: 'row', alignItems: 'center' },
   title: { fontSize: 26, fontWeight: '800' },

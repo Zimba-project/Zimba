@@ -55,7 +55,12 @@ export default function GroupsList({ navigation }) {
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}> 
       <View style={styles.headerRow}>
-        <Text style={[styles.header, { color: t.text }]}>Groups</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+            <Ionicons name="chevron-back" size={22} color={t.text} />
+          </TouchableOpacity>
+          <Text style={[styles.header, { color: t.text }]}>Groups</Text>
+        </View>
         <TouchableOpacity onPress={() => navigation.navigate('CreateGroup')}>
           <Text style={{ color: t.accent }}>Create</Text>
         </TouchableOpacity>
@@ -123,6 +128,7 @@ export default function GroupsList({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  backBtn: { padding: 6, marginRight: 8 },
   header: { fontSize: 20, fontWeight: '700' },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 12 },
   card: { borderRadius: 12, padding: 12, marginBottom: 10 },
