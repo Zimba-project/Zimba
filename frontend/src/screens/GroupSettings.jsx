@@ -39,13 +39,6 @@ export default function GroupSettings({ route, navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}> 
-      <View style={styles.headerRow}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={22} color={t.text} />
-        </TouchableOpacity>
-        <Text style={[styles.header, { color: t.text }]}>Group Settings</Text>
-      </View>
-
       <View style={[styles.card, { backgroundColor: t.cardBackground }]}> 
         <View style={styles.rowSpace}>
           <Text style={{ color: t.text, fontWeight: '700' }}>Require approval for member posts</Text>
@@ -64,10 +57,7 @@ export default function GroupSettings({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', padding: 12 },
-  backBtn: { padding: 6, marginRight: 8 },
-  header: { fontSize: 18, fontWeight: '700' },
+  container: { flex: 1, paddingBottom: 60 },
   card: { padding: 16, margin: 12, borderRadius: 8 },
   rowSpace: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   saveBtn: { paddingVertical: 12, borderRadius: 8 }

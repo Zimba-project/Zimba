@@ -153,7 +153,7 @@ export default function Sidebar({ route, navigation }) {
         component={MainTabs}
         options={{ drawerItemStyle: { display: 'none' } }}
       />
-      <Drawer.Screen name="Groups" component={GroupsStack} />
+      <Drawer.Screen name="Groups" component={GroupsStack} options={{ headerShown: false }} />
       <Drawer.Screen name="Language" component={LanguageScreen} />
     </Drawer.Navigator>
   );

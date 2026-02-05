@@ -10,7 +10,15 @@ export default function LeftButton({ navigation, showBack }) {
     const iconColor = isDark ? '#fff' : '#000';
 
     const onPress = () => {
-        if (showBack && navigation.canGoBack()) return navigation.goBack();
+        if (showBack) {
+            // Use navigationRef to go back from any nested navigator
+            if (navigationRef.isReady() && navigationRef.canGoBack()) {
+                return navigationRef.goBack();
+            }
+            if (navigation.canGoBack()) {
+                return navigation.goBack();
+            }
+        }
         try {
             let parent = navigation;
             while (parent && !parent.openDrawer && parent.getParent) parent = parent.getParent();

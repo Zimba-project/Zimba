@@ -51,7 +51,7 @@ export default function CreateGroup({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 12 },
+  container: { flex: 1, padding: 12, paddingBottom: 80 },
   form: { padding: 12, borderRadius: 10 },
   label: { fontWeight: '600', marginTop: 8 },
   input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 8, marginTop: 6 },

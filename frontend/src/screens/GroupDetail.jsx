@@ -34,6 +34,12 @@ export default function GroupDetail({ route, navigation }) {
       setMembers(res.members || []);
       setJoined(!!res.is_member);
       setHasPending(!!res.has_pending_request);
+      
+      // Set navigation title to group name via params
+      if (res.group?.name) {
+        navigation.setParams({ title: res.group.name });
+      }
+      
       // load posts for this group (use dedicated group posts endpoint)
       try {
         const gp = await listGroupPosts(groupId).catch(() => []);
@@ -164,12 +170,8 @@ export default function GroupDetail({ route, navigation }) {
     <View style={[styles.container, { backgroundColor: t.background }]}> 
       <View style={[styles.card, { backgroundColor: t.cardBackground }]}> 
         <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={22} color={t.text} />
-          </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.title, { color: t.text }]}>{group.name}</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={{ color: t.secondaryText, marginRight: 12 }}>{group.privacy === 1 ? 'Private group' : 'Public group'}</Text>
               <Text style={{ color: t.secondaryText }}>{members.length} members</Text>
             </View>
@@ -402,7 +404,7 @@ export default function GroupDetail({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, paddingBottom: 80 },
   backBtn: { padding: 6, marginRight: 8 },
   card: { padding: 16, borderBottomWidth: 1, borderColor: '#e6e6e6' },
   headerRow: { flexDirection: 'row', alignItems: 'center' },
