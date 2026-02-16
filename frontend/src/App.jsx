@@ -25,7 +25,9 @@ import { ThemeProvider, useTheme } from '@/components/ui/ThemeProvider/ThemeProv
 import { getTheme } from './utils/theme';
 import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 import '@/global.css';
-import { loadSavedLanguage } from './utils/lang'
+import { initI18n } from './utils/i18n/i18n';
+
+initI18n();
 
 export const navigationRef = createNavigationContainerRef();
 const Stack = createNativeStackNavigator();
@@ -38,7 +40,7 @@ const RootApp = () => {
 
   useEffect(() => {
     NavigationBar.setButtonStyleAsync(theme === 'dark' ? 'light' : 'dark');
-  }, [theme]);
+  }, [theme, t.background]);
 
   if (!initialRoute || !ready) {
     return <Splash onFinish={() => setReady(true)} />;
@@ -48,9 +50,18 @@ const RootApp = () => {
     <GluestackUIProvider config={config} colorMode={theme}>
       <SafeAreaProvider>
         <NavigationContainer ref={navigationRef}>
-          <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ header: (props) => <HeaderForStack {...props} /> }}>
+          <Stack.Navigator
+            initialRouteName={initialRoute}
+            screenOptions={{
+              header: (props) => <HeaderForStack {...props} />,
+            }}
+          >
             <Stack.Screen name="Welcome" component={Welcome} options={{ headerShown: false }} />
-            <Stack.Screen name="Main" component={Sidebar} options={{ title: 'ZIMBA', headerBackVisible: false }} />
+            <Stack.Screen
+              name="Main"
+              component={Sidebar}
+              options={{ title: 'ZIMBA', headerBackVisible: false }}
+            />
             <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="Register" component={Register} />
             <Stack.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
@@ -62,11 +73,14 @@ const RootApp = () => {
             <Stack.Screen name="TopicResults" component={TopicResults} />
           </Stack.Navigator>
         </NavigationContainer>
-        <StatusBar barStyle={t.statusBarStyle} backgroundColor={t.background} />
+        <StatusBar
+          barStyle={t.statusBarStyle}
+          backgroundColor={t.background}
+        />
       </SafeAreaProvider>
     </GluestackUIProvider>
   );
-}
+};
 
 export default function App() {
   return (

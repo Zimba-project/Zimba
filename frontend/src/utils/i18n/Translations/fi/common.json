@@ -1,23 +1,44 @@
 {
-    "screens": {
-        "intro": {
-            "title": "Intro Screen",
-            "text": {
-                "introText": "Tervetuloa Zimbaan",
-                "login": "Kirjaudu",
-                "signup": "Rekisteröidy"
-            }
-        },
-        "login": {
-            "title": "Kirjaudu sisään",
-            "text": {
-                "login": "Kijaudu",
-                "emailAddress": "sähköposti",
-                "password": "Salasana",
-                "continue": "jatka",
-                "createAccount": "rekisteröi käyttäjä",
-                "forgotPassword": "Unohditko salasanan?"
-            }
-        }
+    "topics": {
+    "asuminen_ja_rakentaminen": "Asuminen ja Rakentaminen",
+    "kulttuuri_ja_vapaa_aika": "Kulttuuri ja Vapaa-aika",
+    "liikenne_ja_kadut": "Liikenne ja Kadut",
+    "liikunta_ja_luonto": "Liikunta ja Luonto",
+    "kasvatus_ja_opetus": "Kasvatus ja Opetus",
+    "tyoelama": "Työelamä",
+    "kaupunki_ja_paatoksenteko": "Kaupunki ja päätöksenteko",
+    "yritykset": "Yritykset",
+    "matkailu": "Matkailu",
+    "luonto_ja_kestava_kehitys": "Luonto ja kestävä kehitys",
+    "osallistu": "Osallistu",
+    "tuoreimmat": "Tuoreimmat"
+  },
+  "sidebartopics": "Aiheet",
+  "dark_mode": "Tumma tila",
+  "upcoming": "Tulevat tapahtumat alueellasi",
+  "see_all": "Näytä kaikki",
+  "loading_posts": "Ladataan julkaisuja...",
+  "retry": "Yritä uudelleen",
+  "error_fetch_posts": "Julkaisujen hakeminen epäonnistui. Tarkista verkko tai palvelin.",
+  "hot": "Kuumat",
+  "new": "Uusimmat",
+  "top": "Parhaat",
+  "all": "Kaikki",
+  "discussions": "Keskustelut",
+  "polls": "Äänestykset",
+  "filter": "Suodatin",
+  "show_all_upcoming": "Näytä tulevat julkaisut",
+    "time": {
+      "just_now": "juuri nyt",
+      "minute": "1 minuutti sitten",
+      "minutes": "{{count}} minuuttia sitten",
+      "hour": "tunti sitten",
+      "hours": "{{count}} tuntia sitten",
+      "day": "1 päivä sitten",
+      "days": "{{count}} päivää sitten",
+      "yesterday": "eilen",
+      "today": "tänään",
+      "in_day": "1 päivän kuluttua",
+      "in_days": "{{count}} päivän kuluttua"
     }
 }

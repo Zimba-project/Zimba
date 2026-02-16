@@ -1,23 +1,44 @@
 {
-    "screens": {
-        "intro": {
-            "title": "Intro Screen",
-            "text": {
-                "introText": "Tervetuloa Zimbaan",
-                "login": "Kirjaudu",
-                "signup": "Rekisteröidy"
-            }
-        },
-        "login": {
-            "title": "Kirjaudu sisään",
-            "text": {
-                "login": "Kijaudu",
-                "emailAddress": "sähköposti",
-                "password": "Salasana",
-                "continue": "jatka",
-                "createAccount": "rekisteröi käyttäjä",
-                "forgotPassword": "Unohditko salasanan?"
-            }
-        }
-    }
+  "topics": {
+    "asuminen_ja_rakentaminen": "Housing and Construction",
+    "kulttuuri_ja_vapaa_aika": "Culture and Leisure",
+    "liikenne_ja_kadut": "Transport and Streets",
+    "liikunta_ja_luonto": "Sports and Nature",
+    "kasvatus_ja_opetus": "Education and Teaching",
+    "tyoelama": "Work Life",
+    "kaupunki_ja_paatoksenteko": "City and Governance",
+    "yritykset": "Businesses",
+    "matkailu": "Tourism",
+    "luonto_ja_kestava_kehitys": "Nature and Sustainability",
+    "osallistu": "Participate",
+    "tuoreimmat": "Latest"
+  },
+  "sidebartopics": "Topics",
+  "dark_mode": "Dark mode",
+  "upcoming": "Upcoming in your area",
+  "see_all": "See all",
+  "loading_posts": "Loading posts...",
+  "retry": "Retry",
+  "error_fetch_posts": "Unable to fetch posts. Check your network or server.",
+  "hot": "Hot",
+  "new": "New",
+  "top": "Top",
+  "all": "All",
+  "discussions": "Discussions",
+  "polls": "Polls",
+  "filter": "Filter",
+  "show_all_upcoming": "Show all upcoming changes",
+  "time": {
+    "just_now": "just now",
+    "minute": "1 minute ago",
+    "minutes": "{{count}} minutes ago",
+    "hour": "1 hour ago",
+    "hours": "{{count}} hours ago",
+    "day": "1 day ago",
+    "days": "{{count}} days ago",
+    "yesterday": "yesterday",
+    "today": "today",
+    "in_day": "in 1 day",
+    "in_days": "in {{count}} days"
+  }
 }

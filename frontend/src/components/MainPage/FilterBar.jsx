@@ -6,19 +6,26 @@ import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
 import { Pressable } from '@/components/ui/pressable';
+import { useTranslation } from 'react-i18next';
 
-const TABS = [
-  { key: 'Hot', icon: 'flame' },
-  { key: 'New', icon: 'time' },
-  { key: 'Top', icon: 'star' },
-];
-
-const DROPDOWN_OPTIONS = ['All', 'Discussions', 'Polls'];
-
-export const PostFilterBar = ({ selectedTab, setSelectedTab, selectedDropdown, setSelectedDropdown }) => {
+export const PostFilterBar = ({
+  selectedTab,
+  setSelectedTab,
+  selectedDropdown,
+  setSelectedDropdown,
+}) => {
   const { theme } = useTheme();
-  const t = getTheme(theme);
+  const tTheme = getTheme(theme);
+  const { t: translate } = useTranslation();
   const [dropdownVisible, setDropdownVisible] = useState(false);
+
+  const TABS = [
+    { key: 'hot', icon: 'flame' },
+    { key: 'new', icon: 'time' },
+    { key: 'top', icon: 'star' },
+  ];
+
+  const DROPDOWN_OPTIONS = ['all', 'discussions', 'polls'];
 
   return (
     <Box style={styles.container}>
@@ -31,13 +38,18 @@ export const PostFilterBar = ({ selectedTab, setSelectedTab, selectedDropdown, s
               key={key}
               style={[
                 styles.tab,
-                { backgroundColor: isActive ? t.accent : t.cardBackground, borderColor: isActive ? t.accent : t.inputBorder }
+                {
+                  backgroundColor: isActive ? tTheme.accent : tTheme.cardBackground,
+                  borderColor: isActive ? tTheme.accent : tTheme.inputBorder,
+                },
               ]}
-              onPress={() => setSelectedTab(key)}
+              onPress={() => setSelectedTab(key)} // store key
             >
-              <Ionicons name={icon} size={16} color={isActive ? '#fff' : t.text} />
+              <Ionicons name={icon} size={16} color={isActive ? '#fff' : tTheme.text} />
               {isActive && (
-                <Text style={[styles.tabText, { color: '#fff', marginLeft: 4 }]}>{key}</Text>
+                <Text style={[styles.tabText, { color: '#fff', marginLeft: 4 }]}>
+                  {translate(key)}
+                </Text>
               )}
             </Pressable>
           );
@@ -45,16 +57,19 @@ export const PostFilterBar = ({ selectedTab, setSelectedTab, selectedDropdown, s
       </Box>
 
       {/* Selected filter text */}
-      <Text style={[styles.filterLabel, { color: t.text }]}>
-        {selectedDropdown !== 'All' ? selectedDropdown : 'Filter'}
+      <Text style={[styles.filterLabel, { color: tTheme.text }]}>
+        {selectedDropdown !== 'all' ? translate(selectedDropdown) : translate('filter')}
       </Text>
 
       {/* Filter Icon */}
       <Pressable
-        style={[styles.filterButton, { borderColor: t.inputBorder, backgroundColor: t.cardBackground }]}
+        style={[
+          styles.filterButton,
+          { borderColor: tTheme.inputBorder, backgroundColor: tTheme.cardBackground },
+        ]}
         onPress={() => setDropdownVisible(true)}
       >
-        <Ionicons name="filter" size={18} color={t.text} />
+        <Ionicons name="filter" size={18} color={tTheme.text} />
       </Pressable>
 
       {/* Dropdown Modal */}
@@ -64,25 +79,21 @@ export const PostFilterBar = ({ selectedTab, setSelectedTab, selectedDropdown, s
         animationType="fade"
         onRequestClose={() => setDropdownVisible(false)}
       >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setDropdownVisible(false)}
-        >
-          <Box style={[styles.modalContent, { backgroundColor: t.cardBackground }]}
-          >
+        <Pressable style={styles.modalOverlay} onPress={() => setDropdownVisible(false)}>
+          <Box style={[styles.modalContent, { backgroundColor: tTheme.cardBackground }]}>
             <FlatList
               data={DROPDOWN_OPTIONS}
-              keyExtractor={(item) => item}
+              keyExtractor={item => item}
               style={{ maxHeight: 120 }}
               renderItem={({ item }) => (
                 <Pressable
                   style={styles.modalItem}
                   onPress={() => {
-                    setSelectedDropdown(item);
+                    setSelectedDropdown(item); // store key
                     setDropdownVisible(false);
                   }}
                 >
-                  <Text style={{ color: t.text }}>{item}</Text>
+                  <Text style={{ color: tTheme.text }}>{translate(item)}</Text>
                 </Pressable>
               )}
             />
@@ -105,11 +116,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   tabText: { fontWeight: '500', fontSize: 14 },
-  filterLabel: {
-    marginRight: 4,
-    fontWeight: '500',
-    fontSize: 14,
-  },
+  filterLabel: { marginRight: 4, fontWeight: '500', fontSize: 14 },
   filterButton: {
     padding: 10,
     borderRadius: 20,
