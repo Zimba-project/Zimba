@@ -11,9 +11,9 @@ import {
   FlatList,
   ActivityIndicator,
   Alert,
-  Modal, 
+  Modal,
 } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CardHeader from '../components/Cards/CardHeader';
 import StatsBar from '../components/Cards/StatsBar';
@@ -26,78 +26,110 @@ import { getTheme } from '../utils/theme';
 
 
 // Tähän vois lisätä esim sen zimba "logon"
-const AnalysisModal = ({ analysis, isVisible, onClose, t }) => {
-    if (!analysis) return null;
+const AnalysisModal = ({ analysis, isVisible, onClose, onSuggestionPress, t }) => {
+  if (!analysis) return null;
 
-    return (
-        <Modal
-            animationType="fade"
-            transparent={true}
-            visible={isVisible}
-            onRequestClose={onClose}
-        >
-            <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, { backgroundColor: t.background }]}>
-                    
-                    <Text style={[styles.modalTitle, { color: t.text }]}>AI-Analyysi</Text>
-                    
-                    {/* KONTEKSTI / TIIVISTELMÄ */}
-                    <Text style={[styles.sectionTitle, { color: t.accent }]}>Yhteenveto</Text>
-                    <ScrollView style={{ maxHeight: 100 }}>
-                      <Text style={[styles.sectionText, { color: t.secondaryText }]}>{analysis.recap}</Text>
-                    </ScrollView>
+  return (
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={isVisible}
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContent, { backgroundColor: t.background }]}>
 
-                    {/* PLUSSAT */}
-                    <Text style={[styles.sectionTitle, { color: t.accent }]}>Plussat</Text>
-                    <View style={styles.listContainer}>
-                        {analysis.pros && analysis.pros.map((p, i) => (
-                            <Text key={`p${i}`} style={[styles.prosText, { color: t.text }]}>
-                                ✅ {p}
-                            </Text>
-                        ))}
-                    </View>
+          <Text style={[styles.modalTitle, { color: t.text }]}>Tekoäly-Yhteenveto</Text>
 
-                    {/* MIINUKSET */}
-                    <Text style={[styles.sectionTitle, { color: t.accent }]}>Miinukset</Text>
-                    <View style={styles.listContainer}>
-                        {analysis.cons && analysis.cons.map((c, i) => (
-                            <Text key={`c${i}`} style={[styles.consText, { color: t.text }]}>
-                                ❌ {c}
-                            </Text>
-                        ))}
-                    </View>
+        <ScrollView showsHorizontalScrollIndicator={false}>
+          {/* KONTEKSTI / TIIVISTELMÄ */}
+          <Text style={[styles.sectionTitle, { color: t.accent }]}>Yhteenveto</Text>
+          <ScrollView style={{ maxHeight: 100 }}>
+            <Text style={[styles.sectionText, { color: t.secondaryText }]}>{analysis.recap}</Text>
+          </ScrollView>
 
-                    <TouchableOpacity 
-                        style={[styles.modalCloseButton, { backgroundColor: t.accent }]}
-                        onPress={onClose}
-                    >
-                        <Text style={styles.modalCloseButtonText}>Sulje</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        </Modal>
-    );
+          {/* VAIKUTUS ARKEEN */}
+          {analysis.impact && (
+            <>
+              <Text style={[styles.sectionTitle, { color: t.accent }]}>Vaikutus</Text>
+              <View style={{ backgroundColor: t.background + '80', padding: 10, borderRadius: 8, marginBottom: 10 }}>
+                <Text style={[styles.sectionText, { color: t.text, fontStyle: 'italic' }]}>
+                  🏠 {analysis.impact}
+                </Text>
+              </View>
+            </>
+          )}
+
+          {/* PLUSSAT */}
+          <Text style={[styles.sectionTitle, { color: t.accent }]}>Hyödyt</Text>
+          <View style={styles.listContainer}>
+            {analysis.pros && analysis.pros.map((p, i) => (
+              <Text key={`p${i}`} style={[styles.prosText, { color: t.text }]}>
+                ✅ {p}
+              </Text>
+            ))}
+          </View>
+
+          {/* MIINUKSET */}
+          <Text style={[styles.sectionTitle, { color: t.accent }]}>Huomioitavaa</Text>
+          <View style={styles.listContainer}>
+            {analysis.cons && analysis.cons.map((c, i) => (
+              <Text key={`c${i}`} style={[styles.consText, { color: t.text }]}>
+                ⚠️ {c}
+              </Text>
+            ))}
+          </View>
+
+          {analysis.suggestions && analysis.suggestions.length > 0 && (
+            <>
+              <Text style={[styles.sectionTitle, { color: t.accent, marginTop: 10 }]}>Kysy keskustelussa</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 15 }}>
+                {analysis.suggestions.map((s, i) => (
+                  <TouchableOpacity
+                    key={`s${i}`}
+                    style={{ borderWidth: 1, borderColor: t.accent, padding: 8, borderRadius: 20 }}
+                    onPress={() => (onSuggestionPress ? onSuggestionPress(s) : console.log('Lisää kommenttiin: ', s))}
+                  >
+                    <Text style={{ color: t.accent, fontSize: 12 }}>💬 {s}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          )}
+        </ScrollView>
+
+          <TouchableOpacity
+            style={[styles.modalCloseButton, { backgroundColor: t.accent }]}
+            onPress={onClose}
+          >
+            <Text style={styles.modalCloseButtonText}>Sulje</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
 };
 
 export default function DiscussScreen() {
   const route = useRoute();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { postData } = route.params || {};
   const postId = postData?.id;
-  
-  
+
+
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const { user } = useCurrentUser();
   const [aiRecapLoading, setAiRecapLoading] = useState(false);
-  
+
   // Handler for AI Recap
   const handleAiRecap = async () => {
 
     setAiRecapLoading(true);
     // Varmista, että käytämme postDatan muuttujia, jotka on destructurettu myöhemmin
-    const textToSummarize = postData?.description || postData?.title; 
+    const textToSummarize = postData?.description || postData?.title;
 
     if (!textToSummarize) {
       Alert.alert('Virhe', 'Tiivistettävää tekstiä ei ole saatavilla.');
@@ -106,15 +138,24 @@ export default function DiscussScreen() {
     }
 
     try {
-      const analysis = await fetchSummary(textToSummarize); 
+      const analysis = await fetchSummary(textToSummarize);
       
+      console.log('=== AI ANALYSIS RECEIVED ===');
+      console.log('Full analysis:', JSON.stringify(analysis, null, 2));
+      console.log('Has recap:', !!analysis?.recap);
+      console.log('Has pros:', !!analysis?.pros);
+      console.log('Has cons:', !!analysis?.cons);
+      console.log('Has impact:', !!analysis?.impact);
+      console.log('Has suggestions:', !!analysis?.suggestions);
+      console.log('========================');
+
       if (analysis && analysis.recap) {
-          setAiAnalysis(analysis); 
-          setIsModalVisible(true); 
+        setAiAnalysis(analysis);
+        setIsModalVisible(true);
       } else {
-          Alert.alert('Virhe', 'Analyysiä ei saatu. Yritä uudelleen.');
+        Alert.alert('Virhe', 'Analyysiä ei saatu. Yritä uudelleen.');
       }
-      
+
     } catch (e) {
       console.error(e);
       Alert.alert('Virhe', 'AI-palvelu epäonnistui. Tarkista backendin lokit.');
@@ -199,6 +240,17 @@ export default function DiscussScreen() {
   const imageUrl = normalizeUrl(image);
   const avatarUrl = normalizeAvatarUrl(author_avatar);
 
+  const handleSuggestionPress = (suggestion) => {
+    setIsModalVisible(false);
+    navigation.navigate('Chat', {
+      chatWith: 'AI Assistant',
+      avatarUrl: null,
+      initialMessage: suggestion,
+      autoSend: true,
+      contextText: postData?.description || postData?.title || '',
+    });
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
       <ScrollView>
@@ -267,13 +319,14 @@ export default function DiscussScreen() {
           )}
         </View>
       </ScrollView>
-      
+
       {/* RENDERÖI MODAL TÄHÄN! */}
-      <AnalysisModal 
-          analysis={aiAnalysis} 
-          isVisible={isModalVisible} 
-          onClose={() => setIsModalVisible(false)} 
-          t={t}
+      <AnalysisModal
+        analysis={aiAnalysis}
+        isVisible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        onSuggestionPress={handleSuggestionPress}
+        t={t}
       />
     </SafeAreaView>
   );
@@ -285,9 +338,9 @@ const styles = StyleSheet.create({
   image: { width: '100%', height: 250 },
   title: { fontSize: 22, fontWeight: '700', marginBottom: 12 },
   body: {
-  paddingHorizontal: 16,
-  paddingBottom: 16,
-  marginBottom: 40,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    marginBottom: 40,
   },
   description: { fontSize: 16, lineHeight: 22 },
   commentInputContainer: {
@@ -331,7 +384,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 15,
   },
-  
+
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
@@ -343,7 +396,7 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 20,
     borderRadius: 12,
-    maxHeight: '80%', 
+    maxHeight: '80%',
   },
   modalTitle: {
     fontSize: 20,

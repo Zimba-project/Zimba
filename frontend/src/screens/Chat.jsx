@@ -16,18 +16,28 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ChatHeader from '../components/Chat/ChatHeader';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
+import { fetchChatAnswer } from '../api/ai';
 
 export default function ChatScreen({ route, navigation }) {
-  const { chatWith, avatarUrl } = route.params;
+  const { chatWith = 'Chat', avatarUrl = null, initialMessage, autoSend = false } = route.params || {};
   const { theme } = useTheme();
   const t = getTheme(theme);
   const insets = useSafeAreaInsets();
   const flatListRef = useRef(null);
+  const initialMessageSent = useRef(false);
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false)
 
   useEffect(() => {
+    if (initialMessage) {
+      setMessages([]);
+      setInput(initialMessage);
+      initialMessageSent.current = false;
+      return;
+    }
+
     setMessages([
       { id: '1', text: 'Hi there!', fromMe: false },
       { id: '2', text: 'Hello!', fromMe: true },
@@ -46,17 +56,37 @@ export default function ChatScreen({ route, navigation }) {
       { id: '15', text: 'Alright, let’s catch up later!', fromMe: false },
       { id: '16', text: 'Sure, talk soon!', fromMe: true },
     ]);
-  }, [chatWith]);
+  }, [chatWith, initialMessage]);
 
-  const sendMessage = () => {
-    if (!input.trim()) return;
-    const newMessage = { id: Date.now().toString(), text: input, fromMe: true };
-    setMessages((prev) => [...prev, newMessage]);
+
+  const sendMessageText = async (text) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    const userMsg = { id: Date.now().toString(), text: trimmed, fromMe: true };
+    setMessages((prev) => [...prev, userMsg]);
     setInput('');
-    setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated: true });
-    }, 100);
+    setIsTyping(true);
+
+    try {
+      const aiResponse = await fetchChatAnswer(trimmed, route.params.context);
+
+      if (aiResponse) {
+        const aiMsg = { id: (Date.now() + 1).toString(), text: aiResponse, fromMe: false };
+        setMessages((prev) => [...prev, aiMsg]);
+      }
+    } catch (err) {
+      console.error("Error fetching chat answer:", err);
+    } finally {
+      setIsTyping(false);
+    }
   };
+
+  useEffect(() => {
+    if (!initialMessage || !autoSend || initialMessageSent.current) return;
+    sendMessageText(initialMessage);
+    initialMessageSent.current = true;
+  }, [autoSend, initialMessage]);
 
   const renderItem = ({ item }) => (
     <View
@@ -111,7 +141,7 @@ export default function ChatScreen({ route, navigation }) {
               placeholder="Type a message..."
               placeholderTextColor={t.secondaryText}
             />
-            <TouchableOpacity onPress={sendMessage} style={styles.sendBtn}>
+            <TouchableOpacity onPress={() => sendMessageText(input)} style={styles.sendBtn}>
               <Text style={[styles.sendText, { color: t.accent }]}>Send</Text>
             </TouchableOpacity>
           </View>

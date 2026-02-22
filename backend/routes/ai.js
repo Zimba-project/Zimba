@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const rateLimit = require('express-rate-limit'); 
-const { getSummary } = require('../services/aiService'); 
+const { getSummary, getChatAnswer } = require('../services/aiService'); 
 
 
 const summaryLimiter = rateLimit({
@@ -10,6 +10,17 @@ const summaryLimiter = rateLimit({
     message: {
         status: 'error',
         message: 'Olet ylittänyt tiivistyspyyntöjen enimmäismäärän (10 kpl / 10 min). Kokeile myöhemmin.'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+const chatLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000,
+    max: 30,
+    message: {
+        status: 'error',
+        message: 'Olet ylittänyt chat-pyyntöjen enimmäismäärän (30 kpl / 10 min). Kokeile myöhemmin.'
     },
     standardHeaders: true,
     legacyHeaders: false,
@@ -39,6 +50,29 @@ router.post(
         } catch (error) {
             console.error(`AI Error for user ${req.userId}:`, error.message);
             
+            res.status(500).json({ message: 'Tekoälypalveluun liittynyt virhe. Kokeile uudelleen.' });
+        }
+    }
+);
+
+router.post(
+    '/chat',
+    chatLimiter,
+    async (req, res) => {
+        const { userMessage, contextText } = req.body;
+
+        if (!userMessage) {
+            return res.status(400).json({ message: 'Viestiteksti (userMessage) puuttuu pyynnöstä.' });
+        }
+
+        try {
+            const reply = await getChatAnswer(userMessage, contextText || '');
+            res.json({
+                status: 'success',
+                reply,
+            });
+        } catch (error) {
+            console.error(`AI Chat Error for user ${req.userId}:`, error.message);
             res.status(500).json({ message: 'Tekoälypalveluun liittynyt virhe. Kokeile uudelleen.' });
         }
     }
