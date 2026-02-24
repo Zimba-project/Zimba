@@ -11,14 +11,13 @@ import {
   Platform,
   Modal,
 } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import CardHeader from '../components/Cards/CardHeader';
 import StatsBar from '../components/Cards/StatsBar';
 import useCurrentUser from '../utils/GetUser';
 import { getPostComments, addPostComment, replyToComment } from '../api/postService';
 import { fetchSummary } from '../api/ai';
 import { normalizeUrl, normalizeAvatarUrl } from '../utils/urlHelper';
-import { formatTime } from '../utils/TimeFormatter';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
 import { SafeAreaView } from '@/components/ui/safe-area-view';
@@ -27,8 +26,9 @@ import { Text } from '@/components/ui/text';
 import { Pressable } from '@/components/ui/pressable';
 import { Feather as Icon } from '@expo/vector-icons';
 
-// AI Analysis Modal
-const AnalysisModal = ({ analysis, isVisible, onClose, t }) => {
+// ── AI Analysis Modal ──────────────────────────────────────────────────────────
+
+const AnalysisModal = ({ analysis, isVisible, onClose, onSuggestionPress, t }) => {
   if (!analysis) return null;
 
   return (
@@ -38,28 +38,58 @@ const AnalysisModal = ({ analysis, isVisible, onClose, t }) => {
       visible={isVisible}
       onRequestClose={onClose}
     >
-      <Box style={[styles.modalOverlay]}>
+      <Box style={styles.modalOverlay}>
         <Box style={[styles.modalContent, { backgroundColor: t.background }]}>
-          <Text style={[styles.modalTitle, { color: t.text }]}>AI-Analyysi</Text>
+          <Text style={[styles.modalTitle, { color: t.text }]}>Tekoäly-Yhteenveto</Text>
 
-          <Text style={[styles.sectionTitle, { color: t.accent }]}>Yhteenveto</Text>
-          <ScrollView style={{ maxHeight: 100 }}>
-            <Text style={[styles.sectionText, { color: t.secondaryText }]}>{analysis.recap}</Text>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={[styles.sectionTitle, { color: t.accent }]}>Yhteenveto</Text>
+            <ScrollView style={{ maxHeight: 100 }}>
+              <Text style={[styles.sectionText, { color: t.secondaryText }]}>{analysis.recap}</Text>
+            </ScrollView>
+
+            {analysis.impact && (
+              <>
+                <Text style={[styles.sectionTitle, { color: t.accent }]}>Vaikutus</Text>
+                <Box style={{ backgroundColor: t.background + '80', padding: 10, borderRadius: 8, marginBottom: 10 }}>
+                  <Text style={[styles.sectionText, { color: t.text, fontStyle: 'italic' }]}>
+                    🏠 {analysis.impact}
+                  </Text>
+                </Box>
+              </>
+            )}
+
+            <Text style={[styles.sectionTitle, { color: t.accent }]}>Hyödyt</Text>
+            <Box style={styles.listContainer}>
+              {analysis.pros?.map((p, i) => (
+                <Text key={`p${i}`} style={[styles.prosText, { color: t.text }]}>✅ {p}</Text>
+              ))}
+            </Box>
+
+            <Text style={[styles.sectionTitle, { color: t.accent }]}>Huomioitavaa</Text>
+            <Box style={styles.listContainer}>
+              {analysis.cons?.map((c, i) => (
+                <Text key={`c${i}`} style={[styles.consText, { color: t.text }]}>⚠️ {c}</Text>
+              ))}
+            </Box>
+
+            {analysis.suggestions?.length > 0 && (
+              <>
+                <Text style={[styles.sectionTitle, { color: t.accent, marginTop: 10 }]}>Kysy keskustelussa</Text>
+                <Box style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 15 }}>
+                  {analysis.suggestions.map((s, i) => (
+                    <Pressable
+                      key={`s${i}`}
+                      style={{ borderWidth: 1, borderColor: t.accent, padding: 8, borderRadius: 20 }}
+                      onPress={() => onSuggestionPress?.(s)}
+                    >
+                      <Text style={{ color: t.accent, fontSize: 12 }}>💬 {s}</Text>
+                    </Pressable>
+                  ))}
+                </Box>
+              </>
+            )}
           </ScrollView>
-
-          <Text style={[styles.sectionTitle, { color: t.accent }]}>Plussat</Text>
-          <Box style={styles.listContainer}>
-            {analysis.pros?.map((p, i) => (
-              <Text key={`p${i}`} style={[styles.prosText, { color: t.text }]}>✅ {p}</Text>
-            ))}
-          </Box>
-
-          <Text style={[styles.sectionTitle, { color: t.accent }]}>Miinukset</Text>
-          <Box style={styles.listContainer}>
-            {analysis.cons?.map((c, i) => (
-              <Text key={`c${i}`} style={[styles.consText, { color: t.text }]}>❌ {c}</Text>
-            ))}
-          </Box>
 
           <Pressable style={[styles.modalCloseButton, { backgroundColor: t.accent }]} onPress={onClose}>
             <Text style={styles.modalCloseButtonText}>Sulje</Text>
@@ -70,8 +100,11 @@ const AnalysisModal = ({ analysis, isVisible, onClose, t }) => {
   );
 };
 
+// ── Main Screen ────────────────────────────────────────────────────────────────
+
 export default function DiscussScreen() {
   const route = useRoute();
+  const navigation = useNavigation();
   const { postData } = route.params || {};
   const postId = postData?.id;
 
@@ -87,9 +120,6 @@ export default function DiscussScreen() {
   const [posting, setPosting] = useState(false);
   const [replyingMap, setReplyingMap] = useState({});
   const [openReplyFor, setOpenReplyFor] = useState(null);
-  const [collapsedReplies, setCollapsedReplies] = useState({});
-
-  // AI Recap
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [aiRecapLoading, setAiRecapLoading] = useState(false);
@@ -113,7 +143,6 @@ export default function DiscussScreen() {
 
   const handleAddComment = async () => {
     if (!commentText.trim() || !isLoggedIn) return;
-
     try {
       setPosting(true);
       const res = await addPostComment(postId, user.id, commentText.trim());
@@ -143,7 +172,6 @@ export default function DiscussScreen() {
   const handleReplySubmit = async (commentId) => {
     const text = (replyingMap[commentId] || '').trim();
     if (!text || !isLoggedIn) return;
-
     try {
       setPosting(true);
       const res = await replyToComment(postId, commentId, user.id, text);
@@ -156,7 +184,6 @@ export default function DiscussScreen() {
         created_at: r.created_at,
         user_id: r.user_id,
       };
-
       setCommentsList(prev => prev.map(c => {
         if (c.id === commentId) {
           const existing = Array.isArray(c.replies) ? c.replies : [];
@@ -164,7 +191,6 @@ export default function DiscussScreen() {
         }
         return c;
       }));
-
       setReplyingMap(prev => ({ ...prev, [commentId]: '' }));
       setOpenReplyFor(null);
     } catch (err) {
@@ -175,7 +201,6 @@ export default function DiscussScreen() {
     }
   };
 
-  // AI Recap
   const handleAiRecap = async () => {
     setAiRecapLoading(true);
     const textToSummarize = postData?.description || postData?.title;
@@ -184,10 +209,9 @@ export default function DiscussScreen() {
       setAiRecapLoading(false);
       return;
     }
-
     try {
       const analysis = await fetchSummary(textToSummarize);
-      if (analysis && analysis.recap) {
+      if (analysis?.recap) {
         setAiAnalysis(analysis);
         setIsModalVisible(true);
       } else {
@@ -199,6 +223,17 @@ export default function DiscussScreen() {
     } finally {
       setAiRecapLoading(false);
     }
+  };
+
+  const handleSuggestionPress = (suggestion) => {
+    setIsModalVisible(false);
+    navigation.navigate('Chat', {
+      chatWith: 'AI Assistant',
+      avatarUrl: null,
+      initialMessage: suggestion,
+      autoSend: true,
+      contextText: postData?.description || postData?.title || '',
+    });
   };
 
   if (!postData) {
@@ -226,7 +261,11 @@ export default function DiscussScreen() {
 
   return (
     <SafeAreaView edges={['bottom']} style={[styles.container, { backgroundColor: t.background }]}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={80} style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={80}
+        style={{ flex: 1 }}
+      >
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 24 }}>
           <CardHeader
             author={{ id: author_id, avatar: avatarUrl, name: author_name, time: created_at, verified: false }}
@@ -239,7 +278,6 @@ export default function DiscussScreen() {
             <Text style={[styles.title, { color: t.text }]}>{title}</Text>
             <Text style={[styles.description, { color: t.secondaryText }]}>{description}</Text>
 
-            {/* AI Recap Button */}
             <Pressable
               style={[styles.aiButton, aiRecapLoading && { opacity: 0.6 }]}
               onPress={handleAiRecap}
@@ -254,7 +292,7 @@ export default function DiscussScreen() {
             <Box style={styles.commentInputContainer}>
               <TextInput
                 style={[styles.commentInput, { backgroundColor: t.inputBackground, color: t.text }]}
-                placeholder={isLoggedIn ? "Write a comment..." : "Log in to comment"}
+                placeholder={isLoggedIn ? 'Write a comment...' : 'Log in to comment'}
                 placeholderTextColor={t.placeholder}
                 value={commentText}
                 onChangeText={setCommentText}
@@ -311,14 +349,13 @@ export default function DiscussScreen() {
 
                     <Text style={[styles.commentBody, { color: t.text }]}>{item.text}</Text>
 
-                    {/* Reply input and actions */}
                     {isLoggedIn && (
                       <Pressable
                         onPress={() => setOpenReplyFor(openReplyFor === item.id ? null : item.id)}
                         style={[styles.replyBtn, { backgroundColor: openReplyFor === item.id ? t.accent : t.inputBackground }]}
                       >
-                        <Icon name="corner-up-left" size={14} color={openReplyFor === item.id ? "#fff" : t.accent} />
-                        <Text style={[styles.replyBtnText, { color: openReplyFor === item.id ? "#fff" : t.accent }]}>Reply</Text>
+                        <Icon name="corner-up-left" size={14} color={openReplyFor === item.id ? '#fff' : t.accent} />
+                        <Text style={[styles.replyBtnText, { color: openReplyFor === item.id ? '#fff' : t.accent }]}>Reply</Text>
                       </Pressable>
                     )}
 
@@ -326,7 +363,7 @@ export default function DiscussScreen() {
                       <Box style={[styles.replyInputContainer, { backgroundColor: t.inputBackground }]}>
                         <TextInput
                           style={[styles.replyInput, { color: t.text }]}
-                          placeholder={isLoggedIn ? "Write a reply..." : "Log in to reply"}
+                          placeholder={isLoggedIn ? 'Write a reply...' : 'Log in to reply'}
                           placeholderTextColor={t.placeholder}
                           value={replyingMap[item.id] || ''}
                           onChangeText={(txt) => handleReplyChange(item.id, txt)}
@@ -353,15 +390,19 @@ export default function DiscussScreen() {
             )}
           </Box>
         </ScrollView>
-
-        {/* AI Analysis Modal */}
-        <AnalysisModal analysis={aiAnalysis} isVisible={isModalVisible} onClose={() => setIsModalVisible(false)} t={t} />
       </KeyboardAvoidingView>
+
+      <AnalysisModal
+        analysis={aiAnalysis}
+        isVisible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        onSuggestionPress={handleSuggestionPress}
+        t={t}
+      />
     </SafeAreaView>
   );
 }
 
-// Styles (merge your previous comment & modal styles)
 const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -371,22 +412,22 @@ const styles = StyleSheet.create({
   description: { fontSize: 16, lineHeight: 22 },
   commentInputContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 20, marginBottom: 16 },
   commentInput: { flex: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, minHeight: 44, maxHeight: 120, marginRight: 8, fontSize: 15 },
-  commentButton: { paddingVertical: 11, paddingHorizontal: 18, borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 3, elevation: 2 },
+  commentButton: { paddingVertical: 11, paddingHorizontal: 18, borderRadius: 12 },
   commentButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
   sectionTitle: { fontSize: 17, fontWeight: '700', marginBottom: 12, marginTop: 8 },
   commentCard: { borderRadius: 12, marginBottom: 10, overflow: 'hidden' },
   commentBody: { fontSize: 15, lineHeight: 21, marginBottom: 8, paddingHorizontal: 16, paddingBottom: 8 },
-  replyBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, marginRight: 8 },
+  replyBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, marginRight: 8, alignSelf: 'flex-start', marginLeft: 16, marginBottom: 10 },
   replyBtnText: { fontSize: 13, fontWeight: '600', marginLeft: 6 },
-  replyInputContainer: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 10, padding: 10, borderRadius: 12 },
+  replyInputContainer: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 10, padding: 10, borderRadius: 12, marginHorizontal: 16, marginBottom: 10 },
   replyInput: { flex: 1, fontSize: 14, maxHeight: 80, paddingRight: 8 },
   sendBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   emptyState: { marginTop: 20, paddingVertical: 32, paddingHorizontal: 20, borderRadius: 12, alignItems: 'center' },
   emptyTitle: { fontSize: 16, fontWeight: '600', marginTop: 12, marginBottom: 4 },
   emptyText: { fontSize: 14, textAlign: 'center' },
-  aiButton: { marginTop: 12, marginBottom: 8, alignSelf: 'flex-end', backgroundColor: '#0d488cff', paddingVertical: 8, paddingHorizontal: 18, borderRadius: 8 },
+  aiButton: { marginTop: 12, marginBottom: 8, alignSelf: 'flex-end', backgroundColor: '#0d488c', paddingVertical: 8, paddingHorizontal: 18, borderRadius: 8 },
   aiButtonText: { color: 'white', fontWeight: 'bold', fontSize: 15 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.7)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
   modalContent: { width: '100%', padding: 20, borderRadius: 12, maxHeight: '80%' },
   modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' },
   sectionText: { fontSize: 14, marginBottom: 10, lineHeight: 20 },
