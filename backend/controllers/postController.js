@@ -238,7 +238,7 @@ exports.getPollQuestions = async (req, res) => {
         po.votes
       FROM poll_questions pq
       JOIN poll_options po ON pq.id = po.question_id
-      WHERE pq.post_id = $1
+      WHERE pq.post = $1
       ORDER BY pq.position ASC, po.position ASC;
     `, [postId]);
 

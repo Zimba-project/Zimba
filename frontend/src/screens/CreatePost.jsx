@@ -163,7 +163,7 @@ export default function CreatePostScreen({ navigation, route }) {
         image: imageUrl,
         end_time: type === 'poll' && endTime ? endTime.toISOString() : null,
         author_id: userId,
-        options: type === 'poll' ? questions.map(q => ({
+        questions: type === 'poll' ? questions.map(q => ({
           text: q.text,
           allowMultiple: q.allowMultiple,
           options: q.options.map(o => ({ text: o.text }))

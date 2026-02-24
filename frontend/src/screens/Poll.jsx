@@ -9,11 +9,9 @@ import {
 import { useRoute } from '@react-navigation/native';
 import CardHeader from '../components/Cards/CardHeader';
 import StatsBar from '../components/Cards/StatsBar';
-
 import { getPollQuestions, votePoll, getPostById } from '../api/postService';
 import useCurrentUser from '../utils/GetUser';
 import { normalizeUrl, normalizeAvatarUrl } from '../utils/urlHelper';
-
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
 import { SafeAreaView } from '@/components/ui/safe-area-view';
@@ -24,7 +22,6 @@ import { Pressable } from '@/components/ui/pressable';
 export default function PollScreen() {
   const route = useRoute();
   const { user } = useCurrentUser();
-
   const { postData, id: deepLinkId } = route.params || {};
   const postId = postData?.id || deepLinkId;
 
@@ -37,33 +34,45 @@ export default function PollScreen() {
   const { theme } = useTheme();
   const t = getTheme(theme);
 
-  // Load post and questions
+  // Fetch post & poll questions
   useEffect(() => {
-    const fetchPostAndQuestions = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
 
-        // Fetch post details if not passed via navigation
+        // Fetch post if not passed via navigation
+        let postDetails = post;
         if (!post) {
-          const data = await getPostById(postId);
-          setPost(data);
+          postDetails = await getPostById(postId);
+          setPost(postDetails);
         }
 
-        // Fetch questions
-        const pollData = await getPollQuestions(postId);
-        setQuestions(pollData.questions || []);
+        // Fetch poll questions from API
+        const pollQuestions = await getPollQuestions(postId);
+        // map questions to frontend structure
+        const normalizedQuestions = pollQuestions.map(q => ({
+          id: q.question_id,
+          text: q.question_text,
+          allowMultiple: q.allow_multiple,
+          options: q.options.map(o => ({
+            id: o.option_id,
+            text: o.option_text,
+            votes: o.votes || 0,
+          })),
+        }));
+        setQuestions(normalizedQuestions);
+
       } catch (err) {
-        console.log("Failed to load poll:", err);
+        console.error("Failed to load poll:", err);
         Alert.alert("Error", "Unable to load this poll.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (postId) fetchPostAndQuestions();
+    if (postId) fetchData();
   }, [postId]);
 
-  // Toggle selection for a question option
   const toggleOption = (questionId, optionId, allowMultiple) => {
     setSelectedOptions(prev => {
       const current = prev[questionId] || [];
@@ -79,7 +88,6 @@ export default function PollScreen() {
     });
   };
 
-  // Submit votes for all questions
   const handleSubmit = async () => {
     if (!user) return;
 
@@ -88,15 +96,23 @@ export default function PollScreen() {
         const optionIds = selectedOptions[q.id] || [];
         if (optionIds.length === 0) continue;
 
-        // Backend endpoint expects questionId + array of optionIds
-        await votePoll(q.id, optionIds, user.id);
+        await votePoll(q.id, optionIds, user.id); // backend expects questionId + optionIds
       }
 
       setSubmitted(true);
 
-      // Refresh questions with updated vote counts
-      const pollData = await getPollQuestions(postId);
-      setQuestions(pollData.questions || []);
+      // Update vote counts locally
+      setQuestions(prev =>
+        prev.map(q => ({
+          ...q,
+          options: q.options.map(o => ({
+            ...o,
+            votes: selectedOptions[q.id]?.includes(o.id)
+              ? o.votes + 1
+              : o.votes,
+          })),
+        }))
+      );
     } catch (err) {
       console.error("Vote failed:", err);
       Alert.alert("Error", "Failed to submit your votes.");
@@ -112,19 +128,7 @@ export default function PollScreen() {
     );
   }
 
-  const {
-    author_id,
-    author_name,
-    author_avatar,
-    author_verified,
-    title,
-    description,
-    image,
-    views = 0,
-    created_at,
-    topic,
-  } = post;
-
+  const { author_id, author_name, author_avatar, author_verified, title, description, image, views = 0, created_at, topic } = post;
   const imageUrl = normalizeUrl(image);
   const avatarUrl = normalizeAvatarUrl(author_avatar);
 
@@ -158,11 +162,9 @@ export default function PollScreen() {
                         { backgroundColor: t.cardBackground, borderColor: t.inputBorder },
                         isSelected && { backgroundColor: t.accent, borderColor: t.accent }
                       ]}
-                      onPress={() => !submitted && toggleOption(q.id, opt.id, q.allow_multiple)}
+                      onPress={() => !submitted && toggleOption(q.id, opt.id, q.allowMultiple)}
                     >
-                      <Text style={[styles.optionText, { color: isSelected ? "#fff" : t.text }]}>
-                        {opt.text}
-                      </Text>
+                      <Text style={[styles.optionText, { color: isSelected ? "#fff" : t.text }]}>{opt.text}</Text>
                       <Text style={[styles.voteCount, { color: t.accent }]}>{opt.votes} votes</Text>
                     </Pressable>
                   );
@@ -181,9 +183,7 @@ export default function PollScreen() {
             )}
 
             {submitted && (
-              <Text style={[styles.thankYouText, { color: "#16a34a" }]}>
-                Thanks for voting!
-              </Text>
+              <Text style={[styles.thankYouText, { color: "#16a34a" }]}>Thanks for voting!</Text>
             )}
           </Box>
         </Box>
