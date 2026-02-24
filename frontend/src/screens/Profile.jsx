@@ -5,8 +5,8 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
-  Image,
   Platform,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from '@/components/ui/safe-area-view';
 import { Box } from '@/components/ui/box';
@@ -15,19 +15,26 @@ import { Pressable } from '@/components/ui/pressable';
 import { ScrollView } from '@/components/ui/scroll-view';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { updateUser } from '../api/auth';
+import { me, updateUser, getUserById } from '../api/auth';
 import { sessionStorage } from '../utils/Storage';
-import useCurrentUser from '../utils/GetUser';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
 import { normalizeAvatarUrl } from '../utils/urlHelper';
+import { formatTime } from '../utils/TimeFormatter';
+import { useTranslation } from 'react-i18next';
+import Avatar from '../components/Profile/Avatar';
+import PollCard from '../components/Cards/PollCard';
+import DiscussionCard from '../components/Cards/DiscussionCard';
 
 export default function ProfileScreen({ navigation, route }) {
-  const { user, setUser, loading: userLoading } = useCurrentUser(route);
+  const [user, setUser] = useState(null);
+  const [userLoading, setUserLoading] = useState(true);
+  const [userPosts, setUserPosts] = useState([]);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [selectedTab, setSelectedTab] = useState('Posts');
   const [isEditing, setIsEditing] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [showExtraInfo, setShowExtraInfo] = useState(false);
 
   const [form, setForm] = useState({
     first_name: '',
@@ -39,31 +46,62 @@ export default function ProfileScreen({ navigation, route }) {
 
   const { theme } = useTheme();
   const t = getTheme(theme);
+  const { t: translate } = useTranslation();
 
+  // Load current user on mount
   useEffect(() => {
-    if (user) {
-      setForm({
-        first_name: user.first_name ?? user.firstName ?? '',
-        last_name: user.last_name ?? user.lastName ?? '',
-        phone: user.phone ?? '',
-        about: user.about ?? '',
-        birthdate: user.birthdate ?? '',
-      });
+    const loadUser = async () => {
+      try {
+        const token = await sessionStorage.getItem('authToken');
+        if (!token) return;
+        const res = await me(token);
+        const userData = res?.body?.user ?? res?.body ?? res?.user ?? null;
+        if (userData) {
+          setUser(userData);
+          setForm({
+            first_name: userData.first_name ?? '',
+            last_name: userData.last_name ?? '',
+            phone: userData.phone ?? '',
+            about: userData.about ?? '',
+            birthdate: userData.birthdate ?? '',
+          });
+          fetchUserPosts(userData.id);
+        }
+      } catch (err) {
+        console.log('Failed to load user:', err);
+      } finally {
+        setUserLoading(false);
+      }
+    };
+    loadUser();
+  }, []);
+
+  const fetchUserPosts = async (userId) => {
+    if (!userId) return;
+    try {
+      setPostsLoading(true);
+      const res = await getUserById(userId);
+      const fullUser = res?.body?.user ?? res?.user ?? null;
+      if (fullUser) setUser(prev => ({ ...prev, ...fullUser }));
+      setUserPosts(res?.body?.posts ?? res?.posts ?? []);
+    } catch (err) {
+      console.log('Failed to load posts:', err);
+    } finally {
+      setPostsLoading(false);
     }
-  }, [user]);
+  };
 
   const getDisplayName = () => {
-    const first = user?.first_name ?? user?.firstName ?? '';
-    const last = user?.last_name ?? user?.lastName ?? '';
-    if (first || last) return `${first}`.trim();
+    const first = user?.first_name ?? '';
+    const last = user?.last_name ?? '';
+    if (first || last) return `${first} ${last}`.trim();
     return user?.name ?? user?.username ?? 'User';
   };
 
   const handleSave = async () => {
     try {
-      const updated = { ...user, ...form };
-      await updateUser(await sessionStorage.getItem('authToken'), updated);
-      setUser(updated);
+      await updateUser(user.id, form);
+      setUser({ ...user, ...form });
       setIsEditing(false);
       Alert.alert('Profile Updated', 'Your changes have been saved.');
     } catch (error) {
@@ -72,14 +110,14 @@ export default function ProfileScreen({ navigation, route }) {
     }
   };
 
-  const handleDelete = async () => {
-    Alert.alert('Confirm Delete', 'Are you sure?', [
+  const handleDelete = () => {
+    Alert.alert('Confirm Delete', 'Are you sure you want to delete your account?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
         style: 'destructive',
         onPress: () => {
-          Alert.alert('Account Deleted', 'User removed successfully.', [
+          Alert.alert('Account Deleted', 'Your account has been removed.', [
             { text: 'OK', onPress: () => navigation.navigate('Main') },
           ]);
         },
@@ -87,7 +125,7 @@ export default function ProfileScreen({ navigation, route }) {
     ]);
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     Alert.alert('Log Out', 'Are you sure you want to log out?', [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -96,10 +134,7 @@ export default function ProfileScreen({ navigation, route }) {
         onPress: () => {
           sessionStorage.removeItem('authToken');
           setUser(null);
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'Welcome' }],
-          });
+          navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
         },
       },
     ]);
@@ -110,7 +145,7 @@ export default function ProfileScreen({ navigation, route }) {
       if (Platform.OS !== 'web') {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-          Alert.alert('Permission required', 'Permission to access photos is required to change avatar.');
+          Alert.alert('Permission required', 'Photo library access is required to change your avatar.');
           return;
         }
       }
@@ -122,7 +157,7 @@ export default function ProfileScreen({ navigation, route }) {
         quality: 0.9,
       });
 
-      if (result.canceled || !result.assets || result.assets.length === 0) return;
+      if (result.canceled || !result.assets?.length) return;
 
       const imageUri = result.assets[0].uri;
       setUploading(true);
@@ -144,20 +179,11 @@ export default function ProfileScreen({ navigation, route }) {
         },
       });
 
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
+      if (!response.ok) throw new Error('Upload failed');
 
       const data = await response.json();
       const updatedUser = data.user ?? data;
       setUser(updatedUser);
-      setForm({
-        first_name: updatedUser.first_name ?? updatedUser.firstName ?? '',
-        last_name: updatedUser.last_name ?? updatedUser.lastName ?? '',
-        phone: updatedUser.phone ?? '',
-        about: updatedUser.about ?? '',
-        birthdate: updatedUser.birthdate ?? '',
-      });
       Alert.alert('Avatar Updated', 'Your profile picture has been updated.');
     } catch (error) {
       console.log('Avatar upload error:', error);
@@ -167,9 +193,11 @@ export default function ProfileScreen({ navigation, route }) {
     }
   };
 
+  // ─── Loading / not logged in states ────────────────────────────────────────
+
   if (userLoading) {
     return (
-      <SafeAreaView edges={["bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
+      <SafeAreaView edges={['top', 'bottom']} style={[styles.centered, { backgroundColor: t.background }]}>
         <ActivityIndicator size="large" color={t.accent} />
       </SafeAreaView>
     );
@@ -177,7 +205,7 @@ export default function ProfileScreen({ navigation, route }) {
 
   if (!user) {
     return (
-      <SafeAreaView edges={["bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
+      <SafeAreaView edges={['top', 'bottom']} style={[styles.centered, { backgroundColor: t.background }]}>
         <Text style={{ color: t.secondaryText, fontSize: 16 }}>
           You need to log in to view your profile.
         </Text>
@@ -185,286 +213,410 @@ export default function ProfileScreen({ navigation, route }) {
     );
   }
 
+  // ─── Main render ────────────────────────────────────────────────────────────
+
   return (
-    <SafeAreaView edges={["bottom"]} style={[styles.safeArea, { backgroundColor: t.background }]}>
+    <SafeAreaView edges={['top', 'bottom']} style={[styles.container, { backgroundColor: t.background }]}>
+
+      {/* ── Top Bar ── */}
       <Box style={[styles.topBar, { backgroundColor: t.background, borderBottomColor: t.cardBackground }]}>
-        <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Pressable style={styles.topBarBack} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={24} color={t.accent} />
+        </Pressable>
+        <Text style={[styles.topBarTitle, { color: t.text }]}>Profile</Text>
+        <Pressable style={styles.topBarAction} onPress={() => setShowSettings(true)}>
+          <Ionicons name="settings-sharp" size={22} color={t.secondaryText} />
         </Pressable>
       </Box>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* PROFILE CARD */}
-        <Box style={[styles.profileCard, { backgroundColor: t.cardBackground, borderColor: t.cardBackground }]}>
-          {/* Avatar + camera + cogwheel */}
-          <Box style={styles.avatarContainer}>
-            <Pressable onPress={uploadAvatar} disabled={uploading}>
-              {user?.avatar ? (
-                <Image
-                  source={{ uri: normalizeAvatarUrl(user.avatar) + (user.avatar ? `?v=${encodeURIComponent(user.avatar)}` : '') }}
-                  style={styles.avatar}
-                />
-              ) : (
-                <Box style={[styles.avatarPlaceholder, { backgroundColor: t.cardBackground, borderColor: t.secondaryText }]}>
-                  <Ionicons name="person-circle-outline" size={60} color={t.secondaryText} />
-                </Box>
-              )}
-            </Pressable>
-            <Pressable style={[styles.cameraBtn, { backgroundColor: t.accent }]} onPress={uploadAvatar}>
-              <Ionicons name="camera" size={16} color="#fff" />
-            </Pressable>
-            <Pressable
-              style={[styles.cogBtn, { backgroundColor: t.cardBackground, borderColor: t.secondaryText }]}
-              onPress={() => setShowSettings(true)}
-            >
-              <Ionicons name="settings-sharp" size={18} color={t.text} />
-            </Pressable>
+      <ScrollView showsVerticalScrollIndicator={false}>
+
+        {/* ── Header Section ── */}
+        <Box style={[styles.headerSection, { backgroundColor: t.cardBackground }]}>
+
+          {/* Avatar with camera overlay */}
+          <Pressable style={styles.avatarWrapper} onPress={uploadAvatar} disabled={uploading}>
+            <Avatar
+              uri={user?.avatar ? normalizeAvatarUrl(user.avatar) : null}
+              customSize={120}
+            />
+            {uploading && (
+              <Box style={styles.uploadingOverlay}>
+                <ActivityIndicator color="#fff" />
+              </Box>
+            )}
+            <Box style={[styles.cameraBtn, { backgroundColor: t.accent }]}>
+              <Ionicons name="camera" size={14} color="#fff" />
+            </Box>
+          </Pressable>
+
+          {/* Name + verified */}
+          <Box style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+            <Text style={[styles.displayName, { color: t.text }]}>{getDisplayName()}</Text>
+            {user?.verified && (
+              <Ionicons name="checkmark-circle" size={20} color="#1DA1F2" style={{ marginLeft: 6 }} />
+            )}
           </Box>
 
-          {/* Display / Edit area */}
-          {!isEditing ? (
-            <>
-              <Text style={[styles.title, { color: t.text }]}>{getDisplayName()}</Text>
+          {user?.email && (
+            <Text style={[styles.email, { color: t.secondaryText }]}>{user.email}</Text>
+          )}
 
-              {user?.about ? <Text style={[styles.about, { color: t.secondaryText }]}>{user.about}</Text> : null}
+          {/* Stats row */}
+          <Box style={styles.statsRow}>
+            <Box style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: t.text }]}>{userPosts.length}</Text>
+              <Text style={[styles.statLabel, { color: t.secondaryText }]}>Posts</Text>
+            </Box>
+            <Box style={[styles.statDivider, { backgroundColor: t.border }]} />
+            <Box style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: t.text }]}>
+                {userPosts.reduce((sum, p) => sum + (Number(p.votes) || 0), 0)}
+              </Text>
+              <Text style={[styles.statLabel, { color: t.secondaryText }]}>Total Votes</Text>
+            </Box>
+            <Box style={[styles.statDivider, { backgroundColor: t.border }]} />
+            <Box style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: t.text }]}>
+                {userPosts.reduce((sum, p) => sum + (Number(p.comments) || 0), 0)}
+              </Text>
+              <Text style={[styles.statLabel, { color: t.secondaryText }]}>Comments</Text>
+            </Box>
+          </Box>
 
-              {/* Toggle Extra Info */}
-              <Pressable onPress={() => setShowExtraInfo(!showExtraInfo)}>
-                <Text style={{ color: t.accent, marginTop: 6 }}>
-                  {showExtraInfo ? 'Hide Details' : 'Show Details'}
-                </Text>
-              </Pressable>
-
-              {showExtraInfo && (
-                <>
-                  <Box style={styles.metaRow}>
-                    <Ionicons name="call-outline" size={16} color={t.secondaryText} />
-                    <Text style={[styles.metaText, { color: t.secondaryText }]}>{user.phone ?? 'Not set'}</Text>
-                  </Box>
-
-                  <Box style={styles.metaRow}>
-                    <Ionicons name="calendar-outline" size={16} color={t.secondaryText} />
-                    <Text style={[styles.metaText, { color: t.secondaryText }]}>
-                      {user.birthdate ? new Date(user.birthdate).toLocaleDateString('fi-FI') : 'Not set'}
-                    </Text>
-                  </Box>
-                </>
-              )}
-            </>
-          ) : (
-            <>
-              <TextInput
-                style={[styles.input, { backgroundColor: t.background, borderColor: t.secondaryText, color: t.text }]}
-                value={form.first_name}
-                onChangeText={(text) => setForm({ ...form, first_name: text })}
-                placeholder="First name"
-                placeholderTextColor={t.secondaryText}
-              />
-              <TextInput
-                style={[styles.input, { backgroundColor: t.background, borderColor: t.secondaryText, color: t.text }]}
-                value={form.last_name}
-                onChangeText={(text) => setForm({ ...form, last_name: text })}
-                placeholder="Last name"
-                placeholderTextColor={t.secondaryText}
-              />
-              <TextInput
-                style={[styles.input, { height: 90, backgroundColor: t.background, borderColor: t.secondaryText, color: t.text }]}
-                value={form.about}
-                onChangeText={(text) => setForm({ ...form, about: text })}
-                placeholder="About"
-                placeholderTextColor={t.secondaryText}
-                multiline
-              />
-
-              {/* Toggle Extra Info in Edit */}
-              <Pressable onPress={() => setShowExtraInfo(!showExtraInfo)}>
-                <Text style={{ color: t.accent, marginBottom: 6 }}>
-                  {showExtraInfo ? 'Hide Details' : 'Show Details'}
-                </Text>
-              </Pressable>
-
-              {showExtraInfo && (
-                <>
-                  <TextInput
-                    style={[styles.input, { backgroundColor: t.background, borderColor: t.secondaryText, color: t.text }]}
-                    value={form.phone}
-                    onChangeText={(text) => setForm({ ...form, phone: text })}
-                    placeholder="Phone number"
-                    placeholderTextColor={t.secondaryText}
-                  />
-                  <TextInput
-                    style={[styles.input, { backgroundColor: t.background, borderColor: t.secondaryText, color: t.text }]}
-                    value={form.birthdate}
-                    onChangeText={(text) => setForm({ ...form, birthdate: text })}
-                    placeholder="Birthdate (YYYY-MM-DD)"
-                    placeholderTextColor={t.secondaryText}
-                  />
-                </>
-              )}
-
-              <Box style={styles.buttonRow}>
-                <Pressable onPress={() => setIsEditing(false)}>
-                  <Text style={[styles.btnCancel, { color: t.secondaryText }]}>Cancel</Text>
-                </Pressable>
-                <Pressable onPress={handleSave}>
-                  <Text style={[styles.btnSave, { color: t.accent }]}>Save</Text>
-                </Pressable>
-              </Box>
-            </>
+          {user?.created_at && (
+            <Text style={[styles.memberSince, { color: t.secondaryText }]}>
+              Member since {formatTime(user.created_at, translate)}
+            </Text>
           )}
         </Box>
 
-        {/* COMING FEATURES */}
-        <Box style={[styles.featuresCard, { backgroundColor: t.cardBackground }]}>
-          <Text style={[styles.featuresTitle, { color: t.text }]}>🚀 Coming Soon </Text>
-          <Text style={[styles.featuresTitle, { color: t.text }]}>More features will be added here 👀 </Text>
+        {/* ── Tabs ── */}
+        <Box style={[styles.tabContainer, { backgroundColor: t.cardBackground, borderBottomColor: t.border }]}>
+          {['Posts', 'About'].map((tab) => (
+            <Pressable
+              key={tab}
+              style={[
+                styles.tab,
+                selectedTab === tab && { borderBottomColor: t.accent, borderBottomWidth: 2 },
+              ]}
+              onPress={() => setSelectedTab(tab)}
+            >
+              <Text style={[styles.tabText, { color: selectedTab === tab ? t.accent : t.secondaryText }]}>
+                {tab === 'Posts' ? `Posts (${userPosts.length})` : 'About'}
+              </Text>
+            </Pressable>
+          ))}
         </Box>
+
+        {/* ── Posts Tab ── */}
+        {selectedTab === 'Posts' && (
+          <Box style={styles.postsContainer}>
+            {postsLoading ? (
+              <Box style={styles.emptyState}>
+                <ActivityIndicator color={t.accent} />
+              </Box>
+            ) : userPosts.length > 0 ? (
+              userPosts.map((post, index) => (
+                <Pressable
+                  key={`${post.type}-${post.id}-${index}`}
+                  onPress={() =>
+                    navigation.navigate(post.type === 'poll' ? 'Poll' : 'Discuss', { postData: post })
+                  }
+                >
+                  {post.type === 'poll' ? (
+                    <PollCard {...post} theme={theme} />
+                  ) : (
+                    <DiscussionCard {...post} theme={theme} />
+                  )}
+                </Pressable>
+              ))
+            ) : (
+              <Box style={styles.emptyState}>
+                <Ionicons name="document-text-outline" size={64} color={t.secondaryText} />
+                <Text style={[styles.emptyText, { color: t.secondaryText }]}>No posts yet</Text>
+              </Box>
+            )}
+          </Box>
+        )}
+
+        {/* ── About Tab ── */}
+        {selectedTab === 'About' && (
+          <Box style={[styles.aboutContainer, { backgroundColor: t.cardBackground }]}>
+            {!isEditing ? (
+              <>
+                <Box style={styles.aboutHeader}>
+                  <Text style={[styles.aboutTitle, { color: t.text }]}>About</Text>
+                  <Pressable onPress={() => setIsEditing(true)}>
+                    <Ionicons name="pencil-outline" size={20} color={t.accent} />
+                  </Pressable>
+                </Box>
+
+                <Text style={[styles.aboutText, { color: t.secondaryText, fontStyle: user?.about ? 'normal' : 'italic' }]}>
+                  {user?.about || 'No bio yet — tap the pencil to add one.'}
+                </Text>
+
+                {user?.phone && (
+                  <Box style={styles.infoRow}>
+                    <Ionicons name="call-outline" size={18} color={t.secondaryText} />
+                    <Text style={[styles.infoText, { color: t.secondaryText }]}>{user.phone}</Text>
+                  </Box>
+                )}
+
+                {user?.birthdate && (
+                  <Box style={styles.infoRow}>
+                    <Ionicons name="calendar-outline" size={18} color={t.secondaryText} />
+                    <Text style={[styles.infoText, { color: t.secondaryText }]}>
+                      {new Date(user.birthdate).toLocaleDateString()}
+                    </Text>
+                  </Box>
+                )}
+              </>
+            ) : (
+              <>
+                <Text style={[styles.aboutTitle, { color: t.text, marginBottom: 16 }]}>Edit Profile</Text>
+
+                {[
+                  { key: 'first_name', placeholder: 'First name' },
+                  { key: 'last_name', placeholder: 'Last name' },
+                  { key: 'phone', placeholder: 'Phone number' },
+                ].map(({ key, placeholder }) => (
+                  <TextInput
+                    key={key}
+                    style={[styles.input, { backgroundColor: t.background, borderColor: t.border, color: t.text }]}
+                    value={form[key]}
+                    onChangeText={(text) => setForm({ ...form, [key]: text })}
+                    placeholder={placeholder}
+                    placeholderTextColor={t.secondaryText}
+                  />
+                ))}
+
+                <TextInput
+                  style={[styles.input, styles.textArea, { backgroundColor: t.background, borderColor: t.border, color: t.text }]}
+                  value={form.about}
+                  onChangeText={(text) => setForm({ ...form, about: text })}
+                  placeholder="About me"
+                  placeholderTextColor={t.secondaryText}
+                  multiline
+                />
+
+                <Box style={styles.buttonRow}>
+                  <Pressable
+                    style={[styles.btnCancel, { borderColor: t.border }]}
+                    onPress={() => setIsEditing(false)}
+                  >
+                    <Text style={{ color: t.secondaryText, fontWeight: '600' }}>Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.btnSave, { backgroundColor: t.accent }]}
+                    onPress={handleSave}
+                  >
+                    <Text style={{ color: '#fff', fontWeight: '700' }}>Save</Text>
+                  </Pressable>
+                </Box>
+              </>
+            )}
+          </Box>
+        )}
       </ScrollView>
 
-      {/* SETTINGS BOTTOM SHEET */}
-      {
-        showSettings && (
-          <Box style={[styles.settingsSheet, { backgroundColor: t.cardBackground }]}>
-            <Pressable style={styles.sheetBtn} onPress={() => { setIsEditing(true); setShowSettings(false); }}>
-              <Text style={[styles.sheetText, { color: t.text }]}>Edit Profile</Text>
-            </Pressable>
+      {/* ── Settings Bottom Sheet (Modal) ── */}
+      <Modal
+        visible={showSettings}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowSettings(false)}
+      >
+        <Pressable style={styles.modalBackdrop} onPress={() => setShowSettings(false)} />
+        <Box style={[styles.settingsSheet, { backgroundColor: t.cardBackground }]}>
+          <Box style={[styles.sheetHandle, { backgroundColor: t.border }]} />
 
-            <Pressable style={styles.sheetBtn} onPress={() => { setShowSettings(false); handleLogout(); }}>
-              <Text style={[styles.sheetText, { color: t.text }]}>Log Out</Text>
-            </Pressable>
+          <Pressable
+            style={styles.sheetBtn}
+            onPress={() => { setShowSettings(false); handleLogout(); }}
+          >
+            <Ionicons name="log-out-outline" size={20} color={t.text} />
+            <Text style={[styles.sheetText, { color: t.text }]}>Log Out</Text>
+          </Pressable>
 
-            <Pressable style={styles.sheetBtn} onPress={() => { setShowSettings(false); handleDelete(); }}>
-              <Text style={[styles.sheetText, { color: 'red' }]}>Delete Account</Text>
-            </Pressable>
+          <Box style={[styles.sheetDivider, { backgroundColor: t.border }]} />
 
-            <Pressable style={styles.sheetCancel} onPress={() => setShowSettings(false)}>
-              <Text style={[styles.sheetText, { color: t.text }]}>Cancel</Text>
-            </Pressable>
-          </Box>
-        )
-      }
+          <Pressable
+            style={styles.sheetBtn}
+            onPress={() => { setShowSettings(false); handleDelete(); }}
+          >
+            <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+            <Text style={[styles.sheetText, { color: '#FF3B30' }]}>Delete Account</Text>
+          </Pressable>
+
+          <Pressable
+            style={[styles.sheetCancelBtn, { backgroundColor: t.background }]}
+            onPress={() => setShowSettings(false)}
+          >
+            <Text style={{ color: t.secondaryText, fontWeight: '600', fontSize: 16 }}>Cancel</Text>
+          </Pressable>
+        </Box>
+      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1 },
+  container: { flex: 1 },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+
+  // ── Top Bar ──
   topBar: {
-    height: 80,
-    width: '100%',
+    height: 56,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 12,
     borderBottomWidth: 1,
   },
-  backButton: { flexDirection: 'row', alignItems: 'center', paddingTop: 20 },
+  topBarBack: { padding: 6, width: 40 },
+  topBarTitle: { fontSize: 17, fontWeight: '700' },
+  topBarAction: { padding: 6, width: 40, alignItems: 'flex-end' },
 
-  scrollContent: { alignItems: 'center', paddingHorizontal: 16, paddingBottom: 40 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-
-  profileCard: {
-    width: '100%',
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 18,
-    marginTop: 18,
+  // ── Header ──
+  headerSection: {
+    padding: 24,
     alignItems: 'center',
+    marginBottom: 8,
   },
-
-  avatarContainer: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+  avatarWrapper: {
     position: 'relative',
-    marginBottom: 12,
+    marginBottom: 16,
+    width: 120,
+    height: 120,
   },
-
-  avatar: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
+  uploadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 60,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cameraBtn: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 2,
     borderColor: '#fff',
   },
+  displayName: { fontSize: 22, fontWeight: '700' },
+  email: { fontSize: 13, marginBottom: 16 },
+  memberSince: { fontSize: 12, marginTop: 8 },
 
-  avatarPlaceholder: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-    justifyContent: 'center',
+  // ── Stats ──
+  statsRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    width: '100%',
+    paddingVertical: 16,
   },
+  statItem: { alignItems: 'center', flex: 1 },
+  statNumber: { fontSize: 20, fontWeight: '700', marginBottom: 4 },
+  statLabel: { fontSize: 12 },
+  statDivider: { width: 1, height: 36 },
 
-  cameraBtn: {
-    position: 'absolute',
-    bottom: 6,
-    right: '30%',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
+  // ── Tabs ──
+  tabContainer: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 14,
     alignItems: 'center',
-    elevation: 4,
   },
+  tabText: { fontSize: 15, fontWeight: '600' },
 
-  cogBtn: {
-    position: 'absolute',
-    top: 10,
-    right: 12,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
+  // ── Posts ──
+  postsContainer: { paddingBottom: 20 },
+  emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
+  emptyText: { fontSize: 15, marginTop: 12 },
+
+  // ── About / Edit ──
+  aboutContainer: {
+    margin: 16,
+    padding: 20,
+    borderRadius: 14,
+  },
+  aboutHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    borderWidth: 1,
-    elevation: 4,
+    marginBottom: 12,
   },
-
-  title: { fontSize: 20, fontWeight: '700', marginTop: 6 },
-  about: { fontSize: 14, textAlign: 'center', marginTop: 6, marginBottom: 8 },
-
-  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
-  metaText: { marginLeft: 8, fontSize: 15 },
+  aboutTitle: { fontSize: 18, fontWeight: '700' },
+  aboutText: { fontSize: 14, lineHeight: 22, marginBottom: 16 },
+  infoRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 6 },
+  infoText: { fontSize: 14, marginLeft: 10 },
 
   input: {
     borderWidth: 1,
-    padding: 10,
     borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 15,
     marginBottom: 12,
-    fontSize: 16,
-    width: '100%',
+  },
+  textArea: { height: 90, textAlignVertical: 'top' },
+
+  buttonRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
+  btnCancel: {
+    flex: 1,
+    marginRight: 8,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  btnSave: {
+    flex: 1,
+    marginLeft: 8,
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
   },
 
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginTop: 10,
+  // ── Settings Modal ──
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
-
-  btnCancel: { fontSize: 16, fontWeight: '600' },
-  btnSave: { fontSize: 16, fontWeight: '700' },
-
-  featuresCard: {
-    width: '100%',
-    borderRadius: 12,
-    padding: 14,
-    marginTop: 14,
-  },
-  featuresTitle: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
-  featureItem: { fontSize: 15, marginVertical: 4 },
-
   settingsSheet: {
-    position: 'absolute',
-    bottom: 40,
-    left: 0,
-    right: 0,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    elevation: 12,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 36,
+    paddingTop: 12,
   },
-  sheetBtn: { paddingVertical: 14 },
-  sheetCancel: { paddingVertical: 14, marginTop: 6 },
-  sheetText: { textAlign: 'center', fontWeight: '600', fontSize: 16 },
+  sheetHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  sheetBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    gap: 14,
+  },
+  sheetText: { fontSize: 16, fontWeight: '600' },
+  sheetDivider: { height: 1 },
+  sheetCancelBtn: {
+    marginTop: 12,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
 });

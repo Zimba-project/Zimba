@@ -6,8 +6,8 @@ const API_BASE = process.env.EXPO_PUBLIC_API_BASE;
 
 const sizes = { sm: 32, md: 40, lg: 56 };
 
-const Avatar = ({ uri, size = 'md' }) => {
-    const dim = sizes[size];
+const Avatar = ({ uri, size = 'md', customSize }) => {
+    const dim = customSize ?? sizes[size] == sizes.md;
     const fullUri = uri?.startsWith('http') ? uri : uri ? `${API_BASE}/${uri}` : null;
 
     return (

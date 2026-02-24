@@ -37,8 +37,7 @@ const CardHeader = ({ author, topic }) => {
       <Pressable onPress={handleProfilePress}>
         <Avatar
           uri={author.avatar}
-          style={{ width: 40, height: 40, borderRadius: 20, overflow: 'hidden' }}
-          imageStyle={{ resizeMode: 'cover' }}
+          customSize={40}
         />
       </Pressable>
 
