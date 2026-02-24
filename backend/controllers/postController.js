@@ -220,6 +220,58 @@ exports.getPollOptions = async (req, res) => {
   }
 };
 
+// ---------------- GET POLL QUESTIONS FOR A POST ----------------
+exports.getPollQuestions = async (req, res) => {
+  const postId = parseInt(req.params.postId ?? req.params.id, 10);
+  if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
+
+  try {
+    const result = await pgPool.query(`
+      SELECT 
+        pq.id AS question_id,
+        pq.text AS question_text,
+        pq.allow_multiple,
+        pq.position AS question_position,
+        po.id AS option_id,
+        po.text AS option_text,
+        po.position AS option_position,
+        po.votes
+      FROM poll_questions pq
+      JOIN poll_options po ON pq.id = po.question_id
+      WHERE pq.post_id = $1
+      ORDER BY pq.position ASC, po.position ASC;
+    `, [postId]);
+
+    if (!result.rows.length) return res.status(404).json({ error: "No poll found" });
+
+    // Group rows by question
+    const questions = [];
+    const map = {};
+    for (const row of result.rows) {
+      if (!map[row.question_id]) {
+        map[row.question_id] = {
+          id: row.question_id,
+          text: row.question_text,
+          allow_multiple: row.allow_multiple,
+          position: row.question_position,
+          options: []
+        };
+        questions.push(map[row.question_id]);
+      }
+      map[row.question_id].options.push({
+        id: row.option_id,
+        text: row.option_text,
+        votes: row.votes
+      });
+    }
+
+    res.status(200).json({ questions });
+  } catch (err) {
+    console.error("Error fetching poll questions:", err);
+    res.status(500).json({ error: "Server error fetching poll questions", detail: err.message });
+  }
+};
+
 // ---------- VOTE ----------
 
 exports.votePoll = async (req, res) => {

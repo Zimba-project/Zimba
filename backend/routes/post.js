@@ -6,6 +6,7 @@ router.get('/', postController.getAllPosts);
 router.post('/', postController.createPost);
 
 router.get('/:id/options', postController.getPollOptions);
+router.get('/:id/questions', postController.getPollQuestions);
 router.post('/:id/vote', postController.votePoll);
 
 router.get('/:id/comments', postController.getPostComments);

@@ -25,7 +25,7 @@ export const getPollOptions = async (postId) => {
 };
 
 export const getPollQuestions = async (postId) => {
-  const res = await request(`/posts/${postId}/options`);
+  const res = await request(`/posts/${postId}/questions`);
   if (!res.ok) throw new Error(res.body?.error || `Error fetching poll questions (status ${res.status})`);
   return res.body.questions; // note: questions array now
 };
