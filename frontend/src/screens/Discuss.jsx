@@ -210,6 +210,7 @@ export default function DiscussScreen() {
   }
 
   const {
+    author_id,
     author_name,
     author_avatar,
     title,
@@ -228,7 +229,7 @@ export default function DiscussScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={80} style={{ flex: 1 }}>
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 24 }}>
           <CardHeader
-            author={{ avatar: avatarUrl, name: author_name, time: created_at, verified: false }}
+            author={{ id: author_id, avatar: avatarUrl, name: author_name, time: created_at, verified: false }}
             topic={topic}
           />
 
@@ -299,6 +300,7 @@ export default function DiscussScreen() {
                   <Box style={[styles.commentCard, { backgroundColor: t.cardBackground }]}>
                     <CardHeader
                       author={{
+                        id: item.user_id,
                         avatar: normalizeAvatarUrl(item.author_avatar),
                         name: item.author_name || 'Unknown',
                         time: item.created_at,

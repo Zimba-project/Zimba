@@ -17,6 +17,7 @@ const API_BASE = process.env.EXPO_PUBLIC_API_BASE.replace(/\/api$/, '');
 const PollCard = ({
   id,
   topic = 'Poll',
+  author_id,
   author_name,
   author_avatar,
   author_verified,
@@ -62,6 +63,7 @@ const PollCard = ({
       <CardContainer>
         <CardHeader
           author={{
+            id: author_id,
             avatar: author_avatar?.startsWith('http')
               ? author_avatar
               : author_avatar

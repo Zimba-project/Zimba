@@ -8,6 +8,7 @@ import MainScreen from './screens/MainScreen';
 import Login from './screens/Login';
 import Register from './screens/Register';
 import Profile from './screens/Profile';
+import UserProfile from './screens/UserProfile';
 import Discuss from './screens/Discuss';
 import Sidebar from './navigation/Sidebar';
 import Poll from './screens/Poll';
@@ -65,6 +66,7 @@ const RootApp = () => {
             <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="Register" component={Register} />
             <Stack.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
+            <Stack.Screen name="UserProfile" component={UserProfile} options={{ title: 'User Profile' }} />
             <Stack.Screen name="Discuss" component={Discuss} />
             <Stack.Screen name="Poll" component={Poll} />
             <Stack.Screen name="Search" component={Search} />

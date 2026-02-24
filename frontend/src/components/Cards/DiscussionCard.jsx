@@ -15,6 +15,7 @@ const API_BASE = process.env.EXPO_PUBLIC_API_BASE.replace(/\/api$/, '');
 const DiscussionCard = ({
   id,
   topic = 'Discussion',
+  author_id,
   author_name,
   author_avatar,
   author_verified,
@@ -69,7 +70,7 @@ const DiscussionCard = ({
       <CardContainer>
         {/* HEADER */}
         <CardHeader
-          author={{ avatar: avatarUrl, name: author_name, time: created_at, verified: author_verified }}
+          author={{ id: author_id, avatar: avatarUrl, name: author_name, time: created_at, verified: author_verified }}
           topic={topic}
         />
 

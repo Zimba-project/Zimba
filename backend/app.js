@@ -6,6 +6,7 @@ const authRoutes = require("./routes/auth");
 const postRoutes = require("./routes/post");
 const uploadRoutes = require("./routes/upload");
 const aiRoutes = require("./routes/ai");
+const usersRoutes = require("./routes/users");
 
 console.log("Gemini AI integration ready");
 const path = require('path');
@@ -22,6 +23,7 @@ app.get('/', (req, res) => {
 
 app.use("/api", registerTestRoute);
 app.use("/api/auth", authRoutes);
+app.use("/api/users", usersRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use('/uploads', express.static('/storage/uploads'));
