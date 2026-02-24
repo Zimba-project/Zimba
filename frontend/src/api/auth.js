@@ -6,11 +6,13 @@ export const login = (data) => request('/auth/login', 'POST', data);
 export const me = (token) => request('/auth/me', "GET", null, token);
 
 export const getUserById = async (userId) => {
-  console.log('getUserById called with userId:', userId);
-  const res = await request(`/users/${userId}`, 'GET');
-  console.log('getUserById response:', { ok: res.ok, status: res.status, body: res.body });
-  if (!res.ok) throw new Error(res.body?.message || res.body?.error || `Error fetching user (status ${res.status})`);
-  return res.body; // returns { user, posts, postCount }
+  try {
+    const res = await request(`/users/${userId}`, 'GET');
+    return res.body;
+  } catch (err) {
+    console.log('Full error:', err.stack); // <-- shows exact file + line
+    throw err;
+  }
 };
 
 export const updateUser = async (userId, data) => {

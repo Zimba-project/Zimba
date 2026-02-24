@@ -111,7 +111,7 @@ export default function UserProfileScreen({ navigation, route }) {
             />
             {userData.verified && (
               <Box style={styles.verifiedBadge}>
-                <Ionicons name="checkmark-circle" size={32} color="#1DA1F2" />
+                <Ionicons name="checkmark-circle" size={16} color="#1DA1F2" />
               </Box>
             )}
           </Box>
@@ -316,8 +316,8 @@ const styles = StyleSheet.create({
   },
   verifiedBadge: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
+    top: 0,
+    right: -5,
     backgroundColor: '#FFF',
     borderRadius: 16,
   },
