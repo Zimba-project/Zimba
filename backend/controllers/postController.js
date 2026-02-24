@@ -235,9 +235,14 @@ exports.getPollQuestions = async (req, res) => {
         po.id AS option_id,
         po.text AS option_text,
         po.position AS option_position,
-        po.votes
+        COALESCE(v.vote_count, 0) AS votes
       FROM poll_questions pq
       JOIN poll_options po ON pq.id = po.question_id
+      LEFT JOIN (
+        SELECT option_id, COUNT(*) AS vote_count
+        FROM post_votes
+        GROUP BY option_id
+      ) v ON po.id = v.option_id
       WHERE pq.post = $1
       ORDER BY pq.position ASC, po.position ASC;
     `, [postId]);
@@ -261,7 +266,7 @@ exports.getPollQuestions = async (req, res) => {
       map[row.question_id].options.push({
         id: row.option_id,
         text: row.option_text,
-        votes: row.votes
+        votes: parseInt(row.votes, 10)
       });
     }
 
