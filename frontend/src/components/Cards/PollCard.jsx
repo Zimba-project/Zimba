@@ -8,6 +8,8 @@ import CardContainer from './CardContainer';
 import { formatTime } from '../../utils/TimeFormatter';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
+import { getTopicColors } from '../../utils/TopicColors';
+import { useTranslation } from 'react-i18next';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
 import { Pressable } from '@/components/ui/pressable';
@@ -34,6 +36,8 @@ const PollCard = ({
   const navigation = useNavigation();
   const themeFromProvider = useTheme();
   const t = getTheme(themeFromProvider?.theme);
+  const { t: translate } = useTranslation();
+  const { bg: topicBg, text: topicText } = getTopicColors(topic);
 
   const handlePress = () => {
     const postData = {
@@ -58,9 +62,12 @@ const PollCard = ({
 
   const imageUrl = image ? (image.startsWith('http') ? image : `${API_BASE}${image}`) : null;
 
+  const formattedEndTime = formatTime(end_time, translate);
+
   return (
     <Pressable onPress={handlePress} style={{}}>
       <CardContainer>
+        {/* HEADER - Without badge */}
         <CardHeader
           author={{
             id: author_id,
@@ -73,15 +80,31 @@ const PollCard = ({
             time: created_at,
             verified: author_verified
           }}
-          topic={topic}
+          topic={null}
         />
 
+        {/* IMAGE with BADGE overlay */}
         {imageUrl && (
-          <ImageBackground source={{ uri: imageUrl }} style={styles.image}>
-            <Box style={styles.overlay}>
-              <Text style={styles.imageTitle}>{title}</Text>
-            </Box>
-          </ImageBackground>
+          <Box style={styles.imageWrapper}>
+            <ImageBackground source={{ uri: imageUrl }} style={styles.image}>
+              <Box style={styles.overlay}>
+                <Text style={styles.imageTitle}>{title}</Text>
+              </Box>
+            </ImageBackground>
+            
+            {/* Topic Badge - Top Right Corner */}
+            {topic && (
+              <Box style={[styles.badge, { backgroundColor: topicBg }]}>
+                <Text
+                  style={[styles.badgeText, { color: topicText }]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {translate(`topics.${topic}`, topic)}
+                </Text>
+              </Box>
+            )}
+          </Box>
         )}
 
         <Box style={[styles.body, { backgroundColor: t.cardBackground }]}>
@@ -92,13 +115,13 @@ const PollCard = ({
           </Text>
 
           <Pressable style={[styles.pollButton, { backgroundColor: t.accent }]} onPress={handlePress}>
-            <Text style={styles.pollButtonText}>Take a Poll</Text>
+            <Text style={styles.pollButtonText}>{translate('take_poll')}</Text>
           </Pressable>
 
           <Box style={styles.endTime}>
             <Icon name="clock" size={14} color={t.secondaryText} />
             <Text style={[styles.endTimeText, { color: t.secondaryText }]}>
-              Ends: {formatTime(end_time)}
+              Ends: {formattedEndTime}
             </Text>
           </Box>
 
@@ -110,23 +133,58 @@ const PollCard = ({
 };
 
 const styles = StyleSheet.create({
+  imageWrapper: {
+    position: 'relative',
+    width: '100%',
+  },
   image: {
     width: '100%',
     height: 180,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
     overflow: 'hidden',
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
     justifyContent: 'flex-end',
     padding: 16,
   },
-  imageTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  body: { padding: 16 },
-  title: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
-  description: { fontSize: 14, marginBottom: 12 },
+  imageTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  badge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: {
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: -0.2,
+  },
+  body: {
+    padding: 16,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 8,
+    letterSpacing: -0.3,
+  },
+  description: {
+    fontSize: 14,
+    marginBottom: 12,
+    lineHeight: 20,
+  },
   pollButton: {
     paddingVertical: 14,
     borderRadius: 12,
@@ -138,8 +196,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
-  endTime: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  endTimeText: { marginLeft: 6, fontSize: 12 },
+  endTime: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 6,
+  },
+  endTimeText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
 });
 
 export default React.memo(PollCard);

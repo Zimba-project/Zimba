@@ -25,11 +25,15 @@ export const PostFilterBar = ({
     { key: 'top', icon: 'star' },
   ];
 
-  const DROPDOWN_OPTIONS = ['all', 'discussions', 'polls'];
+  const DROPDOWN_OPTIONS = [
+    { key: 'all', icon: 'apps' },
+    { key: 'discussions', icon: 'chatbubble-ellipses' },
+    { key: 'polls', icon: 'bar-chart' },
+  ];
 
   return (
     <Box style={styles.container}>
-      {/* Tabs */}
+      {/* Tabs (UNCHANGED) */}
       <Box style={styles.tabsContainer}>
         {TABS.map(({ key, icon }) => {
           const isActive = selectedTab === key;
@@ -39,15 +43,28 @@ export const PostFilterBar = ({
               style={[
                 styles.tab,
                 {
-                  backgroundColor: isActive ? tTheme.accent : tTheme.cardBackground,
-                  borderColor: isActive ? tTheme.accent : tTheme.inputBorder,
+                  backgroundColor: isActive
+                    ? tTheme.accent
+                    : tTheme.cardBackground,
+                  borderColor: isActive
+                    ? tTheme.accent
+                    : tTheme.inputBorder,
                 },
               ]}
-              onPress={() => setSelectedTab(key)} // store key
+              onPress={() => setSelectedTab(key)}
             >
-              <Ionicons name={icon} size={16} color={isActive ? '#fff' : tTheme.text} />
+              <Ionicons
+                name={icon}
+                size={16}
+                color={isActive ? '#fff' : tTheme.text}
+              />
               {isActive && (
-                <Text style={[styles.tabText, { color: '#fff', marginLeft: 4 }]}>
+                <Text
+                  style={[
+                    styles.tabText,
+                    { color: '#fff', marginLeft: 4 },
+                  ]}
+                >
                   {translate(key)}
                 </Text>
               )}
@@ -56,20 +73,32 @@ export const PostFilterBar = ({
         })}
       </Box>
 
-      {/* Selected filter text */}
-      <Text style={[styles.filterLabel, { color: tTheme.text }]}>
-        {selectedDropdown !== 'all' ? translate(selectedDropdown) : translate('filter')}
-      </Text>
-
-      {/* Filter Icon */}
+      {/* Filter Button */}
       <Pressable
         style={[
           styles.filterButton,
-          { borderColor: tTheme.inputBorder, backgroundColor: tTheme.cardBackground },
+          {
+            borderColor:
+              selectedDropdown !== 'all'
+                ? '#2979FF'
+                : tTheme.inputBorder,
+            backgroundColor:
+              selectedDropdown !== 'all'
+                ? 'rgba(41,121,255,0.12)'
+                : tTheme.cardBackground,
+          },
         ]}
         onPress={() => setDropdownVisible(true)}
       >
-        <Ionicons name="filter" size={18} color={tTheme.text} />
+        <Ionicons
+          name="filter"
+          size={18}
+          color={
+            selectedDropdown !== 'all'
+              ? '#2979FF'
+              : tTheme.text
+          }
+        />
       </Pressable>
 
       {/* Dropdown Modal */}
@@ -79,23 +108,77 @@ export const PostFilterBar = ({
         animationType="fade"
         onRequestClose={() => setDropdownVisible(false)}
       >
-        <Pressable style={styles.modalOverlay} onPress={() => setDropdownVisible(false)}>
-          <Box style={[styles.modalContent, { backgroundColor: tTheme.cardBackground }]}>
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setDropdownVisible(false)}
+        >
+          <Box
+            style={[
+              styles.modalContent,
+              { backgroundColor: tTheme.cardBackground },
+            ]}
+          >
             <FlatList
               data={DROPDOWN_OPTIONS}
-              keyExtractor={item => item}
-              style={{ maxHeight: 120 }}
-              renderItem={({ item }) => (
-                <Pressable
-                  style={styles.modalItem}
-                  onPress={() => {
-                    setSelectedDropdown(item); // store key
-                    setDropdownVisible(false);
-                  }}
-                >
-                  <Text style={{ color: tTheme.text }}>{translate(item)}</Text>
-                </Pressable>
-              )}
+              keyExtractor={item => item.key}
+              style={{ maxHeight: 160 }}
+              renderItem={({ item }) => {
+                const isSelected =
+                  selectedDropdown === item.key;
+
+                return (
+                  <Pressable
+                    style={[
+                      styles.modalItem,
+                      {
+                        backgroundColor: isSelected
+                          ? 'rgba(41,121,255,0.15)'
+                          : 'transparent',
+                        borderRadius: 8,
+                      },
+                    ]}
+                    onPress={() => {
+                      setSelectedDropdown(item.key);
+                      setDropdownVisible(false);
+                    }}
+                  >
+                    <Box style={styles.dropdownRow}>
+                      <Ionicons
+                        name={item.icon}
+                        size={18}
+                        color={
+                          isSelected
+                            ? '#2979FF'
+                            : tTheme.text
+                        }
+                        style={{ marginRight: 10 }}
+                      />
+
+                      <Text
+                        style={{
+                          flex: 1,
+                          color: isSelected
+                            ? '#2979FF'
+                            : tTheme.text,
+                          fontWeight: isSelected
+                            ? '600'
+                            : '400',
+                        }}
+                      >
+                        {translate(item.key)}
+                      </Text>
+
+                      {isSelected && (
+                        <Ionicons
+                          name="checkmark"
+                          size={18}
+                          color="#2979FF"
+                        />
+                      )}
+                    </Box>
+                  </Pressable>
+                );
+              }}
             />
           </Box>
         </Pressable>
@@ -105,8 +188,17 @@ export const PostFilterBar = ({
 };
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row', alignItems: 'center', padding: 8, gap: 8 },
-  tabsContainer: { flexDirection: 'row', gap: 8, flex: 1 },
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    gap: 8,
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    flex: 1,
+  },
   tab: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -115,8 +207,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
   },
-  tabText: { fontWeight: '500', fontSize: 14 },
-  filterLabel: { marginRight: 4, fontWeight: '500', fontSize: 14 },
+  tabText: {
+    fontWeight: '500',
+    fontSize: 14,
+  },
   filterButton: {
     padding: 10,
     borderRadius: 20,
@@ -131,12 +225,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    borderRadius: 10,
-    padding: 8,
-    minWidth: 120,
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    minWidth: 180,     
+    maxWidth: 180,     
   },
   modalItem: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  dropdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });

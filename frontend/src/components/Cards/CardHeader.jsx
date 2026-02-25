@@ -12,16 +12,36 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 
+// Helper function to get relative time
+const getRelativeTime = (timestamp, t) => {
+  const now = new Date();
+  const postTime = new Date(timestamp);
+  const diffMs = now - postTime;
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffSecs < 5) return t('time.justNow', 'just now');
+  if (diffSecs < 60) return t('time.secondsAgo', '{{count}} seconds ago', { count: diffSecs }).replace('{{count}}', diffSecs);
+  if (diffMins < 60) return t('time.minutesAgo', '{{count}} minutes ago', { count: diffMins }).replace('{{count}}', diffMins);
+  if (diffHours < 24) return t('time.hoursAgo', '{{count}} hours ago', { count: diffHours }).replace('{{count}}', diffHours);
+  return t('time.daysAgo', '{{count}} day ago', { count: diffDays }).replace('{{count}}', diffDays);
+};
+
+const shouldShowFullDate = (timestamp) => {
+  const now = new Date();
+  const postTime = new Date(timestamp);
+  const diffMs = now - postTime;
+  const diffDays = Math.floor(diffMs / 86400000);
+  return diffDays >= 7;
+};
+
 const CardHeader = ({ author, topic }) => {
   const { theme } = useTheme();
   const tTheme = getTheme(theme);
   const navigation = useNavigation();
   const { t, i18n } = useTranslation();
-
-  const localizedTime = useMemo(
-    () => formatTime(author.time, t),
-    [author.time, t, i18n.language]
-  );
 
   const { bg: topicBg, text: topicText } = getTopicColors(topic);
   const localizedTopic = topic ? t(`topics.${topic}`, topic) : '';
@@ -34,48 +54,46 @@ const CardHeader = ({ author, topic }) => {
 
   return (
     <Box style={[styles.header, { backgroundColor: tTheme.cardBackground }]}>
-      {/* Avatar Section */}
-      <Pressable onPress={handleProfilePress} style={styles.avatarContainer}>
-        <Avatar uri={author.avatar} customSize={44} />
-      </Pressable>
-
-      {/* Author Info Section */}
-      <Pressable onPress={handleProfilePress} style={styles.headerCenter}>
-        <Box style={styles.authorRow}>
-          <Text
-            style={[styles.authorName, { color: tTheme.text }]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {author.name}
+      <Box style={styles.mainRow}>
+        <Pressable onPress={handleProfilePress} style={styles.avatarWrapper}>
+          <Avatar uri={author.avatar} customSize={44} />
+        </Pressable>
+        <Pressable onPress={handleProfilePress} style={styles.nameSection}>
+          <Box style={styles.nameRow}>
+            <Text
+              style={[styles.authorName, { color: tTheme.text }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {author.name}
+            </Text>
+            {author.verified && (
+              <Ionicons
+                name="checkmark-circle-sharp"
+                size={15}
+                color="#1DA1F2"
+                style={styles.verifiedIcon}
+              />
+            )}
+          </Box>
+          <Text style={[styles.timeText, { color: tTheme.secondaryText }]}>
+            {shouldShowFullDate(author.time)
+              ? formatTime(author.time, t)
+              : getRelativeTime(author.time, t)}
           </Text>
-
-          {author.verified && (
-            <Ionicons
-              name="checkmark-circle-sharp"
-              size={14}
-              color="#1DA1F2"
-              style={styles.verifiedBadge}
-              accessibilityLabel={t('profile.verified', 'Verified account')}
-            />
-          )}
-        </Box>
-
-        <Text style={[styles.time, { color: tTheme.secondaryText }]}>
-          {localizedTime}
-        </Text>
-      </Pressable>
-
-      {/* Topic Badge Section */}
+        </Pressable>
+      </Box>
       {topic && (
-        <Box style={[styles.topicBadge, { backgroundColor: topicBg }]}>
-          <Text
-            style={[styles.topicText, { color: topicText }]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {localizedTopic}
-          </Text>
+        <Box style={styles.badgeRow}>
+          <Box style={[styles.badge, { backgroundColor: topicBg }]}>
+            <Text
+              style={[styles.badgeText, { color: topicText }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {localizedTopic}
+            </Text>
+          </Box>
         </Box>
       )}
     </Box>
@@ -84,51 +102,57 @@ const CardHeader = ({ author, topic }) => {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    gap: 8,
+  },
+  mainRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     gap: 10,
   },
-  avatarContainer: {
+  avatarWrapper: {
     flexShrink: 0,
   },
-  headerCenter: {
+  nameSection: {
     flex: 1,
     justifyContent: 'center',
+    gap: 2,
   },
-  authorRow: {
+  nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
   authorName: {
-    fontWeight: '600',
+    fontWeight: '700',
     fontSize: 15,
     letterSpacing: -0.3,
-    flexShrink: 1,
   },
-  verifiedBadge: {
+  verifiedIcon: {
     flexShrink: 0,
   },
-  time: {
-    fontSize: 13,
-    marginTop: 4,
+  timeText: {
+    fontSize: 11,
     fontWeight: '500',
     letterSpacing: -0.2,
+    marginTop: 2,
   },
-  topicBadge: {
+  badgeRow: {
+    paddingLeft: 54,
+  },
+  badge: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingVertical: 5,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0,
+    alignSelf: 'flex-start',
   },
-  topicText: {
-    fontSize: 12,
+  badgeText: {
+    fontSize: 11,
     fontWeight: '600',
-    letterSpacing: -0.1,
+    letterSpacing: -0.2,
   },
 });
 

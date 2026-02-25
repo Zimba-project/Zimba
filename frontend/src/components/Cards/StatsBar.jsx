@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { StyleSheet, Share } from 'react-native';
 import { Feather as Icon } from '@expo/vector-icons';
-
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
 import { Pressable } from '@/components/ui/pressable';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
+import { useTranslation } from 'react-i18next';
 
 const StatsBar = ({
   postId,
@@ -19,6 +19,7 @@ const StatsBar = ({
 }) => {
   const { theme } = useTheme();
   const t = getTheme(theme);
+  const { t: translate } = useTranslation();
 
   const [saved, setSaved] = useState(initialSaved);
   const postUrl = `zimbaapp://posts/${postId}`;
@@ -61,7 +62,7 @@ const StatsBar = ({
           <Box style={styles.item}>
             <Icon name="bar-chart-2" size={16} color={t.accent} />
             <Text style={[styles.label, { color: t.secondaryText }]}>
-              {votes.toLocaleString()} Votes
+              {votes.toLocaleString()} {translate('votes')}
             </Text>
           </Box>
         )}
@@ -70,7 +71,7 @@ const StatsBar = ({
           <Box style={styles.item}>
             <Icon name="message-circle" size={16} color={t.accent} />
             <Text style={[styles.label, { color: t.secondaryText }]}>
-              {comments} Comments
+              {comments} {translate('comments')}
             </Text>
           </Box>
         )}

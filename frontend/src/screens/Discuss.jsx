@@ -115,6 +115,7 @@ export default function DiscussScreen() {
   const t = getTheme(theme);
 
   const [commentsList, setCommentsList] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(3);
   const [commentText, setCommentText] = useState('');
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
@@ -133,6 +134,7 @@ export default function DiscussScreen() {
       setLoading(true);
       const comments = await getPostComments(postId);
       setCommentsList(comments);
+      setVisibleCount(3);
     } catch (err) {
       console.error(err);
       Alert.alert('Error', err.message || 'Failed to fetch comments');
@@ -269,7 +271,7 @@ export default function DiscussScreen() {
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 24 }}>
           <CardHeader
             author={{ id: author_id, avatar: avatarUrl, name: author_name, time: created_at, verified: false }}
-            topic={topic}
+            // debug topic={topic}
           />
 
           {imageUrl && <Image source={{ uri: imageUrl }} style={styles.image} />}
@@ -317,25 +319,12 @@ export default function DiscussScreen() {
             {loading ? (
               <ActivityIndicator style={{ marginTop: 20 }} color={t.accent} />
             ) : (
-              <FlatList
-                data={commentsList}
-                keyExtractor={(item) => item.id.toString()}
-                ListEmptyComponent={
-                  <Box style={[styles.emptyState, { backgroundColor: t.cardBackground }]}>
-                    <Icon name="message-circle" size={32} color={t.secondaryText} style={{ opacity: 0.5 }} />
-                    <Text style={[styles.emptyTitle, { color: t.text }]}>No comments yet</Text>
-                    <Text style={[styles.emptyText, { color: t.secondaryText }]}>Be the first to share your thoughts!</Text>
-                  </Box>
-                }
-                ListHeaderComponent={
-                  commentsList?.length > 0 ? (
-                    <Text style={[styles.sectionTitle, { color: t.text }]}>
-                      Comments ({commentsList.length})
-                    </Text>
-                  ) : null
-                }
-                renderItem={({ item }) => (
-                  <Box style={[styles.commentCard, { backgroundColor: t.cardBackground }]}>
+              <>
+                {commentsList.length > 0 && (
+                  <Text style={[styles.sectionTitle, { color: t.text }]}>Comments ({commentsList.length})</Text>
+                )}
+                {commentsList.slice(0, visibleCount).map((item) => (
+                  <Box key={item.id} style={[styles.commentCard, { backgroundColor: t.cardBackground }]}> 
                     <CardHeader
                       author={{
                         id: item.user_id,
@@ -346,9 +335,7 @@ export default function DiscussScreen() {
                       }}
                       topic={null}
                     />
-
                     <Text style={[styles.commentBody, { color: t.text }]}>{item.text}</Text>
-
                     {isLoggedIn && (
                       <Pressable
                         onPress={() => setOpenReplyFor(openReplyFor === item.id ? null : item.id)}
@@ -358,9 +345,8 @@ export default function DiscussScreen() {
                         <Text style={[styles.replyBtnText, { color: openReplyFor === item.id ? '#fff' : t.accent }]}>Reply</Text>
                       </Pressable>
                     )}
-
                     {openReplyFor === item.id && (
-                      <Box style={[styles.replyInputContainer, { backgroundColor: t.inputBackground }]}>
+                      <Box style={[styles.replyInputContainer, { backgroundColor: t.inputBackground }]}> 
                         <TextInput
                           style={[styles.replyInput, { color: t.text }]}
                           placeholder={isLoggedIn ? 'Write a reply...' : 'Log in to reply'}
@@ -382,11 +368,53 @@ export default function DiscussScreen() {
                         </Pressable>
                       </Box>
                     )}
+                    {/* Replies */}
+                    {item.replies && item.replies.length > 0 && (
+                      <Box style={{ marginLeft: 32, marginTop: 4 }}>
+                        {[...item.replies]
+                          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                          .map((reply) => (
+                            <Box key={reply.id} style={{ marginBottom: 6 }}>
+                              <CardHeader
+                                author={{
+                                  id: reply.user_id,
+                                  avatar: normalizeAvatarUrl(reply.author_avatar),
+                                  name: reply.author_name || 'Unknown',
+                                  time: reply.created_at,
+                                  verified: reply.author_verified,
+                                }}
+                                topic={null}
+                              />
+                              <Text
+                                style={[
+                                  styles.commentBody,
+                                  { color: t.text, fontSize: 14 },
+                                ]}
+                              >
+                                {reply.text}
+                              </Text>
+                            </Box>
+                          ))}
+                      </Box>
+                    )}
+                  </Box>
+                ))}
+                {commentsList.length > visibleCount && (
+                  <Pressable
+                    style={{ alignSelf: 'center', marginTop: 8, paddingVertical: 8, paddingHorizontal: 18, borderRadius: 8, backgroundColor: t.accent }}
+                    onPress={() => setVisibleCount((prev) => prev + 3)}
+                  >
+                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>Show more comments</Text>
+                  </Pressable>
+                )}
+                {commentsList.length === 0 && (
+                  <Box style={[styles.emptyState, { backgroundColor: t.cardBackground }]}> 
+                    <Icon name="message-circle" size={32} color={t.secondaryText} style={{ opacity: 0.5 }} />
+                    <Text style={[styles.emptyTitle, { color: t.text }]}>No comments yet</Text>
+                    <Text style={[styles.emptyText, { color: t.secondaryText }]}>Be the first to share your thoughts!</Text>
                   </Box>
                 )}
-                scrollEnabled={false}
-                contentContainerStyle={{ marginTop: 16 }}
-              />
+              </>
             )}
           </Box>
         </ScrollView>
