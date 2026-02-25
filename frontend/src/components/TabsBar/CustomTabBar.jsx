@@ -10,11 +10,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const CustomTabBar = ({ state, navigation, theme }) => {
   const insets = useSafeAreaInsets();
 
-    return (
+  return (
     <HStack
       style={{
         paddingBottom: insets.bottom,
-        height: Platform.OS === 'ios' ? 24 + insets.bottom : 45 + insets.bottom,
+        paddingTop: 8,
+        height: 44 + insets.bottom,
         backgroundColor: theme.background, // <-- dynamic
         justifyContent: 'space-around',
         alignItems: 'center',
@@ -34,7 +35,7 @@ const CustomTabBar = ({ state, navigation, theme }) => {
           <Pressable
             key={route.key}
             onPress={() => navigation.navigate(route.name)}
-            style={{ flex: 1, alignItems: 'center', paddingTop: 5 }}
+            style={{ flex: 1, alignItems: 'center' }}
           >
             <VStack className="items-center justify-center">
               <Ionicons

@@ -1,29 +1,58 @@
+
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Box } from '@/components/ui/box';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
 
-const CardContainer = ({ children, style }) => {
-   const { theme } = useTheme();
-   const t = getTheme(theme);
+const CardContainer = ({ children, style, variant = 'default' }) => {
+  const { theme } = useTheme();
+  const t = getTheme(theme);
+
+  const variantStyles = {
+    default: styles.cardDefault,
+    outlined: styles.cardOutlined,
+    elevated: styles.cardElevated,
+  };
 
   return (
-    <View style={[styles.card, { backgroundColor: t.cardBackground }, style]}>
+    <Box
+      style={[
+        styles.card,
+        variantStyles[variant],
+        { backgroundColor: t.cardBackground },
+        style,
+      ]}
+    >
       {children}
-    </View>
+    </Box>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 16,
-    margin: 16,
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginVertical: 8,
     overflow: 'hidden',
-    elevation: 3,
+  },
+  cardDefault: {
+    elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+  },
+  cardOutlined: {
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.06)',
+  },
+  cardElevated: {
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
   },
 });
 

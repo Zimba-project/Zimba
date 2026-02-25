@@ -1,5 +1,8 @@
 import React, { useEffect } from 'react';
-import { TouchableOpacity, Text, View, StyleSheet, Image } from 'react-native';
+import { StyleSheet, Image } from 'react-native';
+import { Pressable } from '@/components/ui/pressable';
+import { HStack } from '@/components/ui/hstack';
+import { Text } from '@/components/ui/text';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import useCurrentUser from '../../utils/GetUser';
@@ -9,17 +12,10 @@ import { normalizeAvatarUrl } from '../../utils/urlHelper';
 
 export default function RightButton() {
   const navigation = useNavigation();
-  const { user, loading, refreshUser } = useCurrentUser();
+  const { user, loading } = useCurrentUser();
 
   const { theme } = useTheme();
   const t = getTheme(theme);
-  // debug console.log('User',user)
-  useEffect(() => {
-    const unsub = navigation.addListener('focus', () => {
-      refreshUser();
-    });
-    return unsub;
-  }, [navigation, refreshUser]);
 
   const getInitials = () => {
     if (!user) return null;
@@ -40,39 +36,36 @@ export default function RightButton() {
 
   const initials = getInitials();
 
-  if (loading) return <View style={styles.placeholder} />;
+  if (loading) return <HStack style={styles.placeholder} />;
 
   return (
-    <View style={styles.container}>
+    <HStack style={styles.container}>
       {/* Search button */}
-      <TouchableOpacity
+      <Pressable
         style={styles.searchBtn}
         onPress={() => navigation.navigate('Search')}
         accessibilityLabel="Search"
       >
         <Ionicons name="search" size={20} color={t.text} />
-      </TouchableOpacity>
+      </Pressable>
 
       {user?.avatar ? (
-        <TouchableOpacity
-          style={styles.avatar}
-          onPress={() => navigation.navigate('Profile')}
-        >
-        <Image source={{ uri: normalizeAvatarUrl(user.avatar) }} style={styles.avatarImage} />
-        </TouchableOpacity>
+        <Pressable style={styles.avatar} onPress={() => navigation.navigate('Profile')}>
+          <Image source={{ uri: normalizeAvatarUrl(user.avatar) }} style={styles.avatarImage} />
+        </Pressable>
       ) : initials ? (
-        <TouchableOpacity
+        <Pressable
           style={[styles.avatar, { backgroundColor: t.accent }]}
           onPress={() => navigation.navigate('Profile')}
         >
           <Text style={styles.initials}>{initials}</Text>
-        </TouchableOpacity>
+        </Pressable>
       ) : (
-        <TouchableOpacity style={styles.loginBtn} onPress={() => navigation.navigate('Login')}>
+        <Pressable style={styles.loginBtn} onPress={() => navigation.navigate('Login')}>
           <Text style={[styles.loginText, { color: t.accent }]}>Login</Text>
-        </TouchableOpacity>
+        </Pressable>
       )}
-    </View>
+    </HStack>
   );
 }
 
@@ -90,10 +83,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     overflow: 'hidden',
   },
-  avatarImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  initials: { color: '#fff', fontWeight: '700' },
+  avatarImage: { width: 40, height: 40 },
+  initials: { fontWeight: '700', color: '#fff' },
 });

@@ -1,98 +1,71 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TouchableOpacity, StyleSheet, Pressable, Animated, Image } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
-import WelcomeIllustration from '../../assets/welcome.svg';
-import LionMascot from '../../assets/lion2.png'; 
+import WelcomeIllustration from '../../assets/welcomeMascot.png';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
 
 export default function Welcome() {
   const navigation = useNavigation();
   const { theme, toggleTheme } = useTheme();
   const t = getTheme(theme);
 
-  const glowAnim = useRef(new Animated.Value(0)).current;
-
-  const animateGlow = (toValue) => {
-    Animated.spring(glowAnim, {
-      toValue,
-      friction: 5,
-      tension: 150,
-      useNativeDriver: false,
-    }).start();
-  };
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
-      {/* Top Bar */}
-      <View style={styles.topBar}>
-        <Pressable
-          onPress={toggleTheme}
-          onPressIn={() => animateGlow(15)}
-          onPressOut={() => animateGlow(1)}
-          style={{ alignItems: 'center', justifyContent: 'center' }}
-        >
-          <Animated.View
-            style={[
-              styles.iconWrapper,
-              {
-                shadowColor: t.moonIconGlow,
-                shadowOpacity: glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }),
-                shadowRadius: glowAnim.interpolate({ inputRange: [0, 1], outputRange: [6, 14] }),
-                elevation: glowAnim.interpolate({ inputRange: [0, 1], outputRange: [6, 12] }),
-              },
-            ]}
-          >
+      <Box flex={1} px={24} justifyContent="space-between">
+        {/* Top Bar */}
+        <Box style={styles.topBar}>
+          <Pressable onPress={toggleTheme} style={styles.iconWrapper}>
             <Ionicons
               name={theme === 'dark' ? 'moon' : 'moon-outline'}
               size={28}
               color={t.moonIconColor}
             />
-          </Animated.View>
-        </Pressable>
-      </View>
+          </Pressable>
+        </Box>
 
-      {/* Main Content */}
-      <View style={styles.content}>
-        <Text style={[styles.header, { color: t.text }]}>Welcome!</Text>
-      
-        
-        <WelcomeIllustration width={400} height={180} />
-        <Image
-          source={LionMascot}
-          style={styles.lionMascot}
-        />
-        <Text style={[styles.appName, { color: t.moonIconGlow }]}>𝐙𝐢𝐦𝐛𝐚</Text>
-        <Text style={[styles.tagline, { color: t.secondaryText }]}>
-          Enhances your decisions with secure voting,{'\n'}
-          powerful data insights, and AI guidance
-        </Text>
+        {/* Main Content */}
+        <Box style={styles.content}>
+          <Text style={[styles.header, { color: t.text }]}>Welcome!</Text>
 
-        {/* Buttons */}
-        <TouchableOpacity
-          style={[styles.primaryButton, { backgroundColor: t.accent }]}
-          onPress={() => navigation.navigate('Register')}
-        >
-          <Text style={styles.primaryText}>Create Account</Text>
-        </TouchableOpacity>
+          <Image
+            source={WelcomeIllustration}
+            style={styles.welcomeImage}
+            resizeMode="contain"
+          />
 
-        <TouchableOpacity
-          style={[styles.secondaryButton, { backgroundColor: t.cardBackground, borderColor: t.accent }]}
-          onPress={() => navigation.navigate('Login')}
-        >
-          <Text style={[styles.secondaryText, { color: t.accent }]}>
-            Already have an account
+          <Text style={[styles.appName, { color: t.moonIconGlow }]}>𝐙𝐢𝐦𝐛𝐚</Text>
+
+          <Text style={[styles.tagline, { color: t.secondaryText }]}>
+            Enhances your decisions with secure voting,{'\n'}
+            powerful data insights, and AI guidance
           </Text>
-        </TouchableOpacity>
-      </View>
 
-      <TouchableOpacity onPress={() => navigation.replace('Main')}>
-        <Text style={[styles.guestText, { color: t.secondaryText }]}>
-          Continue as a guest
-        </Text>
-      </TouchableOpacity>
+          {/* Buttons */}
+          <Pressable
+            style={[styles.primaryButton, { backgroundColor: t.accent }]}
+            onPress={() => navigation.navigate('Register')}
+          >
+            <Text style={styles.primaryText}>Create Account</Text>
+          </Pressable>
+
+          <Pressable
+            style={[styles.secondaryButton, { backgroundColor: t.cardBackground, borderColor: t.accent }]}
+            onPress={() => navigation.navigate('Login')}
+          >
+            <Text style={[styles.secondaryText, { color: t.accent }]}>Already have an account</Text>
+          </Pressable>
+        </Box>
+
+        <Pressable onPress={() => navigation.replace('Main')}>
+          <Text style={[styles.guestText, { color: t.secondaryText }]}>Continue as a guest</Text>
+        </Pressable>
+      </Box>
     </SafeAreaView>
   );
 }
@@ -100,7 +73,6 @@ export default function Welcome() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 24,
     justifyContent: 'space-between',
   },
   topBar: {
@@ -109,11 +81,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   iconWrapper: {
-    borderRadius: 30,
-    padding: 8,
-    backgroundColor: 'transparent',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   content: {
     flexGrow: 1,
@@ -123,13 +96,12 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 32,
     fontWeight: '700',
-    bottom: 80,
+    bottom: 40,
   },
-  subHeader: {
-    fontSize: 16,
-    marginBottom: 16,
-    textAlign: 'center',
-    right: 40,
+  welcomeImage: {
+    width: 420,
+    height: 270,
+    marginBottom: 24,
   },
   appName: {
     fontSize: 24,
@@ -142,7 +114,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   primaryButton: {
-    width: '100%',
+    width: '80%',
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
@@ -154,7 +126,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   secondaryButton: {
-    width: '100%',
+    width: '80%',
     paddingVertical: 14,
     borderWidth: 1,
     borderRadius: 8,
@@ -170,13 +142,5 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     textAlign: 'center',
     marginBottom: 24,
-  },
-  lionMascot: {
-    position: 'absolute',
-    bottom: 519,
-    right: 25,
-    width: 120,
-    height: 120,
-    zIndex: 1,
   },
 });

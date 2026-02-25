@@ -11,4 +11,7 @@ router.post('/:id/vote', postController.votePoll);
 router.get('/:id/comments', postController.getPostComments);
 router.post('/:id/comments', postController.addPostComment);
 
+// Replies to comments
+router.post('/:id/comments/:commentId/replies', postController.addCommentReply);
+
 module.exports = router;

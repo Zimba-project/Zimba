@@ -1,9 +1,19 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
 
-const COLORS = ['#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#14b8a6', '#ec4899'];
+const COLORS = [
+  '#3b82f6',
+  '#ef4444',
+  '#f59e0b',
+  '#10b981',
+  '#8b5cf6',
+  '#14b8a6',
+  '#ec4899',
+];
 
 const PollResults = ({ options }) => {
   const themeFromProvider = useTheme();
@@ -12,89 +22,116 @@ const PollResults = ({ options }) => {
   const totalVotes = options.reduce((sum, opt) => sum + opt.votes, 0);
 
   return (
-    <View style={{ marginTop: 16 }}>
-      <Text style={[styles.totalVotes, { color: t.text }]}>
-        Total votes: {totalVotes}
+    <Box
+      style={[
+        styles.card,
+        {
+          backgroundColor: t.cardBackground,
+          shadowColor: '#000',
+        },
+      ]}
+    >
+      <Text style={[styles.title, { color: t.text }]}>
+        Poll Results
       </Text>
 
-      {/* Stacked bar */}
-      <View style={[styles.stackedBarBackground, { backgroundColor: t.inputBackground }]}>
-        {options.map((opt, index) => {
-          const percent = totalVotes > 0 ? (opt.votes / totalVotes) * 100 : 0;
-          return (
-            <View
-              key={opt.id}
-              style={[
-                styles.stackedBarSegment,
-                {
-                  width: `${percent}%`,
-                  backgroundColor: COLORS[index % COLORS.length],
-                },
-              ]}
-            />
-          );
-        })}
-      </View>
+      <Text style={[styles.subtitle, { color: t.text }]}>
+        {totalVotes} total votes
+      </Text>
 
-      {/* Row of options below the bar */}
-      <View style={styles.optionsRow}>
+      <Box style={{ marginTop: 12 }}>
         {options.map((opt, index) => {
           const percent = totalVotes > 0 ? (opt.votes / totalVotes) * 100 : 0;
+          const color = COLORS[index % COLORS.length];
+
           return (
-            <View key={opt.id} style={styles.optionItem}>
-              <View
+            <Box key={opt.id} style={styles.optionContainer}>
+              {/* Label Row */}
+              <Box style={styles.optionHeader}>
+                <Text style={[styles.optionLabel, { color: t.text }]}>
+                  {opt.text}
+                </Text>
+                <Text style={[styles.percentText, { color: t.text }]}>
+                  {Math.round(percent)}%
+                </Text>
+              </Box>
+
+              {/* Progress Bar */}
+              <Box
                 style={[
-                  styles.colorBox,
-                  { backgroundColor: COLORS[index % COLORS.length] },
+                  styles.progressBackground,
+                  { backgroundColor: t.inputBackground },
                 ]}
-              />
-              <Text style={[styles.optionText, { color: t.text }]}>
-                {opt.text} ({Math.round(percent)}%)
+              >
+                <Box
+                  style={[
+                    styles.progressFill,
+                    {
+                      width: `${percent}%`,
+                      backgroundColor: color,
+                    },
+                  ]}
+                />
+              </Box>
+
+              {/* Votes */}
+              <Text style={[styles.voteText, { color: t.text }]}>
+                {opt.votes} vote{opt.votes !== 1 ? 's' : ''}
               </Text>
-            </View>
+            </Box>
           );
         })}
-      </View>
-    </View>
+      </Box>
+    </Box>
   );
 };
 
 const styles = StyleSheet.create({
-  stackedBarBackground: {
-    width: '100%',
-    height: 24,
-    borderRadius: 12,
-    flexDirection: 'row',
-    overflow: 'hidden',
-    marginTop: 8,
-    marginBottom: 8,
+  card: {
+    borderRadius: 16,
+    padding: 16,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
-  stackedBarSegment: {
-    height: '100%',
-  },
-  optionsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-  },
-  optionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 12,
-    marginBottom: 4,
-  },
-  colorBox: {
-    width: 16,
-    height: 16,
-    borderRadius: 4,
-    marginRight: 4,
-  },
-  optionText: {
-    fontSize: 14,
-  },
-  totalVotes: {
+  title: {
+    fontSize: 16,
     fontWeight: '700',
+  },
+  subtitle: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  optionContainer: {
+    marginBottom: 16,
+  },
+  optionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  optionLabel: {
     fontSize: 14,
+    fontWeight: '500',
+  },
+  percentText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  progressBackground: {
+    height: 10,
+    borderRadius: 999,
+    overflow: 'hidden',
+    marginTop: 6,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 999,
+  },
+  voteText: {
+    fontSize: 12,
+    marginTop: 4,
   },
 });
 

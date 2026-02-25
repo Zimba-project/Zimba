@@ -28,10 +28,10 @@ export const getTheme = (mode = 'light') => {
 
     // Card background
     cardBackground: isDark ? '#1e293b' : '#ffffff',
-    infoCardBackground: isDark ? '#1e293b' : '#fffef4',      
-    infoCardBackgroundAlt: isDark ? '#334155' : '#fffef6',   
+    infoCardBackground: isDark ? '#1e293b' : '#ffffff',      
+    infoCardBackgroundAlt: isDark ? '#334155' : '#fafafa',   
     // Theme toggle (moon icon)
-    moonIconColor: isDark ? '#facc15' : '#2563eb', // golden yellow in dark mode, accent in light
-    moonIconGlow: isDark ? '#facc15' : '#2563eb',  // optional glow color
+    moonIconColor: isDark ? '#facc15' : '#2563eb',
+    moonIconGlow: isDark ? '#facc15' : '#2563eb',  
   };
 };

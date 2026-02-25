@@ -39,7 +39,11 @@ export function GluestackUIProvider({
     cssVariablesWithMode += `${cssVariables} \n}`;
   });
 
-  setFlushStyles(cssVariablesWithMode);
+  try {
+    setFlushStyles(cssVariablesWithMode);
+  } catch (e) {
+    console.error('setFlushStyles failed; continuing without injected CSS vars', e);
+  }
 
   const handleMediaQuery = React.useCallback((e: MediaQueryListEvent) => {
     script(e.matches ? 'dark' : 'light');

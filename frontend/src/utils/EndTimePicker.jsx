@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, Text, Keyboard, Platform, StyleSheet } from 'react-native';
+import { Keyboard, Platform, StyleSheet } from 'react-native';
+import { Box } from '@/components/ui/box';
+import { Pressable } from '@/components/ui/pressable';
+import { Text } from '@/components/ui/text';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +11,7 @@ import { getTheme } from '../utils/theme';
 
 export const EndTimePicker = ({ endTime, setEndTime }) => {
   const [showPicker, setShowPicker] = useState(false);
-  const [pickerMode, setPickerMode] = useState('date'); // ✅ no type annotation
+  const [pickerMode, setPickerMode] = useState('date');
 
   const { theme } = useTheme();
   const t = getTheme(theme);
@@ -64,9 +67,9 @@ export const EndTimePicker = ({ endTime, setEndTime }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <Box style={styles.container}>
       <Text style={[styles.label, { color: t.text }]}>End Time</Text>
-      <TouchableOpacity
+      <Pressable
         style={[
           styles.timeBox,
           { backgroundColor: t.cardBackground, borderColor: t.secondaryText },
@@ -77,11 +80,11 @@ export const EndTimePicker = ({ endTime, setEndTime }) => {
           {endTime ? format(endTime, 'PPPp') : 'Select date and time'}
         </Text>
         {endTime && (
-          <TouchableOpacity onPress={() => setEndTime(null)} style={styles.clearIcon}>
+          <Pressable onPress={() => setEndTime(null)} style={styles.clearIcon}>
             <Ionicons name="close-circle" size={18} color={t.error || '#dc2626'} />
-          </TouchableOpacity>
+          </Pressable>
         )}
-      </TouchableOpacity>
+      </Pressable>
 
       {showPicker && (
         <DateTimePicker
@@ -92,7 +95,7 @@ export const EndTimePicker = ({ endTime, setEndTime }) => {
           themeVariant={theme === 'dark' ? 'dark' : 'light'}
         />
       )}
-    </View>
+    </Box>
   );
 };
 

@@ -23,15 +23,20 @@ const switchStyle = tva({
 });
 
 type ISwitchProps = React.ComponentProps<typeof UISwitch> &
-  VariantProps<typeof switchStyle>;
+  VariantProps<typeof switchStyle> & {
+    isChecked?: boolean;
+    onToggle?: (value: boolean) => void;
+  };
 const Switch = React.forwardRef<
   React.ComponentRef<typeof UISwitch>,
   ISwitchProps
->(function Switch({ className, size = 'md', ...props }, ref) {
+>(function Switch({ className, size = 'md', isChecked, onToggle, ...props }, ref) {
   return (
     <UISwitch
       ref={ref}
       {...props}
+      value={isChecked}
+      onValueChange={onToggle}
       className={switchStyle({ size, class: className })}
     />
   );

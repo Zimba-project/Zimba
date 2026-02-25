@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  View, TextInput, FlatList, ActivityIndicator, Text,
-  TouchableOpacity, StyleSheet, ScrollView
-} from 'react-native';
+import { TextInput, FlatList, ActivityIndicator, StyleSheet } from 'react-native';
+import { Box } from '@/components/ui/box';
+import { HStack } from '@/components/ui/hstack';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
+import { ScrollView } from '@/components/ui/scroll-view';
 import { Ionicons } from '@expo/vector-icons';
 import { searchPosts } from '../api/postService';
 import DiscussionCard from '../components/Cards/DiscussionCard';
@@ -56,22 +58,22 @@ export default function SearchScreen() {
     return () => clearTimeout(debounceRef.current);
   }, [query]);
 
-  const renderItem = ({ item }) => {
+  const renderItem = useCallback(({ item }) => {
     const onPress = () => {
       navigation.navigate(item._type === 'poll' ? 'Poll' : 'Discuss', { postData: item });
     };
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+      <Pressable onPress={onPress}>
         {item._type === 'poll' ? <PollCard {...item} /> : <DiscussionCard {...item} />}
-      </TouchableOpacity>
+      </Pressable>
     );
-  };
+  }, [navigation]);
 
   const renderSuggestions = () => (
     <ScrollView style={styles.suggestionContainer}>
       <Text style={[styles.sectionTitle, { color: t.text }]}>You may like</Text>
       {suggestionList.map((item, index) => (
-        <TouchableOpacity key={index} onPress={() => setQuery(item)}>
+        <Pressable key={index} onPress={() => setQuery(item)}>
           <Text style={[styles.suggestionText, { color: t.text }]}>
             {item.includes(query) ? (
               <>
@@ -80,14 +82,14 @@ export default function SearchScreen() {
               </>
             ) : item}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       ))}
     </ScrollView>
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
-      <View style={[styles.searchRow, { backgroundColor: t.cardBackground }]}>
+    <SafeAreaView edges={["bottom"]} style={[styles.container, { backgroundColor: t.background }]}>
+      <HStack style={[styles.searchRow, { backgroundColor: t.cardBackground }]}>
         <Ionicons name="search" size={18} color={t.secondaryText} style={{ marginLeft: 8 }} />
         <TextInput
           placeholder="Search posts, topics, authors..."
@@ -98,28 +100,26 @@ export default function SearchScreen() {
           returnKeyType="search"
         />
         {query.length > 0 && (
-          <TouchableOpacity onPress={() => setQuery('')} style={styles.clearBtn}>
+          <Pressable onPress={() => setQuery('')} style={styles.clearBtn}>
             <Ionicons name="close" size={16} color={t.secondaryText} />
-          </TouchableOpacity>
+          </Pressable>
         )}
-      </View>
+      </HStack>
 
       {query.length === 0 ? (
         renderSuggestions()
       ) : loading ? (
-        <View style={styles.center}>
+        <Box style={styles.center}>
           <ActivityIndicator size="large" color={t.accent} />
-        </View>
+        </Box>
       ) : results.length === 0 ? (
-        <View style={styles.center}>
-          <Text style={[styles.emptyText, { color: t.secondaryText }]}>
-            No results for “{query}”.
-          </Text>
-        </View>
+        <Box style={styles.center}>
+          <Text style={[styles.emptyText, { color: t.secondaryText }]}>No results for “{query}”.</Text>
+        </Box>
       ) : (
         <FlatList
           data={results}
-          keyExtractor={(it) => String(it.id ?? it._id ?? Math.random())}
+          keyExtractor={(it, idx) => String(it.id ?? it._id ?? idx)}
           renderItem={renderItem}
           contentContainerStyle={{ paddingBottom: 120 }}
         />

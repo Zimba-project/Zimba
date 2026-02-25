@@ -1,30 +1,34 @@
 import React, { useEffect } from 'react';
-import { View, Image, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { Image, ActivityIndicator, StyleSheet } from 'react-native';
+import { Box } from '@/components/ui/box';
+import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
+import { getTheme } from '../utils/theme';
 import * as SplashScreen from 'expo-splash-screen';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function Splash({ onFinish }) {
+  const { theme } = useTheme();
+  const t = getTheme(theme);
   useEffect(() => {
     const timer = setTimeout(async () => {
-      await SplashScreen.hideAsync(); 
-      onFinish(); 
-    }, 2000); 
+      await SplashScreen.hideAsync();
+      onFinish();
+    }, 2000);
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <View style={styles.container}>
+    <Box style={[styles.container, { backgroundColor: t.accent }]}>
       <Image source={require('../../assets/splash-icon.png')} style={styles.icon} />
       <ActivityIndicator size="large" color="#ffffff" style={{ marginTop: 20 }} />
-    </View>
+    </Box>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2563eb',
     justifyContent: 'center',
     alignItems: 'center',
   },

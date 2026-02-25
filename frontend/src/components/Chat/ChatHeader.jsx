@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Modal, Pressable } from 'react-native';
+import { Image, StyleSheet, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getInitials } from '../../utils/GetInitials';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
 
 export default function ChatHeader({ navigation, chatWith, avatarUrl }) {
   const [menuVisible, setMenuVisible] = useState(false);
@@ -16,24 +19,24 @@ export default function ChatHeader({ navigation, chatWith, avatarUrl }) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: t.background, borderBottomColor: t.secondaryText }]}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+    <Box style={[styles.container, { backgroundColor: t.background, borderBottomColor: t.secondaryText }]}>
+      <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
         <Ionicons name="chevron-back" size={28} color={t.text} />
-      </TouchableOpacity>
+      </Pressable>
 
       {avatarUrl ? (
         <Image source={{ uri: avatarUrl }} style={styles.avatar} />
       ) : (
-        <View style={[styles.avatarPlaceholder, { backgroundColor: t.accent }]}>
+        <Box style={[styles.avatarPlaceholder, { backgroundColor: t.accent }]}>
           <Text style={styles.avatarText}>{getInitials(chatWith)}</Text>
-        </View>
+        </Box>
       )}
 
       <Text style={[styles.name, { color: t.text }]}>{chatWith}</Text>
 
-      <TouchableOpacity onPress={() => setMenuVisible(true)} style={styles.menuBtn}>
+      <Pressable onPress={() => setMenuVisible(true)} style={styles.menuBtn}>
         <Ionicons name="ellipsis-vertical" size={22} color={t.text} />
-      </TouchableOpacity>
+      </Pressable>
 
       <Modal
         transparent
@@ -42,16 +45,16 @@ export default function ChatHeader({ navigation, chatWith, avatarUrl }) {
         onRequestClose={() => setMenuVisible(false)}
       >
         <Pressable style={styles.overlay} onPress={() => setMenuVisible(false)}>
-          <View style={[styles.menu, { backgroundColor: t.cardBackground }]}>
+          <Box style={[styles.menu, { backgroundColor: t.cardBackground }]}>
             {['Mute Notifications', 'Report', 'Block User'].map((opt) => (
-              <TouchableOpacity key={opt} style={styles.menuItem} onPress={() => handleMenuOption(opt)}>
+              <Pressable key={opt} style={styles.menuItem} onPress={() => handleMenuOption(opt)}>
                 <Text style={[styles.menuText, { color: t.text }]}>{opt}</Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
-          </View>
+          </Box>
         </Pressable>
       </Modal>
-    </View>
+    </Box>
   );
 }
 
@@ -59,9 +62,9 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 90,
+    height: 56,
     paddingHorizontal: 10,
-    paddingTop: 30,
+    paddingTop: 0,
     borderBottomWidth: 1,
   },
   backBtn: { padding: 4 },
@@ -80,7 +83,7 @@ const styles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.2)' },
   menu: {
     position: 'absolute',
-    top: 50,
+    top: 56,
     right: 10,
     borderRadius: 8,
     paddingVertical: 4,

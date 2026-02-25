@@ -1,83 +1,131 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Share, Linking } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Share } from 'react-native';
 import { Feather as Icon } from '@expo/vector-icons';
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
+import { Pressable } from '@/components/ui/pressable';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../../utils/theme';
+import { useTranslation } from 'react-i18next';
 
-const StatsBar = ({ votes, comments, showComments = true, onShare, onSave, share }) => {
-  const themeFromProvider = useTheme();
-  const t = getTheme(themeFromProvider?.theme);
+const StatsBar = ({
+  postId,
+  votes,
+  comments,
+  showComments = true,
+  share = false,
+  initialSaved = false,
+  userId,
+}) => {
+  const { theme } = useTheme();
+  const t = getTheme(theme);
+  const { t: translate } = useTranslation();
+
+  const [saved, setSaved] = useState(initialSaved);
+  const postUrl = `zimbaapp://posts/${postId}`;
 
   const handleShare = async () => {
     try {
-      if (typeof onShare === 'function') {
-        onShare();
-        return;
-      }
-
-      if (share && (share.message || share.url)) {
-        const content = {};
-        if (share.message) content.message = share.message;
-        if (share.url) content.url = share.url;
-        if (share.title) content.title = share.title;
-
-        await Share.share(content);
-        return;
-      }
-
-      const whatsappUrl = 'whatsapp://send?text=' + encodeURIComponent('Check this out!');
-      const canOpen = await Linking.canOpenURL(whatsappUrl);
-      if (canOpen) {
-        await Linking.openURL(whatsappUrl);
-        return;
-      }
-
-      await Share.share({ message: 'Check this out!' });
+      await Share.share({
+        message: 'Check this out!',
+        url: postUrl,
+      });
     } catch (err) {
       console.warn('Share failed', err);
     }
   };
 
-  return (
-    <View style={styles.row}>
-      <View style={styles.leftItems}>
-        {votes !== undefined && (
-          <View style={styles.item}>
-            <Icon name="bar-chart-2" size={16} color={t.accent} />
-            <Text style={[styles.label, { color: t.secondaryText }]}>{votes.toLocaleString()} Votes</Text>
-          </View>
-        )}
-        {showComments && comments !== undefined && (
-          <View style={styles.item}>
-            <Icon name="message-circle" size={16} color={t.accent} />
-            <Text style={[styles.label, { color: t.secondaryText }]}>{comments} Comments</Text>
-          </View>
-        )}
-      </View>
+  const handleSave = async () => {
+    try {
+      const next = !saved;
+      setSaved(next);
 
-      <View style={styles.actions}>
-        {(onShare || share) && (
-          <TouchableOpacity onPress={handleShare} style={styles.iconButton}>
+      const endpoint = next
+        ? 'https://YOUR_API_URL/bookmarks/add'
+        : 'https://YOUR_API_URL/bookmarks/remove';
+
+      await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, postId }),
+      });
+    } catch (err) {
+      console.warn('Bookmark failed', err);
+      setSaved(!saved);
+    }
+  };
+
+  return (
+    <Box style={styles.row}>
+      <Box style={styles.leftItems}>
+        {votes !== undefined && (
+          <Box style={styles.item}>
+            <Icon name="bar-chart-2" size={16} color={t.accent} />
+            <Text style={[styles.label, { color: t.secondaryText }]}>
+              {votes.toLocaleString()} {translate('votes')}
+            </Text>
+          </Box>
+        )}
+
+        {showComments && comments !== undefined && (
+          <Box style={styles.item}>
+            <Icon name="message-circle" size={16} color={t.accent} />
+            <Text style={[styles.label, { color: t.secondaryText }]}>
+              {comments} {translate('comments')}
+            </Text>
+          </Box>
+        )}
+      </Box>
+
+      <Box style={styles.actions}>
+        {share && (
+          <Pressable onPress={handleShare} style={styles.iconButton}>
             <Icon name="share-2" size={18} color={t.accent} />
-          </TouchableOpacity>
+          </Pressable>
         )}
-        {onSave && (
-          <TouchableOpacity onPress={onSave} style={styles.iconButton}>
-            <Icon name="bookmark" size={18} color={t.accent} />
-          </TouchableOpacity>
+
+        {userId && (
+          <Pressable onPress={handleSave} style={styles.iconButton}>
+            <Icon
+              name={saved ? 'bookmark' : 'bookmark'}
+              size={18}
+              color={saved ? t.accent : t.secondaryText}
+            />
+          </Pressable>
         )}
-      </View>
-    </View>
+      </Box>
+    </Box>
   );
 };
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
-  leftItems: { flexDirection: 'row', alignItems: 'center' },
-  item: { flexDirection: 'row', alignItems: 'center', marginRight: 12 },
-  label: { marginLeft: 6, fontSize: 13 },
-  actions: { flexDirection: 'row', alignItems: 'center' },
-  iconButton: { paddingHorizontal: 8, paddingVertical: 4 },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  leftItems: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  label: {
+    marginLeft: 6,
+    fontSize: 13,
+  },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
 });
 
 export default StatsBar;
