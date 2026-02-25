@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextInput, FlatList, ActivityIndicator, StyleSheet } from 'react-native';
 import { Box } from '@/components/ui/box';
@@ -58,7 +58,7 @@ export default function SearchScreen() {
     return () => clearTimeout(debounceRef.current);
   }, [query]);
 
-  const renderItem = ({ item }) => {
+  const renderItem = useCallback(({ item }) => {
     const onPress = () => {
       navigation.navigate(item._type === 'poll' ? 'Poll' : 'Discuss', { postData: item });
     };
@@ -67,7 +67,7 @@ export default function SearchScreen() {
         {item._type === 'poll' ? <PollCard {...item} /> : <DiscussionCard {...item} />}
       </Pressable>
     );
-  };
+  }, [navigation]);
 
   const renderSuggestions = () => (
     <ScrollView style={styles.suggestionContainer}>
@@ -119,7 +119,7 @@ export default function SearchScreen() {
       ) : (
         <FlatList
           data={results}
-          keyExtractor={(it) => String(it.id ?? it._id ?? Math.random())}
+          keyExtractor={(it, idx) => String(it.id ?? it._id ?? idx)}
           renderItem={renderItem}
           contentContainerStyle={{ paddingBottom: 120 }}
         />

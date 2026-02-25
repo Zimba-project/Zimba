@@ -9,9 +9,11 @@ import {
 import { useRoute } from '@react-navigation/native';
 import CardHeader from '../components/Cards/CardHeader';
 import StatsBar from '../components/Cards/StatsBar';
-import { getPollQuestions, votePoll, getPostById } from '../api/postService';
+
+import { votePoll, getPostById, getPollOptions } from '../api/postService';
 import useCurrentUser from '../utils/GetUser';
 import { normalizeUrl, normalizeAvatarUrl } from '../utils/urlHelper';
+
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
 import { SafeAreaView } from '@/components/ui/safe-area-view';
@@ -22,6 +24,7 @@ import { Pressable } from '@/components/ui/pressable';
 export default function PollScreen() {
   const route = useRoute();
   const { user } = useCurrentUser();
+
   const { postData, id: deepLinkId } = route.params || {};
   const postId = postData?.id || deepLinkId;
 
@@ -34,57 +37,40 @@ export default function PollScreen() {
   const { theme } = useTheme();
   const t = getTheme(theme);
 
-  // Fetch post & poll questions
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchPostAndQuestions = async () => {
       try {
         setLoading(true);
-
-        // Fetch post if not passed via navigation
-        let postDetails = post;
         if (!post) {
-          postDetails = await getPostById(postId);
-          setPost(postDetails);
+          const data = await getPostById(postId);
+          setPost(data);
         }
-
-        // Fetch poll questions from API
-        const pollQuestions = await getPollQuestions(postId);
-        // map questions to frontend structure
-        const normalizedQuestions = pollQuestions.map(q => ({
-          id: q.question_id,
-          text: q.question_text,
-          allowMultiple: q.allow_multiple,
-          options: q.options.map(o => ({
-            id: o.option_id,
-            text: o.option_text,
-            votes: o.votes || 0,
-          })),
-        }));
-        setQuestions(normalizedQuestions);
-
+        const pollData = await getPollOptions(postId);
+        setQuestions(pollData.questions || []);
       } catch (err) {
-        console.error("Failed to load poll:", err);
         Alert.alert("Error", "Unable to load this poll.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (postId) fetchData();
+    if (postId) fetchPostAndQuestions();
   }, [postId]);
 
   const toggleOption = (questionId, optionId, allowMultiple) => {
+    // Normalize allowMultiple values coming from different backends
+    const isMulti = (v) => v === true || v === 'true' || v === 't' || v === 1 || v === '1';
     setSelectedOptions(prev => {
-      const current = prev[questionId] || [];
+      const key = String(questionId);
+      const current = prev[key] || [];
+      const optKey = String(optionId);
       let updated;
-      if (allowMultiple) {
-        updated = current.includes(optionId)
-          ? current.filter(id => id !== optionId)
-          : [...current, optionId];
+      if (isMulti(allowMultiple)) {
+        updated = current.includes(optKey) ? current.filter(id => id !== optKey) : [...current, optKey];
       } else {
-        updated = [optionId];
+        updated = [optKey];
       }
-      return { ...prev, [questionId]: updated };
+      return { ...prev, [key]: updated };
     });
   };
 
@@ -93,29 +79,24 @@ export default function PollScreen() {
 
     try {
       for (const q of questions) {
-        const optionIds = selectedOptions[q.id] || [];
-        if (optionIds.length === 0) continue;
-
-        await votePoll(q.id, optionIds, user.id); // backend expects questionId + optionIds
+        const key = String(q.id);
+        const rawOptionIds = selectedOptions[key] || [];
+        if (rawOptionIds.length === 0) continue;
+        // convert to numbers for the API
+        const optionIds = rawOptionIds.map(id => parseInt(id, 10)).filter(n => !isNaN(n));
+        if (!optionIds.length) continue;
+        await votePoll(q.id, optionIds, user.id);
       }
 
       setSubmitted(true);
-
-      // Update vote counts locally
-      setQuestions(prev =>
-        prev.map(q => ({
-          ...q,
-          options: q.options.map(o => ({
-            ...o,
-            votes: selectedOptions[q.id]?.includes(o.id)
-              ? o.votes + 1
-              : o.votes,
-          })),
-        }))
-      );
+      const pollData = await getPollOptions(postId);
+      setQuestions(pollData.questions || []);
     } catch (err) {
-      console.error("Vote failed:", err);
-      Alert.alert("Error", "Failed to submit your votes.");
+      const msg = String(err.message || '').toLowerCase();
+      if (msg.includes('already_voted') || msg.includes('already voted')) {
+        Alert.alert('Already voted', 'You have already voted for this question.');
+        return;
+      }
     }
   };
 
@@ -128,7 +109,18 @@ export default function PollScreen() {
     );
   }
 
-  const { author_id, author_name, author_avatar, author_verified, title, description, image, views = 0, created_at, topic } = post;
+  const {
+    author_name,
+    author_avatar,
+    author_verified,
+    title,
+    description,
+    image,
+    views = 0,
+    created_at,
+    topic,
+  } = post;
+
   const imageUrl = normalizeUrl(image);
   const avatarUrl = normalizeAvatarUrl(author_avatar);
 
@@ -136,7 +128,7 @@ export default function PollScreen() {
     <SafeAreaView edges={["bottom"]} style={[styles.container, { backgroundColor: t.background }]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
         <CardHeader
-          author={{ id: author_id, avatar: avatarUrl, name: author_name, time: created_at, verified: author_verified }}
+          author={{ avatar: avatarUrl, name: author_name, time: created_at, verified: author_verified }}
           topic={topic}
         />
 
@@ -152,8 +144,12 @@ export default function PollScreen() {
             {questions.map(q => (
               <Box key={q.id} style={{ marginBottom: 20 }}>
                 <Text style={[styles.questionText, { color: t.text }]}>{q.text}</Text>
+                {((q.allow_multiple === true) || (q.allow_multiple === 'true') || (q.allow_multiple === 't') || (q.allow_multiple === 1) || (q.allow_multiple === '1')) && (
+                  <Text style={{ color: t.accent, fontSize: 13, marginBottom: 4, fontWeight: '500' }}>Multiple choice question</Text>
+                )}
                 {q.options.map(opt => {
-                  const isSelected = (selectedOptions[q.id] || []).includes(opt.id);
+                  const selList = selectedOptions[String(q.id)] || [];
+                  const isSelected = selList.includes(String(opt.id));
                   return (
                     <Pressable
                       key={opt.id}
@@ -162,10 +158,14 @@ export default function PollScreen() {
                         { backgroundColor: t.cardBackground, borderColor: t.inputBorder },
                         isSelected && { backgroundColor: t.accent, borderColor: t.accent }
                       ]}
-                      onPress={() => !submitted && toggleOption(q.id, opt.id, q.allowMultiple)}
+                      onPress={() => !submitted && toggleOption(q.id, opt.id, q.allow_multiple)}
                     >
-                      <Text style={[styles.optionText, { color: isSelected ? "#fff" : t.text }]}>{opt.text}</Text>
-                      <Text style={[styles.voteCount, { color: t.accent }]}>{opt.votes} votes</Text>
+                      <Text style={[styles.optionText, { color: isSelected ? "#fff" : t.text }]}>
+                        {opt.text}
+                      </Text>
+                      {submitted && (
+                        <Text style={[styles.voteCount, { color: t.accent }]}>{opt.votes} votes</Text>
+                      )}
                     </Pressable>
                   );
                 })}
@@ -183,7 +183,9 @@ export default function PollScreen() {
             )}
 
             {submitted && (
-              <Text style={[styles.thankYouText, { color: "#16a34a" }]}>Thanks for voting!</Text>
+              <Text style={[styles.thankYouText, { color: "#16a34a" }]}>
+                Thanks for voting!
+              </Text>
             )}
           </Box>
         </Box>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlatList, ActivityIndicator, StyleSheet } from 'react-native';
 import { Box } from '@/components/ui/box';
@@ -37,7 +37,7 @@ export default function TopicResultsScreen({ route, navigation }) {
         fetchTopicPosts();
     }, [topic]);
 
-    const renderItem = ({ item }) => {
+    const renderItem = useCallback(({ item }) => {
         const onPress = () => {
             navigation.navigate(item.type === 'poll' ? 'Poll' : 'Discuss', { postData: item });
         };
@@ -46,7 +46,7 @@ export default function TopicResultsScreen({ route, navigation }) {
                 {item.type === 'poll' ? <PollCard {...item} theme={theme} /> : <DiscussionCard {...item} theme={theme} />}
             </Pressable>
         );
-    };
+    }, [navigation, theme]);
 
     return (
         <SafeAreaView edges={["bottom"]} style={[styles.container, { backgroundColor: t.background }]}>
@@ -64,7 +64,7 @@ export default function TopicResultsScreen({ route, navigation }) {
             ) : (
                 <FlatList
                     data={results}
-                    keyExtractor={(it) => String(it.id ?? it._id ?? Math.random())}
+                    keyExtractor={(it, idx) => String(it.id ?? it._id ?? idx)}
                     renderItem={renderItem}
                     contentContainerStyle={{ paddingBottom: 120 }}
                 />

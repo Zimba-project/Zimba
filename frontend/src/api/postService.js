@@ -21,24 +21,24 @@ export const createPost = async (data) => {
 export const getPollOptions = async (postId) => {
   const res = await request(`/posts/${postId}/options`);
   if (!res.ok) throw new Error(res.body?.error || `Error fetching poll options (status ${res.status})`);
-  return res.body.options; 
-};
-
-export const getPollQuestions = async (postId) => {
-  const res = await request(`/posts/${postId}/questions`);
-  if (!res.ok) throw new Error(res.body?.error || `Error fetching poll questions (status ${res.status})`);
-  return res.body.questions; // note: questions array now
+  return res.body; 
 };
 
 export const votePoll = async (questionId, optionIds, userId) => {
-    const res = await request(`/posts/${questionId}/vote`, 'POST', {
-        question_id: questionId,
-        user_id: userId,
-        option_ids: optionIds // always an array
-    });
-    if (!res.ok) throw new Error(res.body?.error || `Error submitting vote (status ${res.status})`);
-    return res.body;
+  const res = await request(`/posts/${questionId}/vote`, 'POST', {
+    questionId: questionId,
+    userId: userId,
+    optionIds: optionIds
+  });
+
+  if (!res.ok) {
+    throw new Error(res.body?.error || `Error submitting vote (status ${res.status})`);
+  }
+
+  return res.body;
 };
+
+
 export const getPostComments = async (postId) => {
     const res = await request(`/posts/${postId}/comments`);
 
@@ -99,4 +99,4 @@ export const pickAndUploadAvatar = async (userId, formData) => {
   return res.body;
 };
 
-export default { getAllPosts, createPost,  getPollOptions, votePoll, getPostComments, addPostComment, replyToComment, searchPosts, pickAndUploadAvatar, getPollQuestions };
+export default { getAllPosts, createPost,  getPollOptions, votePoll, getPostComments, addPostComment, replyToComment, searchPosts, pickAndUploadAvatar };

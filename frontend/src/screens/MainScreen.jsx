@@ -32,8 +32,8 @@ export default function MainScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
-  const [selectedTab, setSelectedTab] = useState('new');        // key
-  const [selectedDropdown, setSelectedDropdown] = useState('all'); // key
+  const [selectedTab, setSelectedTab] = useState('new');        
+  const [selectedDropdown, setSelectedDropdown] = useState('all');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const fetchPosts = async (isRefresh = false) => {
@@ -44,6 +44,20 @@ export default function MainScreen({ navigation }) {
       setError(null);
       const posts = await getAllPosts();
       setAllPosts(posts);
+
+      // Immediately update feed after fetching
+      let filtered =
+        selectedDropdown === 'all'
+          ? [...posts]
+          : posts.filter(p => p.type === FILTER_MAP[selectedDropdown]);
+      if (selectedTab === 'new') {
+        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      } else if (selectedTab === 'hot') {
+        filtered.sort((a, b) => b.votes - a.votes);
+      } else if (selectedTab === 'top') {
+        filtered.sort((a, b) => b.comments - a.comments);
+      }
+      setFeed(filtered);
     } catch (err) {
       console.error('Error fetching posts:', err.message);
       setError(translate('error_fetch_posts'));
@@ -66,8 +80,6 @@ export default function MainScreen({ navigation }) {
       selectedDropdown === 'all'
         ? [...allPosts]
         : allPosts.filter(p => p.type === FILTER_MAP[selectedDropdown]);
-
-    // Sorting
     if (selectedTab === 'new') {
       filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     } else if (selectedTab === 'hot') {

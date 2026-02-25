@@ -46,7 +46,6 @@ const DiscussionCard = ({
       views,
       created_at,
     };
-    console.log('DiscussionCard postData:', postData);
     navigation.navigate('Discuss', {
       postId: id,
       postData,
@@ -127,4 +126,4 @@ const styles = StyleSheet.create({
   preview: { fontSize: 14, marginBottom: 12 },
 });
 
-export default DiscussionCard;
+export default React.memo(DiscussionCard);

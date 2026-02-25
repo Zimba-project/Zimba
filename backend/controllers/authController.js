@@ -285,14 +285,13 @@ exports.getUserById = async (req, res) => {
         u.first_name AS author_name, u.avatar AS author_avatar, u.verified AS author_verified,
         b.title, b.description, b.image, b.end_time,
         COALESCE(v.total_votes, 0) AS votes,
-        COALESCE(c.total_comments, 0) AS comments,
-        COALESCE(w.total_views, 0) AS views
+        COALESCE(c.total_comments, 0) AS comments
       FROM posts p
       JOIN post_body b ON p.id = b.post_id
       JOIN users u ON p.author_id = u.id
       LEFT JOIN (
         SELECT post_id, COUNT(*) AS total_votes
-        FROM post_votes
+        FROM poll_votes
         GROUP BY post_id
       ) v ON p.id = v.post_id
       LEFT JOIN (
@@ -300,12 +299,7 @@ exports.getUserById = async (req, res) => {
         FROM post_comments
         GROUP BY post_id
       ) c ON p.id = c.post_id
-      LEFT JOIN (
-        SELECT post_id, COUNT(*) AS total_views
-        FROM post_reactions
-        WHERE reaction_type = 'view'
-        GROUP BY post_id
-      ) w ON p.id = w.post_id
+      -- Removed post_views join
       WHERE p.author_id = $1
       ORDER BY p.created_at DESC
     `, [userId]);

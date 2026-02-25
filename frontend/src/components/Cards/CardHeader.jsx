@@ -34,45 +34,43 @@ const CardHeader = ({ author, topic }) => {
 
   return (
     <Box style={[styles.header, { backgroundColor: tTheme.cardBackground }]}>
-      <Pressable onPress={handleProfilePress}>
-        <Avatar
-          uri={author.avatar}
-          customSize={40}
-        />
+      {/* Avatar Section */}
+      <Pressable onPress={handleProfilePress} style={styles.avatarContainer}>
+        <Avatar uri={author.avatar} customSize={44} />
       </Pressable>
 
-      <Box style={styles.headerCenter}>
-        <Pressable onPress={handleProfilePress}>
-          <Box style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text
-              style={[styles.authorName, { color: tTheme.text }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {author.name}
-            </Text>
+      {/* Author Info Section */}
+      <Pressable onPress={handleProfilePress} style={styles.headerCenter}>
+        <Box style={styles.authorRow}>
+          <Text
+            style={[styles.authorName, { color: tTheme.text }]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {author.name}
+          </Text>
 
-            {author.verified && (
-              <Ionicons
-                name="checkmark-circle"
-                size={16}
-                color="#1DA1F2"
-                style={{ marginLeft: 4 }}
-                accessibilityLabel={t('profile.verified', 'Verified account')}
-              />
-            )}
-          </Box>
-        </Pressable>
+          {author.verified && (
+            <Ionicons
+              name="checkmark-circle-sharp"
+              size={14}
+              color="#1DA1F2"
+              style={styles.verifiedBadge}
+              accessibilityLabel={t('profile.verified', 'Verified account')}
+            />
+          )}
+        </Box>
 
         <Text style={[styles.time, { color: tTheme.secondaryText }]}>
           {localizedTime}
         </Text>
-      </Box>
+      </Pressable>
 
+      {/* Topic Badge Section */}
       {topic && (
-        <Box style={[styles.topicContainer, { backgroundColor: topicBg }]}>
+        <Box style={[styles.topicBadge, { backgroundColor: topicBg }]}>
           <Text
-            style={[styles.topic, { color: topicText }]}
+            style={[styles.topicText, { color: topicText }]}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -88,35 +86,49 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 10,
+  },
+  avatarContainer: {
+    flexShrink: 0,
   },
   headerCenter: {
     flex: 1,
-    marginLeft: 10,
     justifyContent: 'center',
+  },
+  authorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   authorName: {
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: 15,
+    letterSpacing: -0.3,
     flexShrink: 1,
+  },
+  verifiedBadge: {
+    flexShrink: 0,
   },
   time: {
-    fontSize: 12,
-    marginTop: 2,
-    flexShrink: 1,
+    fontSize: 13,
+    marginTop: 4,
+    fontWeight: '500',
+    letterSpacing: -0.2,
   },
-  topicContainer: {
-    maxWidth: 100,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
+  topicBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 8,
+    flexShrink: 0,
   },
-  topic: {
-    fontSize: 11,
+  topicText: {
+    fontSize: 12,
     fontWeight: '600',
+    letterSpacing: -0.1,
   },
 });
 

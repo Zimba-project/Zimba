@@ -142,4 +142,4 @@ const styles = StyleSheet.create({
   endTimeText: { marginLeft: 6, fontSize: 12 },
 });
 
-export default PollCard;
+export default React.memo(PollCard);

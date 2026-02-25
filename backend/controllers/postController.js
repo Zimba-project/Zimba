@@ -6,32 +6,25 @@ exports.getAllPosts = async (req, res) => {
 
   try {
     let query = `
-    SELECT 
-      p.id, p.type, p.topic, p.created_at, p.author_id,
-      u.first_name AS author_name, u.avatar AS author_avatar, u.verified AS author_verified,
-      b.title, b.description, b.image, b.end_time,
-      COALESCE(v.total_votes, 0) AS votes,
-      COALESCE(c.total_comments, 0) AS comments,
-      COALESCE(w.total_views, 0) AS views
-    FROM posts p
-    JOIN post_body b ON p.id = b.post_id
-    JOIN users u ON p.author_id = u.id
-    LEFT JOIN (
-      SELECT post_id, COUNT(*) AS total_votes
-      FROM post_votes
-      GROUP BY post_id
-    ) v ON p.id = v.post_id
-    LEFT JOIN (
-      SELECT post_id, COUNT(*) AS total_comments
-      FROM post_comments
-      GROUP BY post_id
-    ) c ON p.id = c.post_id
-    LEFT JOIN (
-      SELECT post_id, COUNT(*) AS total_views
-      FROM post_reactions
-      WHERE reaction_type = 'view'
-      GROUP BY post_id
-    ) w ON p.id = w.post_id
+      SELECT 
+        p.id, p.type, p.topic, p.created_at, p.author_id,
+        u.first_name AS author_name, u.avatar AS author_avatar, u.verified AS author_verified,
+        b.title, b.description, b.image, b.end_time,
+        COALESCE(v.total_votes, 0) AS votes,
+        COALESCE(c.total_comments, 0) AS comments
+      FROM posts p
+      JOIN post_body b ON p.id = b.post_id
+      JOIN users u ON p.author_id = u.id
+      LEFT JOIN (
+        SELECT post_id, COUNT(*) AS total_votes
+        FROM poll_votes
+        GROUP BY post_id
+      ) v ON p.id = v.post_id
+      LEFT JOIN (
+        SELECT post_id, COUNT(*) AS total_comments
+        FROM post_comments
+        GROUP BY post_id
+      ) c ON p.id = c.post_id
     `;
 
     const params = [];
@@ -72,14 +65,13 @@ exports.getPostById = async (req, res) => {
         u.first_name AS author_name, u.avatar AS author_avatar, u.verified AS author_verified,
         b.title, b.description, b.image, b.end_time,
         COALESCE(v.total_votes, 0) AS votes,
-        COALESCE(c.total_comments, 0) AS comments,
-        COALESCE(w.total_views, 0) AS views
+        COALESCE(c.total_comments, 0) AS comments
       FROM posts p
       JOIN post_body b ON p.id = b.post_id
       JOIN users u ON p.author_id = u.id
       LEFT JOIN (
         SELECT post_id, COUNT(*) AS total_votes
-        FROM post_votes
+        FROM poll_votes
         GROUP BY post_id
       ) v ON p.id = v.post_id
       LEFT JOIN (
@@ -87,12 +79,6 @@ exports.getPostById = async (req, res) => {
         FROM post_comments
         GROUP BY post_id
       ) c ON p.id = c.post_id
-      LEFT JOIN (
-        SELECT post_id, COUNT(*) AS total_views
-        FROM post_reactions
-        WHERE reaction_type = 'view'
-        GROUP BY post_id
-      ) w ON p.id = w.post_id
       WHERE p.id = $1
     `, [postId]);
 
@@ -142,10 +128,13 @@ exports.createPost = async (req, res) => {
         const q = questions[i];
         if (!q.text || !Array.isArray(q.options) || q.options.length < 2) continue;
 
+        // Accept either snake_case or camelCase from clients: allow_multiple or allowMultiple
+        const allowMultipleValue = (q.allow_multiple ?? q.allowMultiple) === true || (q.allow_multiple ?? q.allowMultiple) === 'true' || (q.allow_multiple ?? q.allowMultiple) === 't' || (q.allow_multiple ?? q.allowMultiple) === 1 || (q.allow_multiple ?? q.allowMultiple) === '1';
+
         const questionRes = await pgPool.query(
           `INSERT INTO poll_questions (post_id, text, allow_multiple, position)
            VALUES ($1, $2, $3, $4) RETURNING id;`,
-          [postId, q.text, q.allow_multiple || false, i + 1]
+          [postId, q.text, allowMultipleValue, i + 1]
         );
         const questionId = questionRes.rows[0].id;
 
@@ -175,7 +164,7 @@ exports.getPollOptions = async (req, res) => {
 
   try {
     const result = await pgPool.query(`
-      SELECT 
+     SELECT 
         pq.id AS question_id,
         pq.text AS question_text,
         pq.allow_multiple,
@@ -183,9 +172,14 @@ exports.getPollOptions = async (req, res) => {
         po.id AS option_id,
         po.text AS option_text,
         po.position AS option_position,
-        po.votes
+        COALESCE(v.vote_count, 0) AS votes
       FROM poll_questions pq
       JOIN poll_options po ON pq.id = po.question_id
+      LEFT JOIN (
+        SELECT option_id, COUNT(*) AS vote_count
+        FROM poll_votes
+        GROUP BY option_id
+      ) v ON po.id = v.option_id
       WHERE pq.post_id = $1
       ORDER BY pq.position ASC, po.position ASC;
     `, [postId]);
@@ -220,103 +214,87 @@ exports.getPollOptions = async (req, res) => {
   }
 };
 
-// ---------------- GET POLL QUESTIONS FOR A POST ----------------
-exports.getPollQuestions = async (req, res) => {
-  const postId = parseInt(req.params.postId ?? req.params.id, 10);
-  if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
-
-  try {
-    const result = await pgPool.query(`
-      SELECT 
-        pq.id AS question_id,
-        pq.text AS question_text,
-        pq.allow_multiple,
-        pq.position AS question_position,
-        po.id AS option_id,
-        po.text AS option_text,
-        po.position AS option_position,
-        COALESCE(v.vote_count, 0) AS votes
-      FROM poll_questions pq
-      JOIN poll_options po ON pq.id = po.question_id
-      LEFT JOIN (
-        SELECT option_id, COUNT(*) AS vote_count
-        FROM post_votes
-        GROUP BY option_id
-      ) v ON po.id = v.option_id
-      WHERE pq.post = $1
-      ORDER BY pq.position ASC, po.position ASC;
-    `, [postId]);
-
-    if (!result.rows.length) return res.status(404).json({ error: "No poll found" });
-
-    // Group rows by question
-    const questions = [];
-    const map = {};
-    for (const row of result.rows) {
-      if (!map[row.question_id]) {
-        map[row.question_id] = {
-          id: row.question_id,
-          text: row.question_text,
-          allow_multiple: row.allow_multiple,
-          position: row.question_position,
-          options: []
-        };
-        questions.push(map[row.question_id]);
-      }
-      map[row.question_id].options.push({
-        id: row.option_id,
-        text: row.option_text,
-        votes: parseInt(row.votes, 10)
-      });
-    }
-
-    res.status(200).json({ questions });
-  } catch (err) {
-    console.error("Error fetching poll questions:", err);
-    res.status(500).json({ error: "Server error fetching poll questions", detail: err.message });
-  }
-};
-
 // ---------- VOTE ----------
 
 exports.votePoll = async (req, res) => {
-  const { question_id, user_id, option_ids } = req.body; // option_ids can be array for multiple choice
-  const qId = parseInt(question_id, 10);
-  const uId = parseInt(user_id, 10);
+  // Accept camelCase and snake_case payloads. Also allow the question id to come from the URL param as a fallback.
+  const rawQuestion = req.body.questionId ?? req.body.question_id ?? req.params.id ?? req.params.questionId;
+  const rawUser = req.body.userId ?? req.body.user_id ?? req.body.user ?? req.body.user_id;
+  let rawOptions = req.body.optionIds ?? req.body.option_ids ?? req.body.option_ids_list ?? req.body.optionIds;
 
-  if (!qId || !uId || !Array.isArray(option_ids) || !option_ids.length) {
-    return res.status(400).json({ error: "Missing question_id, user_id, or option_ids" });
+  // Normalize option IDs: allow arrays, JSON-encoded strings, or comma-separated strings
+  if (!Array.isArray(rawOptions) && typeof rawOptions === 'string') {
+    try {
+      rawOptions = JSON.parse(rawOptions);
+    } catch (e) {
+      rawOptions = rawOptions.split(',').map(s => s.trim()).filter(Boolean);
+    }
   }
 
+  // --- Basic input validation ---
+  if (!rawQuestion) return res.status(400).json({ error: "Missing questionId" });
+  if (!rawUser) return res.status(400).json({ error: "Missing userId" });
+  if (!Array.isArray(rawOptions) || rawOptions.length === 0) {
+    return res.status(400).json({ error: "Missing optionIds or empty array" });
+  }
+
+  const qId = parseInt(rawQuestion, 10);
+  const uId = parseInt(rawUser, 10);
+  const optionIdsInt = rawOptions.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+
+  if (isNaN(qId)) return res.status(400).json({ error: "Invalid questionId" });
+  if (isNaN(uId)) return res.status(400).json({ error: "Invalid userId" });
+  if (!optionIdsInt.length) return res.status(400).json({ error: "No valid optionIds" });
+
   try {
-    // Check question exists
-    const qRes = await pgPool.query('SELECT allow_multiple FROM poll_questions WHERE id = $1', [qId]);
-    if (!qRes.rows.length) return res.status(404).json({ error: "Question not found" });
+    // --- Check if question exists ---
+    const qRes = await pgPool.query(
+      'SELECT allow_multiple, post_id FROM poll_questions WHERE id = $1',
+      [qId]
+    );
+    if (!qRes.rows.length) return res.status(404).json({ error: `Question with ID ${qId} not found` });
 
-    const allowMultiple = qRes.rows[0].allow_multiple;
+    const { allow_multiple: allowMultiple, post_id: postId } = qRes.rows[0];
 
-    if (!allowMultiple && option_ids.length > 1) {
-      return res.status(400).json({ error: "Multiple choices not allowed for this question" });
+    // --- Check multiple selection rules ---
+    if (!allowMultiple && optionIdsInt.length > 1) {
+      return res.status(400).json({
+        error: "Multiple choices not allowed for this question",
+        questionId: qId,
+        attemptedOptionCount: optionIdsInt.length
+      });
     }
 
-    // Check user has not voted already
-    const existing = await pgPool.query(
-      'SELECT 1 FROM post_votes WHERE post_id = (SELECT post_id FROM poll_questions WHERE id=$1) AND user_id=$2 AND option_id = ANY(SELECT id FROM poll_options WHERE question_id=$1)',
+    // --- Check user has already voted ---
+    const existingVote = await pgPool.query(
+      'SELECT 1 FROM poll_votes WHERE question_id = $1 AND user_id = $2 LIMIT 1',
       [qId, uId]
     );
-    if (existing.rows.length > 0) {
-      return res.status(400).json({ error: "User has already voted for this question" });
+    if (existingVote.rows.length > 0) {
+      return res.status(409).json({ error: 'already_voted', message: `User ${uId} has already voted for question ${qId}`, userId: uId, questionId: qId });
     }
 
-    // Insert votes
-    for (const oid of option_ids) {
-      const optionId = parseInt(oid, 10);
-      if (isNaN(optionId)) continue;
+    // --- Validate option IDs belong to this question ---
+    const validOptionsRes = await pgPool.query(
+      'SELECT id FROM poll_options WHERE question_id = $1 AND id = ANY($2::int[])',
+      [qId, optionIdsInt]
+    );
+    const validOptionIds = validOptionsRes.rows.map(r => r.id);
+    const invalidOptions = optionIdsInt.filter(id => !validOptionIds.includes(id));
+    if (invalidOptions.length > 0) {
+      return res.status(400).json({
+        error: "Invalid optionIds for this question",
+        questionId: qId,
+        invalidOptionIds: invalidOptions
+      });
+    }
 
+    // --- Insert votes ---
+    for (const optionId of validOptionIds) {
       await pgPool.query(
-        `INSERT INTO post_votes (post_id, option_id, user_id, created_at)
-         VALUES ((SELECT post_id FROM poll_questions WHERE id=$1), $2, $3, NOW())`,
-        [qId, optionId, uId]
+        `INSERT INTO poll_votes (post_id, question_id, option_id, user_id, created_at)
+         VALUES ($1, $2, $3, $4, NOW())`,
+        [postId, qId, optionId, uId]
       );
 
       await pgPool.query(
@@ -325,10 +303,15 @@ exports.votePoll = async (req, res) => {
       );
     }
 
-    res.status(200).json({ message: "Vote recorded" });
+    res.status(200).json({ message: "Vote recorded", questionId: qId, optionIds: validOptionIds });
+
   } catch (err) {
-    console.error("Error voting:", err);
-    res.status(500).json({ error: "Server error recording vote", detail: err.message });
+    console.error("Error recording vote:", err);
+    res.status(500).json({
+      error: "Server error recording vote",
+      detail: err.message,
+      stack: err.stack
+    });
   }
 };
 
