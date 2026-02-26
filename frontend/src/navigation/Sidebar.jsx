@@ -3,6 +3,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
 import MainTabs from './MainTabs';
+import GroupsStack from './GroupsStack';
 import { TOPIC_COLORS } from '../utils/TopicColors';
 import { Text } from '@/components/ui/text';
 import { Box } from '@/components/ui/box';
@@ -83,6 +84,20 @@ function CustomDrawerContent(props) {
           )}
         </Box>
 
+        <Box style={[styles.separator, { backgroundColor: tTheme.rowBorder }]} />
+
+        {/* Groups link */}
+        <TouchableOpacity
+          style={styles.drawerItem}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Groups')}
+        >
+          <View style={styles.drawerRow}>
+            <Ionicons name="people-outline" size={20} color={tTheme.text} />
+            <Text style={[styles.drawerLabel, { color: tTheme.secondaryText }]}>{t('groups')}</Text>
+          </View>
+        </TouchableOpacity>
+          
         <Box style={[styles.separator, { backgroundColor: tTheme.rowBorder }]} />
 
         {/* Language Picker */}
@@ -170,6 +185,7 @@ export default function Sidebar({ route, navigation }) {
         component={MainTabs}
         options={{ drawerItemStyle: { display: 'none' } }}
       />
+      <Drawer.Screen name="Groups" component={GroupsStack} options={{ headerShown: false }} />
     </Drawer.Navigator>
   );
 }
@@ -177,8 +193,9 @@ export default function Sidebar({ route, navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16 },
+  heading: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
   drawerItem: { paddingTop: 12, paddingHorizontal: 4, borderRadius: 8 },
-  drawerRow: { flexDirection: 'row', alignItems: 'center' },
+  drawerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   drawerLabel: { marginLeft: 8, fontSize: 16, fontWeight: '500' },
   topicsList: {
     marginTop: 8,
@@ -189,6 +206,23 @@ const styles = StyleSheet.create({
   },
   topicInnerRow: { marginBottom: 0, borderBottomWidth: 0 },
   topicInnerRowContent: { paddingVertical: 10, paddingHorizontal: 6, paddingLeft: 12 },
-  topicLabel: { fontSize: 14, lineHeight: 20 },
+  topicLabel: { fontSize: 14, paddingVertical: 0, lineHeight: 20 },
   separator: { height: 1, marginVertical: 10 },
+  topicRowContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  topicRow: { flex: 1 },
+  chevButton: { padding: 6 },
+  badge: {
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: { fontWeight: '600', fontSize: 13 },
 });

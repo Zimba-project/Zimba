@@ -1,4 +1,4 @@
-import { Pressable } from '@/components/ui/pressable';
+import { TouchableOpacity } from 'react-native';
 import { DrawerActions } from '@react-navigation/native';
 import { navigationRef } from '../../App';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
@@ -10,7 +10,14 @@ export default function LeftButton({ navigation, showBack }) {
     const iconColor = isDark ? '#fff' : '#000';
 
     const onPress = () => {
-        if (showBack && navigation.canGoBack()) return navigation.goBack();
+        if (showBack) {
+            if (navigationRef.isReady() && navigationRef.canGoBack()) {
+                return navigationRef.goBack();
+            }
+            if (navigation.canGoBack()) {
+                return navigation.goBack();
+            }
+        }
         try {
             let parent = navigation;
             while (parent && !parent.openDrawer && parent.getParent) parent = parent.getParent();
@@ -20,8 +27,8 @@ export default function LeftButton({ navigation, showBack }) {
     };
 
     return (
-        <Pressable onPress={onPress} style={{ padding: 4 }}>
+        <TouchableOpacity onPress={onPress} style={{ padding: 4 }}>
             <Ionicons name={showBack ? 'chevron-back' : 'menu'} size={24} color={iconColor} />
-        </Pressable>
+        </TouchableOpacity>
     );
 }
