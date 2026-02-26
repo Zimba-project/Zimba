@@ -1,18 +1,46 @@
 import { useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { HStack } from '@/components/ui/hstack';
 import LeftButton from './LeftButton';
 import RightButton from './RightButton';
 import { resolveUser, resolveActiveName } from './navigationHelpers';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 
-export default function HeaderForStack({ navigation, route, back }) {
+export default function HeaderForStack({ navigation, route, back, options }) {
     const user = resolveUser(navigation, route);
     const activeName = resolveActiveName(navigation, route);
-    const noBackScreens = ['Main'];
-    const backScreens = ['Login', 'Register', 'Discuss', 'Profile'];
-    const showBack = !noBackScreens.includes(activeName) && (back || backScreens.includes(activeName));
+    
+    let nestedRoute = route;
+    let nestedParams = route?.params;
+    try {
+        let state = navigation?.getState?.();
+        let current = state;
+        while (current?.routes && typeof current.index === 'number') {
+            const r = current.routes[current.index];
+            if (!r) break;
+            nestedRoute = r;
+            nestedParams = r.params;
+            if (r.state) current = r.state;
+            else break;
+        }
+    } catch { }
+    
+    const nestedName = nestedRoute?.name;
+    
+    const noBackScreens = ['Main', 'GroupsList'];
+    const backScreens = ['Login', 'Register', 'Discuss', 'Profile', 'Poll', 'GroupDetail', 'GroupSettings', 'CreateGroup'];
+    const showBack = !noBackScreens.includes(activeName) && !noBackScreens.includes(nestedName) && (back || backScreens.includes(activeName) || backScreens.includes(nestedName));
+    
+    let displayTitle = '';
+    if (nestedName === 'GroupDetail') {
+        displayTitle = nestedParams?.title || '';
+    } else if (nestedName === 'GroupSettings') {
+        displayTitle = 'Group Settings';
+    } else if (nestedName === 'CreateGroup') {
+        displayTitle = 'Create Group';
+    } else if (activeName === 'Main' && route?.params?.screen !== 'Groups') {
+        displayTitle = 'ZIMBA';
+    }
 
     const [searching, setSearching] = useState(false);
     const [query, setQuery] = useState('');
@@ -24,19 +52,33 @@ export default function HeaderForStack({ navigation, route, back }) {
     if (activeName === 'Login' || activeName === 'Register') {
         return (
             <SafeAreaView edges={['top']} style={{ backgroundColor }}>
-                <HStack style={[styles.container, { backgroundColor, borderBottomColor: isDark ? '#374151' : '#e5e7eb' }]}>
-                    <HStack style={styles.left}><LeftButton navigation={navigation} showBack={showBack} /></HStack>
-                </HStack>
+                <View style={[styles.container, { backgroundColor, borderBottomColor: isDark ? '#374151' : '#e5e7eb' }]}> 
+                    <View style={styles.left}><LeftButton navigation={navigation} showBack={showBack} /></View>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    if (nestedName === 'GroupDetail' || nestedName === 'GroupSettings' || nestedName === 'CreateGroup') {
+        return (
+            <SafeAreaView edges={['top']} style={{ backgroundColor }}>
+                <View style={[styles.container, { backgroundColor, borderBottomColor: isDark ? '#374151' : '#e5e7eb' }]}> 
+                    <View style={styles.left}><LeftButton navigation={navigation} showBack={true} /></View>
+                    {displayTitle ? (
+                        <Text style={[styles.title, { color: isDark ? '#fff' : '#000' }]} numberOfLines={1}>{displayTitle}</Text>
+                    ) : null}
+                    <View style={styles.right}></View>
+                </View>
             </SafeAreaView>
         );
     }
 
     return (
         <SafeAreaView edges={['top']} style={{ backgroundColor }}>
-            <HStack style={[styles.container, { backgroundColor, borderBottomColor: isDark ? '#374151' : '#e5e7eb' }]}>
-                <HStack style={styles.left}><LeftButton navigation={navigation} showBack={showBack} /></HStack>
-                <HStack style={styles.right}><RightButton navigation={navigation} user={user} searching={searching} setSearching={setSearching} query={query} setQuery={setQuery} /></HStack>
-            </HStack>
+            <View style={[styles.container, { backgroundColor, borderBottomColor: isDark ? '#374151' : '#e5e7eb' }]}> 
+                <View style={styles.left}><LeftButton navigation={navigation} showBack={showBack} /></View>
+                <View style={styles.right}><RightButton navigation={navigation}user={user}searching={searching}setSearching={setSearching}query={query}setQuery={setQuery}/></View>
+            </View>
         </SafeAreaView>
     );
 }
