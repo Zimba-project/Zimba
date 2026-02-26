@@ -1,48 +1,52 @@
-import React, { useState } from 'react';
-import {
-  TextInput, StyleSheet, ActivityIndicator,
-  Alert, Modal, Platform
-} from 'react-native';
-import { ScrollView } from '@/components/ui/scroll-view';
-import { Box } from '@/components/ui/box';
-import { Pressable } from '@/components/ui/pressable';
-import { Feather as Icon } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import React, { useState, useMemo } from 'react';
+import { TextInput, StyleSheet, ActivityIndicator, Alert, View, Text, TouchableOpacity, Modal, FlatList } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { register as registerApi } from '../api/auth';
-import GoogleLogo from '../../assets/google.svg';
-import AppleLogo from '../../assets/apple.svg';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { getTheme } from '../utils/theme';
-import { SafeAreaView } from '@/components/ui/safe-area-view';
-import { Text } from '@/components/ui/text';
-import { HStack } from '@/components/ui/hstack';
-import { Button, ButtonText } from '@/components/ui/button';
-import { DatePickerModal } from '@/src/components/DatePicker/DatePickerModal.jsx';
-import { COUNTRIES } from '@/src/utils/CountryAreaCodes';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { COUNTRIES } from '../utils/countries';
 
-export default function RegisterScreen({ navigation }) {
+export default function RegisterScreen() {
+  const navigation = useNavigation();
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [country, setCountry] = useState(COUNTRIES[0]);
+  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
-  const [birthdate, setBirthdate] = useState(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [phoneInput, setPhoneInput] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const { theme } = useTheme();
-  const t = getTheme(theme);
+  const t = useMemo(() => getTheme(theme), [theme]);
+
+  const isDark = theme === 'dark';
+  const accentColor = useMemo(() => t.accent, [t.accent]);
+
+  const gradientColors = useMemo(
+    () =>
+      isDark
+        ? ['#111827', '#1e40af', '#1f2937']
+        : ['#f5f7fa', '#dbeafe', '#bfdbfe'],
+    [isDark]
+  );
+
+  const phone = `${selectedCountry.dial_code}${phoneInput}`;
 
   const handleRegister = async () => {
     setError(null);
-    if (!firstName || !lastName || !phone || !email || !password || !confirmPassword) {
+
+    if (!firstName || !lastName || !phoneInput || !email || !password || !confirmPassword) {
       setError('Please fill all required fields');
       return;
     }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -50,12 +54,20 @@ export default function RegisterScreen({ navigation }) {
 
     setLoading(true);
     try {
-      const fullPhone = `${country.dial_code}${phone}`;
-      const payload = { firstName, lastName, email, phone: fullPhone, birthdate, password, confirmPassword };
+      const payload = {
+        firstName,
+        lastName,
+        email,
+        phone,
+        password,
+        confirmPassword
+      };
+
       const res = await registerApi(payload);
+
       if (res?.ok) {
         Alert.alert('Account created', 'Please check your email for verification.', [
-          { text: 'OK', onPress: () => navigation.replace('Login', { phone: fullPhone }) }
+          { text: 'OK', onPress: () => navigation.replace('Login', { phone }) }
         ]);
       } else {
         setError(res?.body?.message || `Registration failed (${res?.status ?? 'unknown'})`);
@@ -68,270 +80,395 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView edges={["left", "right", "bottom"]} style={[styles.container, { backgroundColor: t.background, paddingTop: 16 }]}>
-      <ScrollView contentContainerStyle={[styles.card, { backgroundColor: t.background }]}>
-        <Text className="text-2xl font-bold text-center" style={{ color: t.text, marginBottom: 12 }}>Create Account</Text>
-        {error && <Text style={{ color: t.error, marginBottom: 12 }}>{error}</Text>}
+    <View style={[styles.containerWrapper, { backgroundColor: t.background }]} key={`register-${theme}`}>
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.gradientBackground}
+      />
 
-        <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 12, color: t.text }}>Personal Info</Text>
-        <HStack style={styles.row}>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                flex: 1,
-                marginRight: 8,
-                backgroundColor: t.inputBackground,
-                borderColor: t.inputBorder,
-                color: t.text
-              }
-            ]}
-            placeholder="First name"
-            placeholderTextColor={t.placeholder}
-            value={firstName}
-            onChangeText={setFirstName}
-          />
-          <TextInput
-            style={[
-              styles.input,
-              {
-                flex: 1,
-                backgroundColor: t.inputBackground,
-                borderColor: t.inputBorder,
-                color: t.text
-              }
-            ]}
-            placeholder="Last name"
-            placeholderTextColor={t.placeholder}
-            value={lastName}
-            onChangeText={setLastName}
-          />
-        </HStack>
+      <SafeAreaView edges={['left', 'right', 'bottom']} style={[styles.safeAreaContainer, { backgroundColor: 'transparent' }]}>
+        <View style={styles.mainContainer}>
+          <View style={styles.titleContainer}>
+            <Text style={[styles.title, { color: t.text }]}>Create Account</Text>
+          </View>
 
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: t.inputBackground,
-              borderColor: t.inputBorder,
-              color: t.text
-            }
-          ]}
-          placeholder="Email address"
-          placeholderTextColor={t.placeholder}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
-        />
+          <View style={styles.formContainer}>
+            {error && (
+              <View style={[styles.errorBox, { backgroundColor: isDark ? 'rgba(248,113,113,0.1)' : 'rgba(248,113,113,0.08)' }]}>
+                <Ionicons name="alert-circle" size={14} color={t.error} style={{ marginRight: 6 }} />
+                <Text style={[styles.errorText, { color: t.error }]}>{error}</Text>
+              </View>
+            )}
 
-        {/* Phone */}
-        <HStack style={[styles.phoneContainer, { backgroundColor: t.inputBackground, borderColor: t.inputBorder }]}>
-          <Pressable
-            style={[styles.countryButton, { borderRightColor: t.inputBorder }]}
-            onPress={() => setShowCountryPicker(true)}
-          >
-            <Text style={[styles.countryText, { color: t.text }]}>{country.flag} {country.dial_code}</Text>
-          </Pressable>
-          <TextInput
-            style={[styles.phoneInput, { color: t.text }]}
-            placeholder="Phone number"
-            placeholderTextColor={t.placeholder}
-            keyboardType="phone-pad"
-            value={phone}
-            onChangeText={setPhone}
-          />
-        </HStack>
+            <View style={styles.rowContainer}>
+              <View style={styles.halfInput}>
+                <TextInput
+                  style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
+                  placeholder="First name"
+                  placeholderTextColor={t.placeholder}
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  editable={!loading}
+                />
+              </View>
+              <View style={styles.halfInput}>
+                <TextInput
+                  style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
+                  placeholder="Last name"
+                  placeholderTextColor={t.placeholder}
+                  value={lastName}
+                  onChangeText={setLastName}
+                  editable={!loading}
+                />
+              </View>
+            </View>
 
-        {/* Country Picker Modal */}
-        {showCountryPicker && (
-          <Modal visible={showCountryPicker} transparent animationType="slide" onRequestClose={() => setShowCountryPicker(false)}>
-            <Box style={styles.modalOverlay}>
-              <Box style={[styles.modalContent, { backgroundColor: t.cardBackground }]}>
-                <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 12, color: t.text }}>Select Country</Text>
-                {COUNTRIES.map(c => (
-                  <Pressable
-                    key={c.code}
-                    style={{ paddingVertical: 10 }}
-                    onPress={() => { setCountry(c); setShowCountryPicker(false); }}
-                  >
-                    <Text style={{ fontSize: 16, color: t.text }}>{c.flag} {c.name} ({c.dial_code})</Text>
-                  </Pressable>
-                ))}
-                <Button variant="link" action="primary" onPress={() => setShowCountryPicker(false)} className="items-center">
-                  <Text style={{ color: t.accent, marginTop: 12 }}>Close</Text>
-                </Button>
-              </Box>
-            </Box>
-          </Modal>
-        )}
+            <TextInput
+              style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
+              placeholder="Email"
+              placeholderTextColor={t.placeholder}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+              editable={!loading}
+            />
 
-        {/* Birthdate */}
-        <Pressable
-          style={[
-            styles.input,
-            styles.dateRow,
-            { backgroundColor: t.inputBackground, borderColor: t.inputBorder }
-          ]}
-          onPress={() => setShowDatePicker(true)}
-        >
-          <Text style={birthdate ? [styles.dateText, { color: t.text }] : [styles.placeholderText, { color: t.placeholder }]}>
-            {birthdate ? birthdate.toLocaleDateString() : 'Birthdate (YYYY-MM-DD)'}
-          </Text>
-          <Icon name="calendar" size={18} color={t.placeholder} />
-        </Pressable>
+            <Text style={[styles.inputLabel, { color: t.text }]}>Mobile Number</Text>
 
-        {/* Date Picker */}
-        <DatePickerModal
-          visible={showDatePicker}
-          value={birthdate}
-          theme={theme}
-          t={t}
-          mode="date"
-          title="Select Birthdate"
-          maximumDate={new Date()}
-          onConfirm={(date, { close }) => {
-            setBirthdate(date);
-            if (close) setShowDatePicker(false);
-          }}
-          onCancel={() => setShowDatePicker(false)}
-        />
+            <View style={[styles.phoneInputContainer, { borderColor: t.inputBorder, backgroundColor: t.inputBackground }]}>
+              <TouchableOpacity
+                style={styles.dialCodeButton}
+                onPress={() => setShowCountryPicker(true)}
+                disabled={loading}
+              >
+                <Text style={[styles.dialCodeText, { color: t.text }]}>
+                  {selectedCountry.flag} {selectedCountry.dial_code}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color={t.secondaryText} style={{ marginLeft: 4 }} />
+              </TouchableOpacity>
 
-        <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 12, color: t.text }}>Security</Text>
-        <TextInput
-          style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
-          placeholder="Password"
-          placeholderTextColor={t.placeholder}
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-        <TextInput
-          style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
-          placeholder="Confirm password"
-          placeholderTextColor={t.placeholder}
-          secureTextEntry
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-        />
+              <View style={[styles.dividerLine, { backgroundColor: t.inputBorder }]} />
 
-        {loading ? (
-          <ActivityIndicator color={t.accent} />
-        ) : (
-          <Button action="primary" variant="solid" onPress={handleRegister} className="h-11 mb-6" style={{ backgroundColor: t.accent, borderRadius: 8 }}>
-            <ButtonText>Sign Up</ButtonText>
-          </Button>
-        )}
+              <TextInput
+                style={[styles.phoneInput, { color: t.text }]}
+                placeholder="Phone"
+                placeholderTextColor={t.placeholder}
+                keyboardType="phone-pad"
+                value={phoneInput}
+                onChangeText={setPhoneInput}
+                editable={!loading}
+              />
+            </View>
 
-        <Text style={{ textAlign: 'center', marginBottom: 16, color: t.secondaryText }}>or sign up with</Text>
-        <HStack style={styles.socialContainer}>
-          <Button variant="outline" action="secondary" className="flex-1 flex-row items-center justify-center h-11" style={{ backgroundColor: t.inputBackground, borderColor: t.inputBorder, borderRadius: 8 }}>
-            <GoogleLogo width={22} height={22} />
-            <Text style={{ color: t.text, marginLeft: 6 }}>Google</Text>
-          </Button>
-          <Button variant="outline" action="secondary" className="flex-1 flex-row items-center justify-center h-11" style={{ backgroundColor: t.inputBackground, borderColor: t.inputBorder, borderRadius: 8 }}>
-            <AppleLogo width={22} height={22} />
-            <Text style={{ color: t.text, marginLeft: 6 }}>Apple</Text>
-          </Button>
-        </HStack>
+            <Modal
+              visible={showCountryPicker}
+              transparent
+              animationType="slide"
+              onRequestClose={() => setShowCountryPicker(false)}
+            >
+              <View
+                style={[
+                  styles.modalContainer,
+                  { backgroundColor: isDark ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.3)' }
+                ]}
+              >
+                <View style={[styles.modalContent, { backgroundColor: t.background }]}>
+                  <View style={[styles.modalHeader, { borderBottomColor: t.inputBorder }]}>
+                    <Text style={[styles.modalTitle, { color: t.text }]}>Select Country</Text>
+                    <TouchableOpacity onPress={() => setShowCountryPicker(false)}>
+                      <Ionicons name="close" size={24} color={t.text} />
+                    </TouchableOpacity>
+                  </View>
 
-        <Box style={styles.loginRow}>
-          <HStack className="items-center" style={{ gap: 4 }}>
-            <Text style={{ color: t.secondaryText }}>Already have an account?</Text>
-            <Button variant="link" action="primary" onPress={() => navigation.navigate('Login')} style={{ borderRadius: 8 }}>
-              <Text style={{ color: t.accent, fontWeight: '600' }}> Login</Text>
-            </Button>
-          </HStack>
-        </Box>
-      </ScrollView>
-    </SafeAreaView>
+                  <FlatList
+                    data={COUNTRIES}
+                    keyExtractor={(item) => item.code}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={[
+                          styles.countryOption,
+                          {
+                            borderBottomColor: t.inputBorder,
+                            backgroundColor:
+                              selectedCountry.code === item.code
+                                ? isDark
+                                  ? 'rgba(37, 99, 235, 0.1)'
+                                  : 'rgba(59, 130, 246, 0.08)'
+                                : 'transparent'
+                          }
+                        ]}
+                        onPress={() => {
+                          setSelectedCountry(item);
+                          setShowCountryPicker(false);
+                        }}
+                      >
+                        <Text style={[styles.countryOptionText, { color: t.text }]}>
+                          {item.flag} {item.name} ({item.dial_code})
+                        </Text>
+
+                        {selectedCountry.code === item.code && (
+                          <Ionicons name="checkmark" size={20} color={accentColor} />
+                        )}
+                      </TouchableOpacity>
+                    )}
+                  />
+                </View>
+              </View>
+            </Modal>
+
+            <TextInput
+              style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
+              placeholder="Password"
+              placeholderTextColor={t.placeholder}
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+              editable={!loading}
+            />
+
+            <TextInput
+              style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
+              placeholder="Confirm password"
+              placeholderTextColor={t.placeholder}
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              editable={!loading}
+            />
+
+            <TouchableOpacity
+              style={[styles.signupButton, { backgroundColor: accentColor, opacity: loading ? 0.7 : 1 }]}
+              onPress={handleRegister}
+              disabled={loading}
+              activeOpacity={0.85}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" size={16} />
+              ) : (
+                <>
+                  <Text style={styles.signupButtonText}>Sign Up</Text>
+                  <Ionicons name="arrow-forward" size={14} color="#fff" style={{ marginLeft: 5 }} />
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.loginContainer}>
+            <Text style={[styles.loginText, { color: t.secondaryText }]}>Already have an account?</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')} activeOpacity={0.7}>
+              <Text style={[styles.loginLink, { color: accentColor }]}>Login</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 20 },
-  card: {
-    paddingBottom: 60,
-    width: '100%',
-    borderRadius: 12,
-    alignSelf: 'stretch',
+  containerWrapper: {
+    flex: 1,
   },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 12, textAlign: 'center' },
-  sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 12, alignSelf: 'flex-start' },
-  error: { marginBottom: 12 },
-  row: { flexDirection: 'row', width: '100%' },
+  gradientBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  safeAreaContainer: {
+    flex: 1,
+    position: 'relative',
+    zIndex: 1,
+  },
+  mainContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  titleContainer: {
+    paddingTop: 12,
+    paddingBottom: 16,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '800',
+    marginBottom: 12,
+    letterSpacing: -0.5,
+    textAlign: 'center',
+  },
+  errorBox: {
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  errorText: {
+    fontSize: 11,
+    fontWeight: '500',
+    flex: 1,
+    lineHeight: 14,
+  },
+  formContainer: {
+    marginTop: 12,
+    flex: 1,
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  halfInput: {
+    flex: 1,
+  },
   input: {
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 16,
+    borderWidth: 1.5,
     borderRadius: 8,
+    paddingVertical: 9,
+    paddingHorizontal: 11,
+    fontSize: 13,
+    fontWeight: '500',
+    marginBottom: 8,
+  },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 6,
+    letterSpacing: 0.4,
+    paddingLeft: 4,
+  },
+  phoneInputContainer: {
+    borderWidth: 1.5,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  dialCodeButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dialCodeText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  dividerLine: {
+    width: 1,
+    height: 20,
+  },
+  phoneInput: {
+    flex: 1,
+    paddingVertical: 9,
+    paddingHorizontal: 10,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%',
+    paddingTop: 16,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  countryOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  countryOptionText: {
     fontSize: 14,
+    fontWeight: '500',
   },
-  phoneContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: 16,
-    borderWidth: 1,
+  bottomContainer: {
+    marginTop: 16,
+    gap: 6,
+  },
+  signupButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     borderRadius: 8,
-  },
-  countryButton: {
-    paddingHorizontal: 12,
-    height: 44,
+    alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 92,
-    alignItems: 'center',
-    borderRightWidth: 1,
-  },
-  countryText: {},
-  phoneInput: { flex: 1, height: 44, paddingHorizontal: 12 },
-  dateRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  dateText: {},
-  placeholderText: {},
-  registerButton: {
-    width: '100%',
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  registerText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  orText: { textAlign: 'center', marginBottom: 16 },
-  socialContainer: {
     flexDirection: 'row',
-    marginBottom: 16,
-    gap: 8
+  },
+  signupButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 12,
+  },
+  divider: {
+    flex: 1,
+    height: 0.8,
+  },
+  dividerText: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginHorizontal: 8,
+  },
+  socialButtonsContainer: {
+    flexDirection: 'row',
+    gap: 8,
   },
   socialButton: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 10,
-    marginHorizontal: 4,
-  },
-  icon: { marginRight: 6 },
-  socialText: { fontSize: 14, marginLeft: 6 },
-  loginRow: {
     flexDirection: 'row',
-    marginTop: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  link: { fontWeight: '600' },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  socialButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 5,
   },
-  modalContent: {
-    padding: 16,
-    borderRadius: 12,
-    width: '90%',
+  loginContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+  },
+  loginText: {
+    fontSize: 12,
+    fontWeight: '400',
+  },
+  loginLink: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginLeft: 2,
   },
 });

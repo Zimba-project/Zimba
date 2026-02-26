@@ -1,6 +1,6 @@
 import { TouchableOpacity } from 'react-native';
 import { DrawerActions } from '@react-navigation/native';
-import { navigationRef } from '../../App';
+import { navigationRef } from '../../utils/navigationRef';
 import { useTheme } from '@/components/ui/ThemeProvider/ThemeProvider';
 import { Ionicons } from '@expo/vector-icons';
 

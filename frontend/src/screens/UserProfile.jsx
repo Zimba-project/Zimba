@@ -40,13 +40,10 @@ export default function UserProfileScreen({ navigation, route }) {
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
-      console.log('Fetching user profile for userId:', userId);
       const response = await getUserById(userId);
-      console.log('User profile response:', response);
       setUserData(response?.body?.user ?? response?.user ?? null);
       setUserPosts(response?.body?.posts ?? response?.posts ?? []);
     } catch (error) {
-      console.log('Failed to load user profile:', error);
       Alert.alert('Error', 'Unable to load user profile.');
     } finally {
       setLoading(false);

@@ -11,6 +11,8 @@ export const getTheme = (mode = 'light') => {
     secondaryText: isDark ? '#f9fafb' : '#555',
     accent: '#2563eb', // buttons, highlights
     error: '#f87171',
+    gray: isDark ? '#374151' : '#e5e7eb',
+    dark: isDark ? '#ffffff' : '#000000',
 
     // Inputs
     inputBackground: isDark ? '#1f2937' : '#f9fafb',

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import 'react-native-gesture-handler';
-import MainScreen from './screens/MainScreen';
 import Login from './screens/Login';
 import Register from './screens/Register';
 import Profile from './screens/Profile';
@@ -27,10 +26,10 @@ import { getTheme } from './utils/theme';
 import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 import '@/global.css';
 import { initI18n } from './utils/i18n/i18n';
+import { navigationRef } from './utils/navigationRef';
 
 initI18n();
 
-export const navigationRef = createNavigationContainerRef();
 const Stack = createNativeStackNavigator();
 
 const RootApp = () => {
