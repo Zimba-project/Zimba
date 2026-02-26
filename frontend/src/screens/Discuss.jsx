@@ -240,7 +240,7 @@ export default function DiscussScreen() {
 
   if (!postData) {
     return (
-      <SafeAreaView edges={['bottom']} style={[styles.center, { backgroundColor: t.background }]}>
+      <SafeAreaView edges={['']} style={[styles.center, { backgroundColor: t.background }]}>
         <Text style={{ color: t.text }}>No discuss data available</Text>
       </SafeAreaView>
     );

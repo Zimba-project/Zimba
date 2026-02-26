@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, memo } from 'react';
+import React, { useState, useCallback, useRef, memo, useMemo } from 'react';
 import {
   TextInput, StyleSheet, ActivityIndicator, Alert, LayoutAnimation,
   Platform, UIManager, Image, Animated, TouchableOpacity, KeyboardAvoidingView,
@@ -24,12 +24,9 @@ import { Pressable } from '@/components/ui/pressable';
 import { Switch } from '@/components/ui/switch';
 import { ScrollView } from '@/components/ui/scroll-view';
 
-// ─── Floating Label Input ──────────────────────────────────────────────────────
-
 const FloatingInput = memo(({ t, label, value, multiline, minHeight, maxLength, ...props }) => {
   const [focused, setFocused] = useState(false);
   const anim = useRef(new Animated.Value(value ? 1 : 0)).current;
-  const isActive = focused || !!value;
 
   const animate = (to) =>
     Animated.timing(anim, { toValue: to, duration: 160, useNativeDriver: false }).start();
@@ -63,7 +60,7 @@ const FloatingInput = memo(({ t, label, value, multiline, minHeight, maxLength, 
   );
 });
 
-// ─── Topic Picker ──────────────────────────────────────────────────────────────
+FloatingInput.displayName = 'FloatingInput';
 
 const TOPIC_ICONS = {
   'asuminen ja rakentaminen': 'home',
@@ -89,13 +86,14 @@ const TopicPicker = memo(({ t, topic, onSelect }) => {
       {(() => {
         const tc = topic ? (TOPIC_COLORS[topic] || { bg: t.inputBackground, text: t.secondaryText }) : null;
         return (
-          <Pressable
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => setOpen(true)}
             style={[s.topicTrigger, {
               backgroundColor: tc ? tc.bg : t.inputBackground,
               borderColor: tc ? tc.text : open ? t.accent : t.placeholder,
               borderWidth: tc ? 2 : 1.5,
             }]}
-            onPress={() => setOpen(true)}
           >
             <HStack style={{ alignItems: 'center', gap: 10 }}>
               {tc ? (
@@ -110,7 +108,7 @@ const TopicPicker = memo(({ t, topic, onSelect }) => {
             <View style={[s.topicChevron, { backgroundColor: tc ? tc.text + '22' : t.accent + '18' }]}>
               <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={14} color={tc ? tc.text : t.accent} />
             </View>
-          </Pressable>
+          </TouchableOpacity>
         );
       })()}
 
@@ -126,8 +124,9 @@ const TopicPicker = memo(({ t, topic, onSelect }) => {
                 const tc = TOPIC_COLORS[name] || { bg: '#F3F4F6', text: '#374151' };
                 const selected = topic === name;
                 return (
-                  <Pressable
+                  <TouchableOpacity
                     key={name}
+                    activeOpacity={0.7}
                     onPress={() => { onSelect(name); setOpen(false); }}
                     style={{
                       flexDirection: 'row',
@@ -144,7 +143,7 @@ const TopicPicker = memo(({ t, topic, onSelect }) => {
                     <Ionicons name={TOPIC_ICONS[name] || 'star'} size={13} color={tc.text} />
                     <Text style={{ color: tc.text, fontWeight: selected ? '700' : '500', fontSize: 13 }}>{name}</Text>
                     {selected && <Ionicons name="checkmark-circle" size={15} color={tc.text} />}
-                  </Pressable>
+                  </TouchableOpacity>
                 );
               })}
             </ScrollView>
@@ -155,8 +154,7 @@ const TopicPicker = memo(({ t, topic, onSelect }) => {
   );
 });
 
-
-// ─── Image Picker Zone ─────────────────────────────────────────────────────────
+TopicPicker.displayName = 'TopicPicker';
 
 const ImageZone = memo(({ t, image, onPick, onRemove }) => {
   if (image) return (
@@ -164,31 +162,40 @@ const ImageZone = memo(({ t, image, onPick, onRemove }) => {
       <Image source={{ uri: image }} style={s.imagePreview} resizeMode="cover" />
       <LinearGradient colors={['transparent', 'rgba(0,0,0,0.55)']} style={s.imageGradient}>
         <HStack style={{ gap: 10, justifyContent: 'flex-end', padding: 10 }}>
-          <Pressable onPress={onPick} style={[s.imageAction, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+          <TouchableOpacity 
+            activeOpacity={0.7}
+            onPress={onPick} 
+            style={[s.imageAction, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
             <Ionicons name="swap-horizontal" size={15} color="#fff" />
             <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Change</Text>
-          </Pressable>
-          <Pressable onPress={onRemove} style={[s.imageAction, { backgroundColor: 'rgba(220,38,38,0.75)' }]}>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            activeOpacity={0.7}
+            onPress={onRemove} 
+            style={[s.imageAction, { backgroundColor: 'rgba(220,38,38,0.75)' }]}>
             <Ionicons name="trash-outline" size={15} color="#fff" />
             <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Remove</Text>
-          </Pressable>
+          </TouchableOpacity>
         </HStack>
       </LinearGradient>
     </Box>
   );
 
   return (
-    <Pressable onPress={onPick} style={[s.uploadZone, { borderColor: t.accent + '55', backgroundColor: t.accent + '08' }]}>
+    <TouchableOpacity 
+      activeOpacity={0.7}
+      onPress={onPick} 
+      style={[s.uploadZone, { borderColor: t.accent + '55', backgroundColor: t.accent + '08' }]}>
       <Box style={[s.uploadIconRing, { borderColor: t.accent + '40', backgroundColor: t.accent + '14' }]}>
         <Ionicons name="cloud-upload-outline" size={28} color={t.accent} />
       </Box>
       <Text style={{ color: t.text, fontWeight: '600', fontSize: 15, marginTop: 10 }}>Upload an image</Text>
       <Text style={{ color: t.secondaryText, fontSize: 12, marginTop: 3 }}>Tap to browse your library</Text>
-    </Pressable>
+    </TouchableOpacity>
   );
 });
 
-// ─── Date Selector Card ────────────────────────────────────────────────────────
+ImageZone.displayName = 'ImageZone';
 
 const DateCard = memo(({ t, endTime, onPress }) => {
   const hasDate = !!endTime;
@@ -197,7 +204,10 @@ const DateCard = memo(({ t, endTime, onPress }) => {
   const year  = hasDate ? endTime.getFullYear() : null;
 
   return (
-    <Pressable onPress={onPress} style={[s.dateCard, { backgroundColor: t.inputBackground, borderColor: hasDate ? t.accent : t.placeholder }]}>
+    <TouchableOpacity 
+      activeOpacity={0.7}
+      onPress={onPress} 
+      style={[s.dateCard, { backgroundColor: t.inputBackground, borderColor: hasDate ? t.accent : t.placeholder }]}>
       {hasDate ? (
         <HStack style={{ alignItems: 'center', gap: 14 }}>
           <Box style={[s.dateBadge, { backgroundColor: t.accent }]}>
@@ -226,11 +236,11 @@ const DateCard = memo(({ t, endTime, onPress }) => {
       <Box style={[s.dateEdit, { backgroundColor: t.accent + '18' }]}>
         <Ionicons name={hasDate ? 'pencil' : 'add'} size={14} color={t.accent} />
       </Box>
-    </Pressable>
+    </TouchableOpacity>
   );
 });
 
-// ─── Question Card ─────────────────────────────────────────────────────────────
+DateCard.displayName = 'DateCard';
 
 const QuestionCard = memo(({ q, qIndex, t, onUpdate, onRemove, onToggleMultiple, onAddOption, onRemoveOption, onUpdateOption }) => {
   const [focusedOpt, setFocusedOpt] = useState(null);
@@ -251,9 +261,9 @@ const QuestionCard = memo(({ q, qIndex, t, onUpdate, onRemove, onToggleMultiple,
             <Text style={{ color: t.secondaryText, fontSize: 12 }}>Multi-select</Text>
           </HStack>
           {onRemove && (
-            <Pressable onPress={() => onRemove(q.id)} hitSlop={8}>
+            <TouchableOpacity onPress={() => onRemove(q.id)} hitSlop={8}>
               <Ionicons name="trash-outline" size={18} color={t.error || '#dc2626'} />
-            </Pressable>
+            </TouchableOpacity>
           )}
         </HStack>
       </HStack>
@@ -298,22 +308,24 @@ const QuestionCard = memo(({ q, qIndex, t, onUpdate, onRemove, onToggleMultiple,
             selectionColor={t.accent}
           />
           {q.options.length > 2 && (
-            <Pressable onPress={() => onRemoveOption(q.id, opt.id)} hitSlop={8}>
+            <TouchableOpacity onPress={() => onRemoveOption(q.id, opt.id)} hitSlop={8}>
               <Ionicons name="close-circle-outline" size={20} color={t.error || '#dc2626'} />
-            </Pressable>
+            </TouchableOpacity>
           )}
         </HStack>
       ))}
 
-      <Pressable style={[s.addOptBtn, { borderColor: t.accent + '55', backgroundColor: t.accent + '08' }]} onPress={() => onAddOption(q.id)}>
+      <TouchableOpacity 
+        style={[s.addOptBtn, { borderColor: t.accent + '55', backgroundColor: t.accent + '08' }]} 
+        onPress={() => onAddOption(q.id)}>
         <Ionicons name="add-circle" size={16} color={t.accent} />
         <Text style={{ color: t.accent, fontSize: 13, marginLeft: 6, fontWeight: '600' }}>Add Option</Text>
-      </Pressable>
+      </TouchableOpacity>
     </Box>
   );
 });
 
-// ─── Helpers ───────────────────────────────────────────────────────────────────
+QuestionCard.displayName = 'QuestionCard';
 
 const INITIAL_QUESTION = () => ({ id: Date.now(), text: '', allowMultiple: false, options: [{ id: 1, text: '' }, { id: 2, text: '' }] });
 
@@ -330,8 +342,6 @@ const uploadImage = async (imageUri) => {
   return (await res.json()).url;
 };
 
-// ─── Main Screen ───────────────────────────────────────────────────────────────
-
 export default function CreatePostScreen({ navigation, route }) {
   const [type, setType] = useState('discussion');
   const [title, setTitle] = useState('');
@@ -346,18 +356,50 @@ export default function CreatePostScreen({ navigation, route }) {
   const { user, loading: userLoading, getUserId } = useCurrentUser(route);
   const { theme } = useTheme();
   const t = getTheme(theme);
-  const isPoll = type === 'poll';
-
-  const handleTypeToggle = useCallback(() => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setType(p => p === 'discussion' ? 'poll' : 'discussion');
-  }, []);
+  
+  const isPoll = useMemo(() => type === 'poll', [type]);
 
   const pickImage = useCallback(async () => {
-    const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!granted) return Alert.alert('Permission required', 'Please allow access to your media library.');
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaType.Images, allowsEditing: true, quality: 1 });
-    if (!result.canceled) setImage(result.assets[0].uri);
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Denied',
+          'We need access to your photo library to upload images. Please enable it in Settings.',
+          [
+            { text: 'Cancel', onPress: () => {}, style: 'cancel' },
+            { 
+              text: 'Go to Settings', 
+              onPress: () => {
+                ImagePicker.openSettings();
+              }
+            }
+          ]
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+      });
+
+      if (result.canceled) {
+        return;
+      }
+
+      if (result.assets && result.assets.length > 0) {
+        setImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        'Failed to pick image: ' + (error.message || 'Unknown error')
+      );
+    }
   }, []);
 
   const addQuestion    = useCallback(() => setQuestions(p => [...p, INITIAL_QUESTION()]), []);
@@ -368,96 +410,207 @@ export default function CreatePostScreen({ navigation, route }) {
   const removeOption   = useCallback((qId, oId) => setQuestions(p => p.map(q => q.id === qId ? { ...q, options: q.options.filter(o => o.id !== oId) } : q)), []);
   const updateOption   = useCallback((qId, oId, text) => setQuestions(p => p.map(q => q.id === qId ? { ...q, options: q.options.map(o => o.id === oId ? { ...o, text } : o) } : q)), []);
 
-  const resetForm = () => { setTitle(''); setDescription(''); setTopic(''); setImage(''); setEndTime(null); setQuestions([INITIAL_QUESTION()]); };
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setTopic('');
+    setImage('');
+    setEndTime(null);
+    setQuestions([INITIAL_QUESTION()]);
+  };
 
   const handleSubmit = useCallback(async () => {
-    const userId = user?.id || getUserId();
-    if (!userId) return Alert.alert('Error', 'No logged-in user found!');
-    if (!title.trim() || !description.trim() || !topic.trim()) return Alert.alert('Missing fields', 'Please fill in title, topic and description.');
-    if (isPoll && questions.some(q => !q.text.trim() || q.options.some(o => !o.text.trim()))) return Alert.alert('Invalid poll', 'Fill in all questions and options.');
     try {
+      const userId = user?.id || getUserId();
+      if (!userId) {
+        Alert.alert('Error', 'No logged-in user found!');
+        return;
+      }
+
+      if (!title.trim() || !description.trim() || !topic.trim()) {
+        Alert.alert('Missing fields', 'Please fill in title, topic and description.');
+        return;
+      }
+
+      if (isPoll && questions.some(q => !q.text.trim() || q.options.some(o => !o.text.trim()))) {
+        Alert.alert('Invalid poll', 'Fill in all questions and options.');
+        return;
+      }
+
       setLoading(true);
-      const imageUrl = image ? await uploadImage(image) : null;
-      const data = { type, topic, title, description, image: imageUrl, end_time: isPoll && endTime ? endTime.toISOString() : null, author_id: userId,
-        questions: isPoll ? questions.map(q => ({ text: q.text, allowMultiple: q.allowMultiple, options: q.options.map(o => ({ text: o.text })) })) : undefined };
-      const { postId } = await createPost(data);
+
+      let imageUrl = null;
+      if (image) {
+        try {
+          imageUrl = await uploadImage(image);
+        } catch (uploadError) {
+          Alert.alert('Image Upload Failed', uploadError.message);
+          setLoading(false);
+          return;
+        }
+      }
+
+      const postData = {
+        type,
+        topic,
+        title,
+        description,
+        image: imageUrl,
+        end_time: isPoll && endTime ? endTime.toISOString() : null,
+        author_id: userId,
+        questions: isPoll 
+          ? questions.map(q => ({
+              text: q.text,
+              allowMultiple: q.allowMultiple,
+              options: q.options.map(o => ({ text: o.text }))
+            }))
+          : undefined
+      };
+
+      const response = await createPost(postData);
+      const postId = response.postId || response.id;
+
+      if (!postId) {
+        throw new Error('No post ID returned from server');
+      }
+
       let createdPost = null;
-      try { createdPost = ((await getAllPosts()) || []).find(p => p.id === postId) || null; } catch {}
-      Alert.alert('Success', 'Post created!', [{ text: 'View Post', onPress: () => {
-        if (createdPost) navigation.navigate(createdPost.type === 'poll' ? 'Poll' : 'Discuss', { postData: createdPost });
-        else navigation.navigate('Main');
-      }}]);
+      try {
+        const allPosts = await getAllPosts();
+        createdPost = (allPosts || []).find(p => p.id === postId) || null;
+      } catch (fetchError) {
+        console.error('Error fetching created post:', fetchError);
+      }
+
+      Alert.alert('Success', 'Post created!', [
+        {
+          text: 'View Post',
+          onPress: () => {
+            if (createdPost) {
+              navigation.navigate(
+                createdPost.type === 'poll' ? 'Poll' : 'Discuss',
+                { postData: createdPost }
+              );
+            } else {
+              navigation.navigate('Main');
+            }
+          }
+        }
+      ]);
+
       resetForm();
     } catch (err) {
       Alert.alert('Error', err.message || 'Failed to create post.');
-    } finally { setLoading(false); }
-  }, [user, getUserId, title, description, topic, isPoll, questions, image, endTime]);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, getUserId, title, description, topic, isPoll, questions, image, endTime, navigation]);
 
   return (
-    <SafeAreaView edges={['left', 'right', 'bottom']} style={[s.container, { backgroundColor: t.background, paddingTop: 16 }]}>
-      <Text style={[s.header, { color: t.text }]}>Create a {isPoll ? 'Poll' : 'Discussion'}</Text>
-
-      {/* Type Toggle */}
-      <HStack style={[s.typeToggle, { backgroundColor: t.cardBackground, borderColor: t.placeholder }]}>
-        {['discussion', 'poll'].map(opt => (
-          <Pressable key={opt} onPress={() => { if (type !== opt) handleTypeToggle(); }}
-            style={[s.typeOption, type === opt && { backgroundColor: t.accent, shadowColor: t.accent, shadowOpacity: 0.4, shadowRadius: 8, elevation: 4 }]}>
-            <Ionicons name={opt === 'poll' ? 'stats-chart' : 'chatbox'} size={15} color={type === opt ? '#fff' : t.secondaryText} />
-            <Text style={{ color: type === opt ? '#fff' : t.secondaryText, fontWeight: '600', fontSize: 13, textTransform: 'capitalize' }}>{opt}</Text>
-          </Pressable>
-        ))}
+    <SafeAreaView edges={['']} style={[s.container, { backgroundColor: t.background, paddingTop: 16 }]}>
+      <HStack style={{ borderBottomWidth: 1, borderBottomColor: t.placeholder }}>
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setType('discussion')}
+          style={[s.tab, type === 'discussion' && { borderBottomWidth: 3, borderBottomColor: t.accent }]}>
+          <Ionicons name="chatbox" size={18} color={type === 'discussion' ? t.accent : t.secondaryText} />
+          <Text style={{ color: type === 'discussion' ? t.accent : t.secondaryText, fontWeight: type === 'discussion' ? '700' : '500', fontSize: 14 }}>Discussion</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setType('poll')}
+          style={[s.tab, type === 'poll' && { borderBottomWidth: 3, borderBottomColor: t.accent }]}>
+          <Ionicons name="stats-chart" size={18} color={type === 'poll' ? t.accent : t.secondaryText} />
+          <Text style={{ color: type === 'poll' ? t.accent : t.secondaryText, fontWeight: type === 'poll' ? '700' : '500', fontSize: 14 }}>Poll</Text>
+        </TouchableOpacity>
       </HStack>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 32, paddingHorizontal: 20, paddingTop: 16 }} keyboardShouldPersistTaps="handled">
           <VStack style={{ gap: 16 }}>
 
-            {/* Title */}
-            <FloatingInput t={t} label="Title" value={title} onChangeText={setTitle} maxLength={120} returnKeyType="next" />
+            <FloatingInput 
+              t={t} 
+              label="Title" 
+              value={title} 
+              onChangeText={setTitle} 
+              maxLength={120} 
+              returnKeyType="next" 
+            />
 
-            {/* Topic */}
             <VStack style={{ gap: 6 }}>
               <Text style={[s.sectionLabel, { color: t.secondaryText }]}>Topic</Text>
               <TopicPicker t={t} topic={topic} onSelect={setTopic} />
             </VStack>
 
-            {/* Description */}
-            <FloatingInput t={t} label="What's on your mind…" value={description} onChangeText={setDescription} multiline minHeight={140} maxLength={2000} />
+            <FloatingInput 
+              t={t} 
+              label="What's on your mind…" 
+              value={description} 
+              onChangeText={setDescription} 
+              multiline 
+              minHeight={140} 
+              maxLength={2000} 
+            />
 
-            {/* Image */}
             <VStack style={{ gap: 6 }}>
               <Text style={[s.sectionLabel, { color: t.secondaryText }]}>Image (optional)</Text>
-              <ImageZone t={t} image={image} onPick={pickImage} onRemove={() => setImage('')} />
+              <ImageZone 
+                t={t} 
+                image={image} 
+                onPick={pickImage} 
+                onRemove={() => setImage('')} 
+              />
             </VStack>
 
-            {/* Poll extras */}
             {isPoll && (
               <VStack style={{ gap: 16 }}>
                 <VStack style={{ gap: 6 }}>
                   <Text style={[s.sectionLabel, { color: t.secondaryText }]}>Poll End Date</Text>
                   <DateCard t={t} endTime={endTime} onPress={() => setShowDatePicker(true)} />
-                  <DatePickerModal visible={showDatePicker} value={endTime} theme={theme} t={t} mode="date"
-                    title="Select End Date" minimumDate={new Date()}
-                    onConfirm={(date, { close }) => { setEndTime(date); if (close) setShowDatePicker(false); }}
-                    onCancel={() => setShowDatePicker(false)} />
+                  <DatePickerModal 
+                    visible={showDatePicker} 
+                    value={endTime} 
+                    theme={theme} 
+                    t={t} 
+                    mode="date"
+                    title="Select End Date" 
+                    minimumDate={new Date()}
+                    onConfirm={(date, { close }) => { 
+                      setEndTime(date); 
+                      if (close) setShowDatePicker(false); 
+                    }}
+                    onCancel={() => setShowDatePicker(false)} 
+                  />
                 </VStack>
 
                 {questions.map((q, i) => (
-                  <QuestionCard key={q.id} q={q} qIndex={i} t={t}
-                    onUpdate={updateQuestion} onRemove={questions.length > 1 ? removeQuestion : null}
-                    onToggleMultiple={toggleMultiple} onAddOption={addOption}
-                    onRemoveOption={removeOption} onUpdateOption={updateOption} />
+                  <QuestionCard 
+                    key={q.id} 
+                    q={q} 
+                    qIndex={i} 
+                    t={t}
+                    onUpdate={updateQuestion} 
+                    onRemove={questions.length > 1 ? removeQuestion : null}
+                    onToggleMultiple={toggleMultiple} 
+                    onAddOption={addOption}
+                    onRemoveOption={removeOption} 
+                    onUpdateOption={updateOption} 
+                  />
                 ))}
 
-                <Pressable style={[s.addQBtn, { borderColor: t.accent + '55', backgroundColor: t.accent + '08' }]} onPress={addQuestion}>
+                <TouchableOpacity 
+                  style={[s.addQBtn, { borderColor: t.accent + '55', backgroundColor: t.accent + '08' }]} 
+                  onPress={addQuestion}>
                   <Ionicons name="add-circle" size={20} color={t.accent} />
                   <Text style={{ color: t.accent, fontWeight: '600', marginLeft: 8 }}>Add Question</Text>
-                </Pressable>
+                </TouchableOpacity>
               </VStack>
             )}
 
-            {/* Submit */}
-            <Button onPress={handleSubmit} disabled={loading || userLoading}
+            <Button 
+              onPress={handleSubmit} 
+              disabled={loading || userLoading}
               style={{
                 backgroundColor: t.accent,
                 borderRadius: 14,
@@ -472,7 +625,9 @@ export default function CreatePostScreen({ navigation, route }) {
                 ? <ActivityIndicator color="#fff" />
                 : <HStack style={{ alignItems: 'center', gap: 8 }}>
                     <Ionicons name="send" size={18} color="#fff" />
-                    <ButtonText style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>Publish {isPoll ? 'Poll' : 'Post'}</ButtonText>
+                    <ButtonText style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
+                      Publish {isPoll ? 'Poll' : 'Post'}
+                    </ButtonText>
                   </HStack>
               }
             </Button>
@@ -484,35 +639,20 @@ export default function CreatePostScreen({ navigation, route }) {
   );
 }
 
-// ─── Styles ────────────────────────────────────────────────────────────────────
-
 const s = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 20 },
-  header: { fontSize: 22, fontWeight: '800', textAlign: 'center', marginBottom: 16, letterSpacing: -0.3 },
+  container: { flex: 1 },
   sectionLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, marginLeft: 2 },
 
-  // Type toggle
-  typeToggle: { flexDirection: 'row', alignSelf: 'center', borderRadius: 14, borderWidth: 1, padding: 4, gap: 4, marginBottom: 20 },
-  typeOption: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 18, borderRadius: 10 },
+  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12 },
 
-  // Floating label
   floatWrap: { borderWidth: 1.5, borderRadius: 14, paddingHorizontal: 14, paddingTop: 18, paddingBottom: 10, position: 'relative' },
   floatLabel: { position: 'absolute', left: 14, paddingHorizontal: 3, zIndex: 1 },
   floatInput: { fontSize: 15, paddingTop: 4 },
   charCount: { fontSize: 10, textAlign: 'right', marginTop: 4 },
 
-  // Topic
   topicTrigger: { borderWidth: 1.5, borderRadius: 14, paddingVertical: 13, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   topicChevron: { width: 26, height: 26, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  topicDot: { width: 10, height: 10, borderRadius: 5 },
-  sheetOuter: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
-  topicSheet: { borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 12 },
-  sheetHandle: { width: 40, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: 12 },
-  chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingVertical: 8 },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 20, borderWidth: 1.5 },
-  chipDot: { width: 8, height: 8, borderRadius: 4 },
 
-  // Image
   uploadZone: { borderWidth: 2, borderStyle: 'dashed', borderRadius: 16, paddingVertical: 32, alignItems: 'center', justifyContent: 'center' },
   uploadIconRing: { width: 60, height: 60, borderRadius: 30, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   imageCard: { borderRadius: 16, overflow: 'hidden', height: 200 },
@@ -520,18 +660,15 @@ const s = StyleSheet.create({
   imageGradient: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '60%', justifyContent: 'flex-end' },
   imageAction: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8 },
 
-  // Date card
   dateCard: { borderWidth: 1.5, borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   dateBadge: { width: 52, height: 60, borderRadius: 12, alignItems: 'center', justifyContent: 'center', padding: 4 },
   dateEdit: { width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
 
-  // Question card
   card: { borderWidth: 1, borderRadius: 14, padding: 14 },
   cardHeader: { justifyContent: 'space-between', alignItems: 'center' },
   qInput: { borderWidth: 1.5, borderRadius: 10, padding: 10, fontSize: 14 },
   optBadge: { width: 28, height: 28, borderRadius: 7, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   addOptBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderStyle: 'dashed', borderRadius: 10, paddingVertical: 8, marginTop: 4 },
 
-  // Add question
   addQBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderStyle: 'dashed', borderRadius: 14, paddingVertical: 14 },
 });

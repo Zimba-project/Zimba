@@ -102,7 +102,7 @@ export default function PollScreen() {
 
   if (loading || !post) {
     return (
-      <SafeAreaView edges={["bottom"]} style={[styles.center, { backgroundColor: t.background }]}>
+      <SafeAreaView edges={[""]} style={[styles.center, { backgroundColor: t.background }]}>
         <ActivityIndicator size="large" color={t.accent} />
         <Text style={{ marginTop: 12, color: t.text }}>Loading...</Text>
       </SafeAreaView>
@@ -129,7 +129,6 @@ export default function PollScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
         <CardHeader
           author={{ avatar: avatarUrl, name: author_name, time: created_at, verified: author_verified }}
-          topic={topic}
         />
 
         {imageUrl && <Image source={{ uri: imageUrl }} style={styles.image} />}

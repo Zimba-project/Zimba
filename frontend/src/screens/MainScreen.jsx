@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { FlatList, StyleSheet, ActivityIndicator, View } from 'react-native';
 import InfoBoard from '../components/MainPage/InfoBoard';
 import PollCard from '../components/Cards/PollCard';
 import DiscussionCard from '../components/Cards/DiscussionCard';
@@ -99,7 +99,7 @@ export default function MainScreen({ navigation }) {
   if (loading) {
     return (
       <SafeAreaView
-        edges={['bottom']}
+        edges={['']}
         style={[styles.centered, { backgroundColor: t.background }]}
       >
         <ActivityIndicator size="large" color={t.accent} />
@@ -113,7 +113,7 @@ export default function MainScreen({ navigation }) {
   if (error) {
     return (
       <SafeAreaView
-        edges={['bottom']}
+        edges={['']}
         style={[styles.centered, { backgroundColor: t.background }]}
       >
         <Text style={[styles.errorText, { color: t.error }]}>{error}</Text>
@@ -130,7 +130,7 @@ export default function MainScreen({ navigation }) {
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: t.background }]}
-      edges={['bottom']}
+      edges={['']}
     >
       <FlatList
         data={feed}
@@ -166,7 +166,7 @@ export default function MainScreen({ navigation }) {
                 </Text>
               </Pressable>
             </Box>
-
+              
             <InfoBoard
               items={infoItems}
               onCardPress={it => alert(`Info: ${it.title}`)}

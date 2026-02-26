@@ -29,10 +29,11 @@ export default function RegisterScreen() {
   const isDark = theme === 'dark';
   const accentColor = useMemo(() => t.accent, [t.accent]);
 
-  const gradientColors = useMemo(() =>
-    isDark
-      ? ['#111827', '#1e40af', '#1f2937']
-      : ['#f5f7fa', '#dbeafe', '#bfdbfe'],
+  const gradientColors = useMemo(
+    () =>
+      isDark
+        ? ['#111827', '#1e40af', '#1f2937']
+        : ['#f5f7fa', '#dbeafe', '#bfdbfe'],
     [isDark]
   );
 
@@ -79,152 +80,192 @@ export default function RegisterScreen() {
   };
 
   return (
- <View style={[styles.containerWrapper, { backgroundColor: t.background }]} key={`register-${theme}`}>
-  <LinearGradient
-    colors={gradientColors}
-    start={{ x: 0.5, y: 0 }}
-    end={{ x: 0.5, y: 1 }}
-    style={styles.gradientBackground}
-  />
+    <View style={[styles.containerWrapper, { backgroundColor: t.background }]} key={`register-${theme}`}>
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.gradientBackground}
+      />
 
-  <SafeAreaView edges={['left', 'right', 'bottom']} style={[styles.safeAreaContainer, { backgroundColor: 'transparent' }]}>
-    <View style={styles.mainContainer}>
-      <View style={styles.titleContainer}>
-        <Text style={[styles.title, { color: t.text }]}>Create Account</Text>
-      </View>
-      <View style={styles.formContainer}>
-        {error && (
-          <View style={[styles.errorBox, { backgroundColor: isDark ? 'rgba(248,113,113,0.1)' : 'rgba(248,113,113,0.08)' }]}>
-            <Ionicons name="alert-circle" size={14} color={t.error} style={{ marginRight: 6 }} />
-            <Text style={[styles.errorText, { color: t.error }]}>{error}</Text>
+      <SafeAreaView edges={['left', 'right', 'bottom']} style={[styles.safeAreaContainer, { backgroundColor: 'transparent' }]}>
+        <View style={styles.mainContainer}>
+          <View style={styles.titleContainer}>
+            <Text style={[styles.title, { color: t.text }]}>Create Account</Text>
           </View>
-        )}
-        <View style={styles.rowContainer}>
-          <View style={styles.halfInput}>
+
+          <View style={styles.formContainer}>
+            {error && (
+              <View style={[styles.errorBox, { backgroundColor: isDark ? 'rgba(248,113,113,0.1)' : 'rgba(248,113,113,0.08)' }]}>
+                <Ionicons name="alert-circle" size={14} color={t.error} style={{ marginRight: 6 }} />
+                <Text style={[styles.errorText, { color: t.error }]}>{error}</Text>
+              </View>
+            )}
+
+            <View style={styles.rowContainer}>
+              <View style={styles.halfInput}>
+                <TextInput
+                  style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
+                  placeholder="First name"
+                  placeholderTextColor={t.placeholder}
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  editable={!loading}
+                />
+              </View>
+              <View style={styles.halfInput}>
+                <TextInput
+                  style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
+                  placeholder="Last name"
+                  placeholderTextColor={t.placeholder}
+                  value={lastName}
+                  onChangeText={setLastName}
+                  editable={!loading}
+                />
+              </View>
+            </View>
+
             <TextInput
               style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
-              placeholder="First name"
+              placeholder="Email"
               placeholderTextColor={t.placeholder}
-              value={firstName}
-              onChangeText={setFirstName}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
               editable={!loading}
             />
-          </View>
-          <View style={styles.halfInput}>
+
+            <Text style={[styles.inputLabel, { color: t.text }]}>Mobile Number</Text>
+
+            <View style={[styles.phoneInputContainer, { borderColor: t.inputBorder, backgroundColor: t.inputBackground }]}>
+              <TouchableOpacity
+                style={styles.dialCodeButton}
+                onPress={() => setShowCountryPicker(true)}
+                disabled={loading}
+              >
+                <Text style={[styles.dialCodeText, { color: t.text }]}>
+                  {selectedCountry.flag} {selectedCountry.dial_code}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color={t.secondaryText} style={{ marginLeft: 4 }} />
+              </TouchableOpacity>
+
+              <View style={[styles.dividerLine, { backgroundColor: t.inputBorder }]} />
+
+              <TextInput
+                style={[styles.phoneInput, { color: t.text }]}
+                placeholder="Phone"
+                placeholderTextColor={t.placeholder}
+                keyboardType="phone-pad"
+                value={phoneInput}
+                onChangeText={setPhoneInput}
+                editable={!loading}
+              />
+            </View>
+
+            <Modal
+              visible={showCountryPicker}
+              transparent
+              animationType="slide"
+              onRequestClose={() => setShowCountryPicker(false)}
+            >
+              <View
+                style={[
+                  styles.modalContainer,
+                  { backgroundColor: isDark ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.3)' }
+                ]}
+              >
+                <View style={[styles.modalContent, { backgroundColor: t.background }]}>
+                  <View style={[styles.modalHeader, { borderBottomColor: t.inputBorder }]}>
+                    <Text style={[styles.modalTitle, { color: t.text }]}>Select Country</Text>
+                    <TouchableOpacity onPress={() => setShowCountryPicker(false)}>
+                      <Ionicons name="close" size={24} color={t.text} />
+                    </TouchableOpacity>
+                  </View>
+
+                  <FlatList
+                    data={COUNTRIES}
+                    keyExtractor={(item) => item.code}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={[
+                          styles.countryOption,
+                          {
+                            borderBottomColor: t.inputBorder,
+                            backgroundColor:
+                              selectedCountry.code === item.code
+                                ? isDark
+                                  ? 'rgba(37, 99, 235, 0.1)'
+                                  : 'rgba(59, 130, 246, 0.08)'
+                                : 'transparent'
+                          }
+                        ]}
+                        onPress={() => {
+                          setSelectedCountry(item);
+                          setShowCountryPicker(false);
+                        }}
+                      >
+                        <Text style={[styles.countryOptionText, { color: t.text }]}>
+                          {item.flag} {item.name} ({item.dial_code})
+                        </Text>
+
+                        {selectedCountry.code === item.code && (
+                          <Ionicons name="checkmark" size={20} color={accentColor} />
+                        )}
+                      </TouchableOpacity>
+                    )}
+                  />
+                </View>
+              </View>
+            </Modal>
+
             <TextInput
               style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
-              placeholder="Last name"
+              placeholder="Password"
               placeholderTextColor={t.placeholder}
-              value={lastName}
-              onChangeText={setLastName}
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
               editable={!loading}
             />
+
+            <TextInput
+              style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
+              placeholder="Confirm password"
+              placeholderTextColor={t.placeholder}
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              editable={!loading}
+            />
+
+            <TouchableOpacity
+              style={[styles.signupButton, { backgroundColor: accentColor, opacity: loading ? 0.7 : 1 }]}
+              onPress={handleRegister}
+              disabled={loading}
+              activeOpacity={0.85}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" size={16} />
+              ) : (
+                <>
+                  <Text style={styles.signupButtonText}>Sign Up</Text>
+                  <Ionicons name="arrow-forward" size={14} color="#fff" style={{ marginLeft: 5 }} />
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.loginContainer}>
+            <Text style={[styles.loginText, { color: t.secondaryText }]}>Already have an account?</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')} activeOpacity={0.7}>
+              <Text style={[styles.loginLink, { color: accentColor }]}>Login</Text>
+            </TouchableOpacity>
           </View>
         </View>
-        <TextInput
-          style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
-          placeholder="Email"
-          placeholderTextColor={t.placeholder}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
-          editable={!loading}
-        />
-        <Text style={[styles.inputLabel, { color: t.text }]}>Mobile Number</Text>
-        <View style={[styles.phoneInputContainer, { borderColor: t.inputBorder, backgroundColor: t.inputBackground }]}>
-          <TouchableOpacity style={styles.dialCodeButton} onPress={() => setShowCountryPicker(true)} disabled={loading}>
-            <Text style={[styles.dialCodeText, { color: t.text }]}>
-              {selectedCountry.flag} {selectedCountry.dial_code}
-            </Text>
-            <Ionicons name="chevron-down" size={14} color={t.secondaryText} style={{ marginLeft: 3 }} />
-          </TouchableOpacity>
-
-          <View style={[styles.dividerLine, { backgroundColor: t.inputBorder }]} />
-
-          <TextInput
-            style={[styles.phoneInput, { color: t.text }]}
-            placeholder="Phone"
-            placeholderTextColor={t.placeholder}
-            keyboardType="phone-pad"
-            value={phoneInput}
-            onChangeText={setPhoneInput}
-            editable={!loading}
-          />
-        </View>
-
-        <TextInput
-          style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
-          placeholder="Password"
-          placeholderTextColor={t.placeholder}
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          editable={!loading}
-        />
-
-        <TextInput
-          style={[styles.input, { backgroundColor: t.inputBackground, borderColor: t.inputBorder, color: t.text }]}
-          placeholder="Confirm password"
-          placeholderTextColor={t.placeholder}
-          secureTextEntry
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          editable={!loading}
-        />
-
-        <TouchableOpacity
-          style={[styles.signupButton, { backgroundColor: accentColor, opacity: loading ? 0.7 : 1 }]}
-          onPress={handleRegister}
-          disabled={loading}
-          activeOpacity={0.85}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" size={16} />
-          ) : (
-            <>
-              <Text style={styles.signupButtonText}>Sign Up</Text>
-              <Ionicons name="arrow-forward" size={14} color="#fff" style={{ marginLeft: 5 }} />
-            </>
-          )}
-        </TouchableOpacity>
-
-        <View style={styles.dividerContainer}>
-          <View style={[styles.divider, { backgroundColor: t.inputBorder }]} />
-          <Text style={[styles.dividerText, { color: t.secondaryText }]}>or continue with</Text>
-          <View style={[styles.divider, { backgroundColor: t.inputBorder }]} />
-        </View>
-
-        <View style={styles.socialButtonsContainer}>
-          <TouchableOpacity
-            style={[styles.socialButton, { borderColor: t.inputBorder, backgroundColor: t.inputBackground }]}
-            onPress={() => Alert.alert('Coming Soon', 'Google signup will be implemented soon')}
-          >
-            <Ionicons name="logo-google" size={16} color={accentColor} />
-            <Text style={[styles.socialButtonText, { color: t.text }]}>Google</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.socialButton, { borderColor: t.inputBorder, backgroundColor: t.inputBackground }]}
-            onPress={() => Alert.alert('Coming Soon', 'Apple signup will be implemented soon')}
-          >
-            <Ionicons name="logo-apple" size={16} color={isDark ? '#fff' : '#000'} />
-            <Text style={[styles.socialButtonText, { color: t.text }]}>Apple</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.loginContainer}>
-        <Text style={[styles.loginText, { color: t.secondaryText }]}>Already have an account?</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Login')} activeOpacity={0.7}>
-          <Text style={[styles.loginLink, { color: accentColor }]}>Login</Text>
-        </TouchableOpacity>
-      </View>
-
+      </SafeAreaView>
     </View>
-  </SafeAreaView>
-</View>
-);
+  );
 }
 
 const styles = StyleSheet.create({
