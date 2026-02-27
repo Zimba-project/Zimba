@@ -57,11 +57,7 @@ const RootApp = () => {
             }}
           >
             <Stack.Screen name="Welcome" component={Welcome} options={{ headerShown: false }} />
-            <Stack.Screen
-              name="Main"
-              component={Sidebar}
-              options={{ title: 'ZIMBA', headerBackVisible: false }}
-            />
+            <Stack.Screen name="Main" component={Sidebar} options={{ title: 'ZIMBA', headerBackVisible: false }} />
             <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="Register" component={Register} />
             <Stack.Screen name="Profile" component={Profile} options={{ headerShown: false }} />

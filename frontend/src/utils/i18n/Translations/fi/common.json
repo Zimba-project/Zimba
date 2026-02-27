@@ -61,6 +61,15 @@
     "profile_picture_updated": "Profiilikuvasi on päivitetty.",
     "no_posts_yet": "Ei julkaisuja",
     "groups": "Ryhmät",
+    "help_faq": "Ohjeet & UKK",
+    "report_problem": "Ilmoita ongelmasta",
+    "contact_us": "Ota yhteyttä",
+    "send_feedback": "Lähetä palautetta",
+    "terms_of_service": "Käyttöehdot",
+    "privacy_policy": "Tietosuojakäytäntö",
+    "community_guidelines": "Yhteisön ohjeet",
+    "support": "Tuki",
+    "open_source_licenses": "Avoimen lähdekoodin lisenssit",
     "time": {
       "just_now": "juuri nyt",
       "minute": "1 minuutti sitten",
@@ -73,5 +82,20 @@
       "today": "tänään",
       "in_day": "1 päivän kuluttua",
       "in_days": "{{count}} päivän kuluttua"
-    }
+    },
+    "openSource": {
+    "title": "Avoimen lähdekoodin lisenssit",
+    "intro": "Tämä sovellus käyttää seuraavia avoimen lähdekoodin kirjastoja. Olemme kiitollisia kaikille kehittäjille, jotka ovat osallistuneet näihin projekteihin.",
+    "stats_one": "{{count}} paketti • MIT- ja Apache 2.0 -lisenssit",
+    "stats_other": "{{count}} pakettia • MIT- ja Apache 2.0 -lisenssit",
+    "version": "v{{version}}",
+    "viewOnGithub": "Näytä GitHubissa",
+    "mitTitle": "MIT-lisenssi",
+    "mitDescription": "MIT-lisenssi on salliva avoimen lähdekoodin lisenssi, joka mahdollistaa ohjelmiston käytön mihin tahansa tarkoitukseen, myös kaupallisesti, kunhan alkuperäinen tekijä mainitaan.",
+    "apacheTitle": "Apache 2.0 -lisenssi",
+    "apacheDescription": "Apache 2.0 -lisenssi on salliva avoimen lähdekoodin lisenssi, joka sisältää nimenomaisen patenttioikeuksien myöntämisen käyttäjille.",
+    "thankYou": "Kiitos kaikille avoimen lähdekoodin kehittäjille! 🙏",
+    "cannotOpenLink": "Linkkiä ei voida avata",
+    "failedToOpenLink": "Linkin avaaminen epäonnistui: {{message}}"
+  }
 }

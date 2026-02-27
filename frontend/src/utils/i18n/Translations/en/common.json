@@ -61,6 +61,15 @@
   "profile_picture_updated": "Your profile picture has been updated.",
   "no_posts_yet": "No posts yet",
   "groups": "Groups",
+  "help_faq": "Help & FAQ",
+  "report_problem": "Report a Problem",
+  "contact_us": "Contact us",
+  "send_feedback": "Send Feedback",
+  "terms_of_service": "Terms of Service",
+  "privacy_policy": "Privacy Policy",
+  "community_guidelines": "Community Guidelines",
+  "support": "Support",
+  "open_source_licenses": "Open Source Licenses",
   "time": {
     "just_now": "just now",
     "minute": "1 minute ago",
@@ -73,5 +82,20 @@
     "today": "today",
     "in_day": "in 1 day",
     "in_days": "in {{count}} days"
+  },
+  "openSource": {
+    "title": "Open Source Licenses",
+    "intro": "This app uses the following open source libraries. We are grateful to all the developers who contributed to these projects.",
+    "stats_one": "{{count}} package • MIT & Apache 2.0 licenses",
+    "stats_other": "{{count}} packages • MIT & Apache 2.0 licenses",
+    "version": "v{{version}}",
+    "viewOnGithub": "View on GitHub",
+    "mitTitle": "MIT License",
+    "mitDescription": "The MIT License is a permissive open source license that allows you to use the software for any purpose, including commercial use, as long as the original author is credited.",
+    "apacheTitle": "Apache 2.0 License",
+    "apacheDescription": "The Apache License 2.0 is a permissive open source license that includes an explicit grant of patent rights from contributors to users.",
+    "thankYou": "Thank you to all the open source developers! 🙏",
+    "cannotOpenLink": "Cannot open this link",
+    "failedToOpenLink": "Failed to open link: {{message}}"
   }
 }

@@ -20,9 +20,9 @@ import { Button, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
 import { Box } from '@/components/ui/box';
-import { Pressable } from '@/components/ui/pressable';
 import { Switch } from '@/components/ui/switch';
 import { ScrollView } from '@/components/ui/scroll-view';
+import { TOPIC_ICONS } from '../utils/TopicIcons';
 
 const FloatingInput = memo(({ t, label, value, multiline, minHeight, maxLength, ...props }) => {
   const [focused, setFocused] = useState(false);
@@ -61,21 +61,6 @@ const FloatingInput = memo(({ t, label, value, multiline, minHeight, maxLength, 
 });
 
 FloatingInput.displayName = 'FloatingInput';
-
-const TOPIC_ICONS = {
-  'asuminen ja rakentaminen': 'home',
-  'kulttuuri ja vapaa-aika': 'color-palette',
-  'liikenne ja kadut': 'car',
-  'liikunta ja luonto': 'bicycle',
-  'kasvatus ja opetus': 'school',
-  'työelämä': 'briefcase',
-  'kaupunki ja päätöksenteko': 'business',
-  'yritykset': 'storefront',
-  'matkailu': 'airplane',
-  'luonto ja kestävä kehitys': 'leaf',
-  'osallistu': 'people',
-  'tuoreimmat': 'flash',
-};
 
 const TopicPicker = memo(({ t, topic, onSelect }) => {
   const [open, setOpen] = useState(false);
